@@ -96,6 +96,6 @@ func VerifyHash(data []byte, fdoHashB HashOrHmac) (bool, error) {
 	}
 }
 
-func VerifyHMac(hash HashOrHmac, data []byte) bool {
-	return false // TODO
+func VerifyHMac(data []byte, hash HashOrHmac, key []byte) (bool, error) {
+	return false, nil // TODO
 }

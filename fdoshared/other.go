@@ -59,13 +59,6 @@ func (h FdoIPAddress) ToString() string {
 	return ""
 }
 
-// RVTO2AddrEntry = [
-//     RVIP: IPAddress / null,       ;; IP address where Owner is waiting for TO2
-//     RVDNS: DNSAddress / null,     ;; DNS address where Owner is waiting for TO2
-//     RVPort: Port,                 ;; TCP/UDP port to go with above
-//     RVProtocol: TransportProtocol ;; Protocol, to go with above
-// ]
-
 type TransportProtocol uint16
 
 const (
