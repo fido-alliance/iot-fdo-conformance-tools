@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -29,10 +30,19 @@ func (h *RvTo0) Handle20Hello(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_HELLO_20, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
+	log.Println(bodyBytes)
+	hex.EncodeToString(bodyBytes)
+	bodyBytesAsString := string(bodyBytes)
+	log.Println("As HexString:")
+	log.Println((bodyBytesAsString))
 
 	var helloMsg fdoshared.Hello20
-	err = cbor.Unmarshal(bodyBytes, &helloMsg)
+	a, err := hex.DecodeString(bodyBytesAsString)
+
+	err = cbor.Unmarshal(a, &helloMsg)
 	if err != nil {
+		log.Println("Some error")
+		log.Println(err)
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_HELLO_20, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
@@ -78,12 +88,12 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.session.GetSessionEntry(sessionId)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Unauthorized", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Unauthorized (1)", http.StatusUnauthorized)
 		return
 	}
 
 	if session.Protocol != fdoshared.To0 {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Unauthorized", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Unauthorized (2)", http.StatusUnauthorized)
 		return
 	}
 
@@ -94,24 +104,30 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println(bodyBytes)
+	hex.EncodeToString(bodyBytes)
+	bodyBytesAsString := string(bodyBytes)
+	bodyBytesBuffer, err := hex.DecodeString(bodyBytesAsString)
+
 	var ownerSign fdoshared.OwnerSign22
-	err = cbor.Unmarshal(bodyBytes, &ownerSign)
+	err = cbor.Unmarshal(bodyBytesBuffer, &ownerSign)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body!", http.StatusBadRequest)
+		log.Println(err)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body 1!", http.StatusBadRequest)
 		return
 	}
 
 	var to0d fdoshared.To0d
 	err = cbor.Unmarshal(ownerSign.To0d, &to0d)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body 2!", http.StatusBadRequest)
 		return
 	}
 
 	var to1dPayload fdoshared.To1dBlobPayload
 	err = cbor.Unmarshal(ownerSign.To1d.Payload, &to1dPayload)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body 3!", http.StatusBadRequest)
 		return
 	}
 
@@ -120,7 +136,7 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	// Verify nonces
 
 	if bytes.Compare(to0d.NonceTO0Sign[:], session.NonceTO0Sign[:]) != 0 {
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 1!", http.StatusBadRequest)
 		return
 	}
 
@@ -129,13 +145,13 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("OwnerSign22: Error verifying voucher. " + err.Error())
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 2!", http.StatusBadRequest)
 		return
 	}
 
 	if !voucherIsValid {
 		log.Println("OwnerSign22: Voucher is not valid")
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 3!", http.StatusBadRequest)
 		return
 	}
 
@@ -148,13 +164,13 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("OwnerSign22: Error verifying to1d. " + err.Error())
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 4!", http.StatusBadRequest)
 		return
 	}
 
 	if !to1dIsValid {
 		log.Println("OwnerSign22: To1D signature can not be validated!")
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 5!", http.StatusBadRequest)
 		return
 	}
 
@@ -163,13 +179,13 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("OwnerSign22: Error verifying to0dHash. " + err.Error())
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 6!", http.StatusBadRequest)
 		return
 	}
 
 	if !to0dHashIsValid {
 		log.Println("OwnerSign22: To0d hash is not valid!")
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 7!", http.StatusBadRequest)
 		return
 	}
 
