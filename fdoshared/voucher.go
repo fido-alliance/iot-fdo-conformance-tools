@@ -37,7 +37,7 @@ func (h OwnershipVoucher) Validate() (bool, error) {
 	// TODO
 
 	// Verify ProtVersion
-
+	if h.OVProtVer != ProtVer100 && h.OVProtVer != ProtVer101
 	// Decode Voucher Header
 
 	// Verify ProtVersion

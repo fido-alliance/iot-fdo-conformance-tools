@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/hex"
 	"io/ioutil"
 	"log"
@@ -66,6 +67,8 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	log.Println(helloRVAckBytes)
+	log.Println("=========== nonce:")
+	log.Println(nonceTO1Proof)
 	// eg 8250ce8d4ec966491fdb1c49c2c66935a9fa822678244920616d206120706f7461746f652120536d6172742c20496f542c20706f7461746f6521
 	// [h'CE8D4EC966491FDB1C49C2C66935A9FA', [-7, "I am a potatoe! Smart, IoT, potatoe!"]]
 
@@ -102,10 +105,72 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var proveToRV32 fdoshared.ProveToRV32
 	err = cbor.Unmarshal(bodyBytesBuffer, &proveToRV32)
 
-	log.Println(proveToRV32)
-	log.Println("==============")
+	log.Println(bodyBytesBuffer)
 
-	// check stored Nonce = NonceTO1Proof
+	if err != nil {
+		log.Println(err)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (1)!", http.StatusBadRequest)
+		return
+	}
+
+	var pb fdoshared.EATPayloadBase
+	err = cbor.Unmarshal(proveToRV32.Payload, &pb)
+	if err != nil {
+		log.Println(err)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (2)!", http.StatusBadRequest)
+		return
+	}
+	// TODO: Change == 0 > != 0
+	if bytes.Compare(pb.EatNonce[:], session.NonceTO1Proof[:]) == 0 {
+		log.Println("Nonce Invalid")
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "NonceTo1Proof mismatch", http.StatusBadRequest)
+		return
+	}
+	log.Println("GUID BELOW =========")
+	log.Println(pb.EatUEID)
+
+	// h.ownersignDB.Get(fdoshared.FDOGuid(pb.EatUEID[1:16]))
+	var guid [16]byte
+	copy(guid[:], pb.EatUEID[1:16])
+
+	ownerSign22, err := h.ownersignDB.Get(guid)
+	var ownershipVoucher fdoshared.OwnershipVoucher
+	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
+
+	// Verify voucher
+	voucherIsValid, err := ownershipVoucher.Validate()
+	if err != nil {
+		log.Println("OwnerSign22: Error verifying voucher. " + err.Error())
+
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 2!", http.StatusBadRequest)
+		return
+	}
+
+	if !voucherIsValid {
+		log.Println("OwnerSign22: Voucher is not valid")
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 3!", http.StatusBadRequest)
+		return
+	}
+
+	// to1dIsValid, err := fdoshared.VerifyCoseSignature(ownerSign.To1d, finalPublicKey)
+	if err != nil {
+		log.Println("ProveToRV32: Error verifying. " + err.Error())
+
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 4!", http.StatusBadRequest)
+		return
+	}
+
+	// if !to1dIsValid {
+	// 	log.Println("OwnerSign22: To1D signature can not be validated!")
+	// 	RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 5!", http.StatusBadRequest)
+	// 	return
+	// }
+	// fdoshared.VerifyCoseSignature(&proveToRV32,
+	/**
+	[h'A0', {-17760702: [0, 0, null]}, {10: h'63A945B3CBD99E53BAD9FBF56C7FF074'}', h'D1994FFD4B0F0CE446EB7F3BE43AF0F272AC642B6EFF11C9CC1FF5E4EF6F8511F67A8A36802C942DE2C7F0AE31B8D6A179251023E6E313FC6D966BE2152EFAD2']
+	*/
+
+	// check stored Nonce = NonceTO1Proof from helloRVAckBytes in Handle30HelloRV
 
 	w.Header().Set("Authorization", authorizationHeader)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)

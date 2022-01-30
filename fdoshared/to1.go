@@ -12,10 +12,7 @@ type HelloRVAck31 struct {
 	EBSigInfo     SigInfo
 }
 
-type ProveToRV32 struct {
-	_       struct{} `cbor:",toarray"`
-	EAToken CoseSignature
-}
+type ProveToRV32 = CoseSignature
 
 type RVRedirect33 struct {
 	_          struct{} `cbor:",toarray"`

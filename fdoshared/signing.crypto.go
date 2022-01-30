@@ -35,6 +35,12 @@ type CoseSignature struct {
 	Signature   []byte
 }
 
+type EATPayloadBase struct {
+	EatFDO   []byte   `cbor:"-257,keyasint,omitempty"`
+	EatNonce []byte   `cbor:"10,keyasint,omitempty"`
+	EatUEID  [17]byte `cbor:"11,keyasint,omitempty"` // should be 17
+}
+
 type CoseContext string
 
 const Signature1 CoseContext = "Signature1"

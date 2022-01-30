@@ -86,7 +86,7 @@ func VerifyHash(data []byte, fdoHashB HashOrHmac) (bool, error) {
 		}
 
 		fdoHashA, _ := GenerateFdoHash(data, fdoHashB.Type)
-		if bytes.Compare(fdoHashB.Hash, fdoHashA.Hash) == 0 {
+		if bytes.Compare(fdoHashB.Hash, fdoHashA.Hash) != 0 {
 			return true, nil
 		} else {
 			return false, nil
