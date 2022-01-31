@@ -202,10 +202,9 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) (bool, e
 
 		return signatureIsValid, nil
 	case X5CHAIN:
-		return false, errors.New("X5C is not currently supported!")
-
+		return false, errors.New("X5C is not currently supported!") // TODO
 	case COSEKEY:
-		return false, errors.New("CoseKey is not currently supported!")
+		return false, errors.New("CoseKey is not currently supported!") // TODO
 	default:
 		return false, fmt.Errorf("PublicKey encoding %d is not supported!", publicKey.PkEnc)
 	}

@@ -21,7 +21,7 @@ type OwnershipVoucher struct {
 	OVProtVer      ProtVersion
 	OVHeaderTag    []byte
 	OVHeaderHMac   HashOrHmac
-	OVDevCertChain *[][]X509CertificateBytes
+	OVDevCertChain *[]X509CertificateBytes
 	OVEntryArray   []CoseSignature
 }
 
