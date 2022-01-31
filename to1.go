@@ -126,39 +126,48 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "NonceTo1Proof mismatch", http.StatusBadRequest)
 		return
 	}
-	log.Println("GUID BELOW =========")
-	log.Println(pb.EatUEID)
 
-	// h.ownersignDB.Get(fdoshared.FDOGuid(pb.EatUEID[1:16]))
+	// Extract guid for UEID
 	var guid [16]byte
 	copy(guid[:], pb.EatUEID[1:16])
 
+	// Get ownerSign from to0 storage
 	ownerSign22, err := h.ownersignDB.Get(guid)
 	var ownershipVoucher fdoshared.OwnershipVoucher
 	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
 
-	// Verify voucher
+	// Verify voucher => again?!
 	voucherIsValid, err := ownershipVoucher.Validate()
+
 	if err != nil {
 		log.Println("OwnerSign22: Error verifying voucher. " + err.Error())
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 2!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to validate owner sign 2!", http.StatusBadRequest)
 		return
 	}
 
 	if !voucherIsValid {
 		log.Println("OwnerSign22: Voucher is not valid")
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 3!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to validate owner sign 3!", http.StatusBadRequest)
 		return
 	}
 
-	// to1dIsValid, err := fdoshared.VerifyCoseSignature(ownerSign.To1d, finalPublicKey)
+	// Verify Signature is valid using =>
+	// 5.4.3: "The signature is verified using the device certificate chain contained in the Ownership Voucher."
+	signatureIsValid, err := fdoshared.VerifySignature(proveToRV32.Payload, proveToRV32.Signature, ownershipVoucher.OVDevCertChain, 1)
 	if err != nil {
 		log.Println("ProveToRV32: Error verifying. " + err.Error())
-
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 4!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
 		return
 	}
+
+	if !signatureIsValid {
+		log.Println("ProveToRV32: Signature is not valid!")
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature!", http.StatusBadRequest)
+		return
+	}
+
+	log.Println(signatureIsValid)
 
 	// if !to1dIsValid {
 	// 	log.Println("OwnerSign22: To1D signature can not be validated!")
