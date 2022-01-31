@@ -121,7 +121,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO: Change == 0 > != 0
-	if bytes.Compare(pb.EatNonce[:], session.NonceTO1Proof[:]) == 0 {
+	if bytes.Compare(pb.EatNonce[:], session.NonceTO1Proof[:]) != 0 {
 		log.Println("Nonce Invalid")
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "NonceTo1Proof mismatch", http.StatusBadRequest)
 		return
@@ -136,7 +136,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var ownershipVoucher fdoshared.OwnershipVoucher
 	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
 
-	// Verify voucher => again?! Necssary or not?
+	// Verify voucher => again?! Necssary or not? => 3.4.6 Internal Verification to ensure non-tampering?
 	voucherIsValid, err := ownershipVoucher.Validate()
 
 	if err != nil {
