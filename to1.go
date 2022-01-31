@@ -136,7 +136,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var ownershipVoucher fdoshared.OwnershipVoucher
 	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
 
-	// Verify voucher => again?!
+	// Verify voucher => again?! Necssary or not?
 	voucherIsValid, err := ownershipVoucher.Validate()
 
 	if err != nil {
@@ -154,7 +154,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 
 	// Verify Signature is valid using =>
 	// 5.4.3: "The signature is verified using the device certificate chain contained in the Ownership Voucher."
-	signatureIsValid, err := fdoshared.VerifySignature(proveToRV32.Payload, proveToRV32.Signature, ownershipVoucher.OVDevCertChain, 1)
+	signatureIsValid, err := fdoshared.VerifySignature(proveToRV32.Payload, proveToRV32.Signature, ownershipVoucher.OVDevCertChain, 10)
 	if err != nil {
 		log.Println("ProveToRV32: Error verifying. " + err.Error())
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
@@ -168,16 +168,6 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println(signatureIsValid)
-
-	// if !to1dIsValid {
-	// 	log.Println("OwnerSign22: To1D signature can not be validated!")
-	// 	RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 5!", http.StatusBadRequest)
-	// 	return
-	// }
-	// fdoshared.VerifyCoseSignature(&proveToRV32,
-	/**
-	[h'A0', {-17760702: [0, 0, null]}, {10: h'63A945B3CBD99E53BAD9FBF56C7FF074'}', h'D1994FFD4B0F0CE446EB7F3BE43AF0F272AC642B6EFF11C9CC1FF5E4EF6F8511F67A8A36802C942DE2C7F0AE31B8D6A179251023E6E313FC6D966BE2152EFAD2']
-	*/
 
 	// check stored Nonce = NonceTO1Proof from helloRVAckBytes in Handle30HelloRV
 
