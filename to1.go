@@ -45,6 +45,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	newSessionInst := SessionEntry{
 		Protocol:      fdoshared.To1,
 		NonceTO1Proof: nonceTO1Proof,
+		Guid:          helloRV30.Guid,
 	}
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)
@@ -127,12 +128,8 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract guid for UEID
-	var guid [16]byte
-	copy(guid[:], pb.EatUEID[1:16])
-
 	// Get ownerSign from to0 storage
-	ownerSign22, err := h.ownersignDB.Get(guid)
+	ownerSign22, err := h.ownersignDB.Get(session.Guid)
 	var ownershipVoucher fdoshared.OwnershipVoucher
 	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
 

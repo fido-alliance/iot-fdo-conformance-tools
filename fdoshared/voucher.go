@@ -39,7 +39,7 @@ func (h OwnershipVoucher) Validate() (bool, error) {
 	// TODO
 
 	// Verify ProtVersion
-	if h.OVProtVer != ProtVer100 && h.OVProtVer != ProtVer101 {
+	if h.OVProtVer != ProtVer101 {
 		log.Println("Error verifying ownershipVoucher protver. ")
 		return false, errors.New("error verifying ownershipVoucher protver. ")
 	}

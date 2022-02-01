@@ -145,21 +145,6 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify voucher
-	voucherIsValid, err := to0d.OwnershipVoucher.Validate()
-	if err != nil {
-		log.Println("OwnerSign22: Error verifying voucher. " + err.Error())
-
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 2!", http.StatusBadRequest)
-		return
-	}
-
-	if !voucherIsValid {
-		log.Println("OwnerSign22: Voucher is not valid")
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 3!", http.StatusBadRequest)
-		return
-	}
-
 	ovHeader, _ := to0d.OwnershipVoucher.GetOVHeader()
 
 	// Verify To1D
