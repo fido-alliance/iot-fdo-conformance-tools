@@ -1,7 +1,6 @@
 package fdoshared
 
 import (
-	"bytes"
 	"errors"
 	"log"
 
@@ -23,7 +22,7 @@ type OwnershipVoucher struct {
 	OVProtVer      ProtVersion
 	OVHeaderTag    []byte
 	OVHeaderHMac   HashOrHmac
-	OVDevCertChain *[][]X509CertificateBytes
+	OVDevCertChain *[]X509CertificateBytes
 	OVEntryArray   []CoseSignature
 }
 
@@ -58,28 +57,15 @@ func (h OwnershipVoucher) Validate() (bool, error) {
 
 	// “OVDevCertChainHash” = Hash of the concatenation of the contents of each byte string in “OwnershipVoucher.OVDevCertChain”,
 	//  in the presented order. When OVDevCertChain is CBOR null, OVDevCertChainHash is also CBOR null.
-	var OVDevCertChain_Certs []byte             // [cert1, cert2, certn]
-	var concatenatedOVDevCertChain []byte       // [cert1||cert2||certn]
-	var cert []X509CertificateBytes             // cert_n
-	for i, bstrCert := range h.OVDevCertChain { // iterated will return  bstr[cert1] : e.g., X5CHAIN = [ bstr[cert1] ... bstr[certN] ],
-		err = cbor.Unmarshal(bstrCert, &cert) // bstr[cert_n] => cert_n
-		if err != nil {
-			log.Println("Error verifying ownershipVoucher, couldn't decode entry in OVDevCertChain")
-			return false, errors.New("error verifying ownershipVoucher, couldn't decode entry in OVDevCertChain ")
-		}
-		OVDevCertChain_Certs = append(OVDevCertChain_Certs, cert) // append cert to OVDevCertChain_Certs
-	}
 
-	// [Parallel JS example] : const OVDevCertChain_Certs = ['Fire', 'Air', 'Water']; (OVDevCertChain_Certs.join('')) => "FireAirWater"
-	sep := []byte("")
-	concatenatedOVDevCertChain = bytes.Join(OVDevCertChain_Certs, sep) // [cert1, cert2, certn] => [cert1||cert2||certn]
+	OVDevCertChain_Certs, err := ComputeOVDevCertChainHash(*h.OVDevCertChain, -16)
 
-	calculatedHash, err := GenerateFdoHash(concatenatedOVDevCertChain, -16) // generate hash from [cert1||cert2||certn]
+	verifiedHash, err := VerifyHash(OVDevCertChain_Certs, *OVHeaderInst.OVDevCertChainHash)
 	if err != nil {
-		log.Println("error verifying ownershipVoucher, couldn't calculate hash for OVDevCertChain. ")
-		return false, errors.New("error verifying ownershipVoucher, couldn't calculate hash for OVDevCertChain")
+		log.Println("error verifying ownershipVoucher, couldn't verify hash for OVDevCertChain. ")
+		return false, errors.New("error verifying ownershipVoucher, couldn't verify hash for OVDevCertChain")
 	}
-	if bytes.Compare(OVHeaderInst.OVDevCertChainHash.Hash, calculatedHash.Hash[:]) != 0 { // compare calculatedHash to providedHash
+	if verifiedHash == false {
 
 	}
 

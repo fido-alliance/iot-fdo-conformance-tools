@@ -149,9 +149,8 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify Signature is valid using =>
-	// 5.4.3: "The signature is verified using the device certificate chain contained in the Ownership Voucher."
-	signatureIsValid, err := fdoshared.VerifySignature(proveToRV32.Payload, proveToRV32.Signature, ownershipVoucher.OVDevCertChain, 10)
+	var placeHolder_publicKey fdoshared.FdoPublicKey
+	signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
 	if err != nil {
 		log.Println("ProveToRV32: Error verifying. " + err.Error())
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
