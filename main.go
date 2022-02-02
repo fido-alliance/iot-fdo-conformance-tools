@@ -64,6 +64,14 @@ func main() {
 					return nil
 				},
 			},
+			{
+				Name:  "gen",
+				Usage: "Generates OwnerSign22 payload",
+				Action: func(c *cli.Context) error {
+					GenPayload22()
+					return nil
+				},
+			},
 		},
 	}
 

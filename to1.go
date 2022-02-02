@@ -67,12 +67,6 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Message-Type", fdoshared.TO1_HELLO_RV_ACK_31.ToString())
 	w.WriteHeader(http.StatusOK)
 
-	log.Println(helloRVAckBytes)
-	log.Println("=========== nonce:")
-	log.Println(nonceTO1Proof)
-	// eg 8250ce8d4ec966491fdb1c49c2c66935a9fa822678244920616d206120706f7461746f652120536d6172742c20496f542c20706f7461746f6521
-	// [h'CE8D4EC966491FDB1C49C2C66935A9FA', [-7, "I am a potatoe! Smart, IoT, potatoe!"]]
-
 	w.Write(helloRVAckBytes)
 }
 
@@ -121,7 +115,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (2)!", http.StatusBadRequest)
 		return
 	}
-	// TODO: Change == 0 > != 0
+
 	if bytes.Compare(pb.EatNonce[:], session.NonceTO1Proof[:]) != 0 {
 		log.Println("Nonce Invalid")
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "NonceTo1Proof mismatch", http.StatusBadRequest)
@@ -166,10 +160,15 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	log.Println(signatureIsValid)
 
 	// check stored Nonce = NonceTO1Proof from helloRVAckBytes in Handle30HelloRV
+	rvRedirect := fdoshared.RVRedirect33{
+		RVRedirect: ownerSign22.To1d,
+	}
+
+	rvRedirectBytes, _ := cbor.Marshal(rvRedirect)
 
 	w.Header().Set("Authorization", authorizationHeader)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
 	w.Header().Set("Message-Type", fdoshared.TO1_RV_REDIRECT_33.ToString())
 	w.WriteHeader(http.StatusOK)
-	// w.Write(helloAckBytes)
+	w.Write(rvRedirectBytes)
 }
