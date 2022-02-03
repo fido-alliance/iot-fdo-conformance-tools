@@ -109,7 +109,6 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	bodyBytesAsString := string(bodyBytes)
 	bodyBytesBuffer, err := hex.DecodeString(bodyBytesAsString)
 	if err != nil {
-		log.Println(err)
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body 0!", http.StatusBadRequest)
 		return
 	}
@@ -117,7 +116,6 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	var ownerSign fdoshared.OwnerSign22
 	err = cbor.Unmarshal(bodyBytesBuffer, &ownerSign)
 	if err != nil {
-		log.Println(err)
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body 1!", http.StatusBadRequest)
 		return
 	}

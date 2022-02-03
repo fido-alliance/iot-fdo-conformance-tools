@@ -38,6 +38,12 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO - check to see if GUID exists. (RESOURCE_NOT_FOUND if not)
+	_, err = h.ownersignDB.Get(helloRV30.Guid)
+	if err != nil {
+		log.Println(err)
+		RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, fdoshared.TO1_HELLO_RV_30, "Could not find guid!", http.StatusBadRequest)
+		return
+	}
 
 	nonceTO1Proof := make([]byte, 16)
 	rand.Read(nonceTO1Proof)
@@ -124,6 +130,12 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 
 	// Get ownerSign from to0 storage
 	ownerSign22, err := h.ownersignDB.Get(session.Guid)
+	if err != nil {
+		log.Println("Couldn't find item in database with guid" + err.Error())
+
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Server Error", http.StatusInternalServerError)
+		return
+	}
 	var ownershipVoucher fdoshared.OwnershipVoucher
 	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
 
@@ -157,9 +169,6 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(signatureIsValid)
-
-	// check stored Nonce = NonceTO1Proof from helloRVAckBytes in Handle30HelloRV
 	rvRedirect := fdoshared.RVRedirect33{
 		RVRedirect: ownerSign22.To1d,
 	}
