@@ -139,22 +139,6 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var ownershipVoucher fdoshared.OwnershipVoucher
 	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
 
-	// Verify voucher => again?! Necssary or not? => 3.4.6 Internal Verification to ensure non-tampering?
-	voucherIsValid, err := ownershipVoucher.Validate()
-
-	if err != nil {
-		log.Println("OwnerSign22: Error verifying voucher. " + err.Error())
-
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to validate owner sign 2!", http.StatusBadRequest)
-		return
-	}
-
-	if !voucherIsValid {
-		log.Println("OwnerSign22: Voucher is not valid")
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to validate owner sign 3!", http.StatusBadRequest)
-		return
-	}
-
 	var placeHolder_publicKey fdoshared.FdoPublicKey
 	signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
 	if err != nil {
