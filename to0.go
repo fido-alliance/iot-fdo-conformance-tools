@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -30,18 +29,11 @@ func (h *RvTo0) Handle20Hello(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_HELLO_20, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
-	log.Println(bodyBytes)
-	hex.EncodeToString(bodyBytes)
-	bodyBytesAsString := string(bodyBytes)
-	log.Println("As HexString:")
-	log.Println((bodyBytesAsString))
 
 	var helloMsg fdoshared.Hello20
-	a, err := hex.DecodeString(bodyBytesAsString)
 
-	err = cbor.Unmarshal(a, &helloMsg)
+	err = cbor.Unmarshal(bodyBytes, &helloMsg)
 	if err != nil {
-		log.Println("Some error")
 		log.Println(err)
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_HELLO_20, "Failed to decode body!", http.StatusBadRequest)
 		return
@@ -99,22 +91,9 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 
 	/* ----- Process Body ----- */
 	bodyBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to read body!", http.StatusBadRequest)
-		return
-	}
-
-	log.Println(bodyBytes)
-	hex.EncodeToString(bodyBytes)
-	bodyBytesAsString := string(bodyBytes)
-	bodyBytesBuffer, err := hex.DecodeString(bodyBytesAsString)
-	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body 0!", http.StatusBadRequest)
-		return
-	}
 
 	var ownerSign fdoshared.OwnerSign22
-	err = cbor.Unmarshal(bodyBytesBuffer, &ownerSign)
+	err = cbor.Unmarshal(bodyBytes, &ownerSign)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to decode body 1!", http.StatusBadRequest)
 		return

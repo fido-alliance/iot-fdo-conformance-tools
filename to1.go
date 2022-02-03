@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -24,12 +23,9 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
-	hex.EncodeToString(bodyBytes)
-	bodyBytesAsString := string(bodyBytes)
-	bodyBytesBuffer, err := hex.DecodeString(bodyBytesAsString)
 
 	var helloRV30 fdoshared.HelloRV30
-	err = cbor.Unmarshal(bodyBytesBuffer, &helloRV30)
+	err = cbor.Unmarshal(bodyBytes, &helloRV30)
 
 	if err != nil {
 		log.Println(err)
@@ -99,14 +95,9 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
-	hex.EncodeToString(bodyBytes)
-	bodyBytesAsString := string(bodyBytes)
-	bodyBytesBuffer, err := hex.DecodeString(bodyBytesAsString)
 
 	var proveToRV32 fdoshared.ProveToRV32
-	err = cbor.Unmarshal(bodyBytesBuffer, &proveToRV32)
-
-	log.Println(bodyBytesBuffer)
+	err = cbor.Unmarshal(bodyBytes, &proveToRV32)
 
 	if err != nil {
 		log.Println(err)
