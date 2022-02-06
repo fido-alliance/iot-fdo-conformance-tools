@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/WebauthnWorks/fdo-device-implementation/fdoshared"
@@ -37,7 +38,10 @@ func GenerateVoucherKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdosha
 		return nil, nil, errors.New("Error generating new private key. " + err.Error())
 	}
 
-	publicKeyPkix, err := x509.MarshalPKIXPublicKey(privateKey.PublicKey)
+	publicKeyPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		return nil, nil, errors.New("Error marshaling public key. " + err.Error())
+	}
 
 	return privateKey, &fdoshared.FdoPublicKey{
 		PkType: pkType,
@@ -173,6 +177,8 @@ func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
 	if err != nil {
 		return fmt.Errorf("Error saving di \"%s\". %s", disWriteLocation, err.Error())
 	}
+
+	log.Println("Successfully generate voucher " + hex.EncodeToString(voucherHeader.OVGuid[:]))
 
 	return nil
 }
