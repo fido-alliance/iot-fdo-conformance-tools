@@ -13,3 +13,10 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+.DS_Store
+
+badger.local.db/
+fdo-device-implementation
+*.voucher.pem
+*.dis.pem
