@@ -19,6 +19,7 @@ const (
 )
 
 type HashOrHmac struct {
+	_    struct{} `cbor:",toarray"`
 	Type HashType
 	Hash []byte
 }
