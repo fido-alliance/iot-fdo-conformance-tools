@@ -98,7 +98,7 @@ type RendezvousInstructionBlock struct {
 type OwnershipVoucherHeader struct {
 	_                  struct{} `cbor:",toarray"`
 	OVHProtVer         ProtVersion
-	OVGuid             FDOGuid
+	OVGuid             FdoGuid
 	OVRvInfo           interface{}
 	OVDeviceInfo       string
 	OVPublicKey        FdoPublicKey

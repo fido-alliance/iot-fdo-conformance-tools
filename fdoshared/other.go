@@ -13,9 +13,9 @@ const (
 	ProtVer101 ProtVersion = 101
 )
 
-type FDOGuid [16]byte
+type FdoGuid [16]byte
 
-func (h *FDOGuid) GetFormatted() string {
+func (h *FdoGuid) GetFormatted() string {
 	uuidBytes := h[:]
 	uuidInst, _ := uuid.ParseBytes(uuidBytes)
 

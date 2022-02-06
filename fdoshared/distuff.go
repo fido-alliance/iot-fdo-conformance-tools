@@ -29,7 +29,7 @@ type WawDeviceCredential struct {
 	DCHashAlg    HashType
 
 	DCDeviceInfo string
-	DCGuid       FDOGuid
+	DCGuid       FdoGuid
 	DCRVInfo     []RendezvousInstrList
 	DCPubKeyHash HashOrHmac
 

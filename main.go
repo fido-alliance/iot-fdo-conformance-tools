@@ -1,13 +1,21 @@
 package main
 
 import (
+	"encoding/hex"
 	"errors"
 	"log"
 	"os"
 
 	"github.com/WebauthnWorks/fdo-device-implementation/fdoshared"
+	"github.com/fxamacker/cbor/v2"
 	"github.com/urfave/cli/v2"
 )
+
+type HelloRV30 struct {
+	_         struct{} `cbor:",toarray"`
+	Guid      []byte
+	EASigInfo fdoshared.SigInfo
+}
 
 func main() {
 	cliapp := &cli.App{
@@ -21,6 +29,24 @@ func main() {
 					if err != nil {
 						return errors.New("Error generating voucher. " + err.Error())
 					}
+					return nil
+				},
+			},
+			{
+				Name:  "testdecode",
+				Usage: "Test decoding",
+				Action: func(c *cli.Context) error {
+					sourceBytes, _ := hex.DecodeString("82508d62ddb18b404cf58cf5f22cef5c4576822678244920616d206120706f7461746f652120536d6172742c20496f542c20706f7461746f6521")
+
+					var helloRv30 HelloRV30
+
+					err := cbor.Unmarshal(sourceBytes, &helloRv30)
+
+					if err != nil {
+						log.Panic("Error decoding source: " + err.Error())
+					}
+
+					log.Println(helloRv30)
 					return nil
 				},
 			},

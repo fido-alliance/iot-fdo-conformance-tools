@@ -10,8 +10,7 @@ type HelloAck21 struct {
 }
 
 type To0d struct {
-	_ struct{} `cbor:",toarray"`
-
+	_                struct{} `cbor:",toarray"`
 	OwnershipVoucher OwnershipVoucher
 	WaitSeconds      uint32
 	NonceTO0Sign     []byte
