@@ -13,7 +13,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-const TEST_VOUCHER_LOC string = "./_test_vouchers/"
+const TEST_VOUCHER_LOC string = "./_vouchers/"
 const OWNERSHIP_VOUCHER_PEM_TYPE string = "OWNERSHIP VOUCHER"
 
 func GetVoucherFileList() ([]string, error) {
