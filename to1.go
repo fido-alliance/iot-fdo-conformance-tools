@@ -65,21 +65,27 @@ func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHe
 
 func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 
-	// create eASigInfo
-	helloRV30Bytes, err := cbor.Marshal(fdoshared.HelloRV30{
-		Guid: h.voucherDBEntry.Voucher.FdoGuid,
+	// need to extract OVHeader to get FdoGuid
+	// var guid fdoshared.FdoGuid =
+	ovHeader, err := fdoshared.GetOVHeader(h.voucherDBEntry.Voucher)
+	if err != nil {
+		return nil, errors.New("HelloRV30: Error unmarshaling HelloRV30 OVHeader. " + err.Error())
+	}
+
+	helloRV30Bytes, err2 := cbor.Marshal(fdoshared.HelloRV30{
+		Guid: ovHeader.OVGuid,
 		EASigInfo: fdoshared.SigInfo{
 			SgType: -7,
 			Info:   "I am test!",
 		},
 	})
 
-	if err != nil {
-		return nil, errors.New("Hello30: Error marshaling Hello30. " + err.Error())
+	if err2 != nil {
+		return nil, errors.New("HelloRV30: Error marshaling HelloRV30. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_HELLO_RV_30, helloRV30Bytes, &h.rvEntry.AccessToken)
-	if err != nil {
+	resultBytes, authzHeader, err3 := SendCborPost(h.rvEntry, fdoshared.TO1_HELLO_RV_30, helloRV30Bytes, &h.rvEntry.AccessToken)
+	if err3 != nil {
 		return nil, errors.New("Hello30: " + err.Error())
 	}
 
