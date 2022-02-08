@@ -7,11 +7,20 @@ type HelloDevice60 struct {
 	NonceTO2ProveOV      []byte
 	kexSuiteName         string
 	cipherSuiteName      string
-	eASigInfo            string
+	eASigInfo            SigInfo
 }
 
 type ProveOVHdr61 = CoseSignature
-type TO2ProveOVHdrPayload struct{} // todo
+type TO2ProveOVHdrPayload struct {
+	OVHeader            []byte
+	NumOVEntries        uint8
+	HMac                HashOrHmac
+	NonceTO2ProveOV     []byte
+	eBSigInfo           SigInfo
+	xAKeyExchange       string
+	helloDeviceHash     []byte
+	maxOwnerMessageSize uint16
+} // todo
 
 type GetOVNextEntry62 struct {
 	_              struct{} `cbor:",toarray"`
@@ -30,8 +39,8 @@ type SetupDevice65 = CoseSignature
 
 type DeviceServiceInfoReady66 struct {
 	_                     struct{} `cbor:",toarray"`
-	ReplacementHMac       bool
-	maxOwnerServiceInfoSz bool
+	ReplacementHMac       HashOrHmac
+	maxOwnerServiceInfoSz uint16
 }
 
 type OwnerServiceInfoReady67 struct {
