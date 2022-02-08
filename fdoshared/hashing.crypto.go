@@ -24,6 +24,11 @@ type HashOrHmac struct {
 	Hash []byte
 }
 
+var HmacToHashAlg map[HashType]HashType = map[HashType]HashType{
+	FDO_HMAC_SHA256: FDO_SHA256,
+	FDO_HMAC_SHA384: FDO_SHA384,
+}
+
 func GenerateFdoHash(data []byte, hashType HashType) (HashOrHmac, error) {
 	switch hashType {
 	case FDO_SHA256:

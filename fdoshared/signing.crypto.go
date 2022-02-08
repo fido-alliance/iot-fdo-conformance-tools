@@ -231,6 +231,25 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) (bool, e
 	}
 }
 
+func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) {
+	switch pkType {
+	case SECP256R1:
+		return StSECP256R1, nil
+	case SECP384R1:
+		return StSECP384R1, nil
+	case RSA2048RESTR, RSAPKCS, RSAPSS:
+		if hashType == FDO_SHA256 {
+			return StRSA2048, nil
+		} else if hashType == FDO_SHA384 {
+			return StRSA3072, nil
+		} else {
+			return 0, fmt.Errorf("For RSA: %d is an unsupported hash type!", hashType)
+		}
+	default:
+		return 0, fmt.Errorf("For RSA: %d is an unsupported public key type!", pkType)
+	}
+}
+
 func ExtractPrivateKey(privateKeyDer []byte) (interface{}, error) {
 	if key, err := x509.ParsePKCS1PrivateKey(privateKeyDer); err == nil {
 		return key, nil

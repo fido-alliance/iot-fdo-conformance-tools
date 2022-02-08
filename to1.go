@@ -99,12 +99,8 @@ func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 	return &helloRVAck31, nil
 }
 
-// To1 - todo
 func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher VoucherDBEntry) (*fdoshared.RVRedirect33, error) {
-	// To1
-	// This below needs to be refactored ... ?
-	// Need to include NonceTO1Proof in coseSignature --> generate with helloRVAck31.NonceTO1Proof
-	// -7 should be un-hardcoded
+
 	var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
 		EatNonce: helloRVAck31.NonceTO1Proof,
 	}
@@ -112,12 +108,25 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher 
 	if err != nil {
 		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
 	}
+
+	deviceHashAlg := fdoshared.HmacToHashAlg[h.voucherDBEntry.Voucher.OVHeaderHMac.Type]
+
+	lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
+	if err != nil {
+		return nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
+	}
+
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(voucher.PrivateKeyX509)
-	proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, -7)
+
+	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
+	if err != nil {
+		return nil, errors.New("OwnerSign22: Error getting device SgType. " + err.Error())
+	}
+
+	proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
 	if err != nil {
 		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
 	}
-	// Above needs to be refactored...
 
 	proveToRV32Bytes, err := cbor.Marshal(proveToRV32)
 	if err != nil {
@@ -139,7 +148,3 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher 
 
 	return &rvRedirect33, nil
 }
-
-// func SubmitOwnershipVoucherToRv(voucherDbEntry VoucherDBEntry, rvEntry RVEntry) error {
-
-// }
