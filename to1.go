@@ -95,86 +95,29 @@ func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 	return &helloRVAck31, nil
 }
 
-// To0D0
-func (h *To1Requestor) ProveToRV32(nonceTO0Sign []byte) (*fdoshared.RVRedirect33, error) {
-	// TO0D
-	var to0d fdoshared.To0d = fdoshared.To0d{
-		OwnershipVoucher: h.voucherDBEntry.Voucher,
-		WaitSeconds:      10,
-		NonceTO0Sign:     nonceTO0Sign,
-	}
-	to0dBytes, err := cbor.Marshal(to0d)
+// To1 - todo
+func (h *To1Requestor) ProveToRV32(proveToRV32 fdoshared.ProveToRV32) (*fdoshared.RVRedirect33, error) {
+	// To1
+
+	proveToRV32Bytes, err := cbor.Marshal(proveToRV32)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error marshaling To0d. " + err.Error())
+		return nil, errors.New("ProveToRV32: Error marshaling proveToRV32. " + err.Error())
 	}
 
-	deviceHashAlg := fdoshared.HmacToHashAlg[h.voucherDBEntry.Voucher.OVHeaderHMac.Type]
-	to0dHash, err := fdoshared.GenerateFdoHash(to0dBytes, deviceHashAlg)
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_PROVE_TO_RV_32, proveToRV32Bytes, &h.rvEntry.AccessToken)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error generating to0dHash. " + err.Error())
-	}
-
-	// TO1D Payload
-	// TODO
-	var localostIPBytes fdoshared.FdoIPAddress = []byte{127, 0, 0, 1}
-
-	var to1dPayload fdoshared.To1dBlobPayload = fdoshared.To1dBlobPayload{
-		To1dRV: []fdoshared.RVTO2AddrEntry{
-			{
-				RVIP:       &localostIPBytes,
-				RVPort:     8084,
-				RVProtocol: fdoshared.ProtHTTP,
-			},
-		},
-		To1dTo0dHash: to0dHash,
-	}
-
-	to1dPayloadBytes, err := cbor.Marshal(to1dPayload)
-	if err != nil {
-		return nil, errors.New("OwnerSign22: Error marshaling To1dPayload. " + err.Error())
-	}
-
-	// TO1D CoseSignature
-	lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
-	if err != nil {
-		return nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
-	}
-
-	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.voucherDBEntry.PrivateKeyX509)
-
-	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
-	if err != nil {
-		return nil, errors.New("OwnerSign22: Error getting device SgType. " + err.Error())
-	}
-
-	to1d, err := fdoshared.GenerateCoseSignature(to1dPayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
-	if err != nil {
-		return nil, errors.New("OwnerSign22: Error generating To1D COSE signature. " + err.Error())
-	}
-
-	var ownerSign fdoshared.OwnerSign22 = fdoshared.OwnerSign22{
-		To0d: to0dBytes,
-		To1d: *to1d,
-	}
-	ownerSign22Bytes, err := cbor.Marshal(ownerSign)
-	if err != nil {
-		return nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
-	}
-
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO0_OWNER_SIGN_22, ownerSign22Bytes, &h.authzHeader)
-	if err != nil {
-		return nil, errors.New("OwnerSign22: " + err.Error())
+		return nil, errors.New("Hello30: " + err.Error())
 	}
 
 	h.authzHeader = authzHeader
 
-	var acceptOwner23 fdoshared.AcceptOwner23
-	err = cbor.Unmarshal(resultBytes, &acceptOwner23)
+	var rvRedirect33 fdoshared.RVRedirect33
+	err = cbor.Unmarshal(resultBytes, &rvRedirect33)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Failed to unmarshal AcceptOwner23. " + err.Error())
+		return nil, errors.New("RVRedirect33: Failed to unmarshal RVRedirect33. " + err.Error())
 	}
 
-	return &acceptOwner23, nil
+	return &rvRedirect33, nil
 }
 
 // func SubmitOwnershipVoucherToRv(voucherDbEntry VoucherDBEntry, rvEntry RVEntry) error {

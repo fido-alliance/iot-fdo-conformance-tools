@@ -140,6 +140,25 @@ type CosePublicKey struct {
 	Y      []byte      `cbor:"-3,keyasint,omitempty"`
 }
 
+type EATPayloadBase struct {
+	// EatFDO   []byte   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	// EatFDO   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	EatNonce []byte      `cbor:"10,keyasint,omitempty"`
+	EatUEID  [17]byte    `cbor:"11,keyasint,omitempty"`
+	EatFDO   EATPayloads `cbor:"-257,keyasint,omitempty"`
+}
+
+type EATPayloads struct {
+	TO2ProveDevicePayload *TO2ProveDevicePayload
+}
+
+type TO2ProveDevicePayload struct {
+	xBKeyExchange xBKeyExchange
+}
+
+type xAKeyExchange []byte
+type xBKeyExchange []byte
+
 func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}, pkType FdoPkType) (bool, error) {
 	switch pkType {
 	case SECP256R1:
