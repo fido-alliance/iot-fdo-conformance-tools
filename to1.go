@@ -67,15 +67,14 @@ func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 
 	// create eASigInfo
 
-	var sigInfo fdoshared.SigInfo = fdoshared.SigInfo{
-		SgType: -7,
-		Info:   "I am test!",
-	}
-
 	helloRV30Bytes, err := cbor.Marshal(fdoshared.HelloRV30{
-		Guid:      h.voucherDBEntry.Voucher.FdoGuid,
-		EASigInfo: sigInfo,
+		Guid: h.voucherDBEntry.Voucher.FdoGuid,
+		EASigInfo: fdoshared.SigInfo{
+			SgType: -7,
+			Info:   "I am test!",
+		},
 	})
+
 	if err != nil {
 		return nil, errors.New("Hello30: Error marshaling Hello30. " + err.Error())
 	}
