@@ -113,14 +113,17 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher 
 
 	lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
+		return nil, errors.New("ProveToRV32: Error extracting last OVEntry public key. " + err.Error())
 	}
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(voucher.PrivateKeyX509)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error extracting private key from voucher. " + err.Error())
+	}
 
 	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error getting device SgType. " + err.Error())
+		return nil, errors.New("ProveToRV32: Error getting device SgType. " + err.Error())
 	}
 
 	proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
