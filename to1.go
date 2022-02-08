@@ -65,9 +65,8 @@ func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHe
 
 func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 
-	// need to extract OVHeader to get FdoGuid
-	// var guid fdoshared.FdoGuid =
-	ovHeader, err := fdoshared.GetOVHeader(h.voucherDBEntry.Voucher)
+	// extract OVHeader to get FdoGuid
+	ovHeader, err := h.voucherDBEntry.Voucher.GetOVHeader()
 	if err != nil {
 		return nil, errors.New("HelloRV30: Error unmarshaling HelloRV30 OVHeader. " + err.Error())
 	}
