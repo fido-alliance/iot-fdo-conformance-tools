@@ -3,6 +3,7 @@ package fdoshared
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/sha512"
 	"crypto/x509"
@@ -228,6 +229,24 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) (bool, e
 	default:
 		return false, fmt.Errorf("PublicKey encoding %d is not supported!", publicKey.PkEnc)
 	}
+}
+
+func ExtractPrivateKey(privateKeyDer []byte) (interface{}, error) {
+	if key, err := x509.ParsePKCS1PrivateKey(privateKeyDer); err == nil {
+		return key, nil
+	}
+	if key, err := x509.ParsePKCS8PrivateKey(privateKeyDer); err == nil {
+		switch key := key.(type) {
+		case *rsa.PrivateKey, *ecdsa.PrivateKey:
+			return key, nil
+		default:
+			return nil, fmt.Errorf("Found unknown private key type in PKCS#8 wrapping")
+		}
+	}
+	if key, err := x509.ParseECPrivateKey(privateKeyDer); err == nil {
+		return key, nil
+	}
+	return nil, fmt.Errorf("Failed to parse private key")
 }
 
 func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType DeviceSgType) (*CoseSignature, error) {

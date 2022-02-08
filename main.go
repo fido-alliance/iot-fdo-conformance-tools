@@ -69,6 +69,8 @@ func main() {
 						if err != nil {
 							log.Panic(err)
 						}
+
+						// This below needs to be refactored ... ?
 						// Need to include NonceTO1Proof in coseSignature --> generate with helloRVAck31.NonceTO1Proof
 						var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
 							EatNonce: helloRVAck31.NonceTO1Proof,
@@ -78,8 +80,10 @@ func main() {
 						privateKeyInst, err := fdoshared.ExtractPrivateKey(voucher.PrivateKeyX509)
 						proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
 						if err != nil {
-							return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
+							return errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
 						}
+						// Above needs to be refactored...
+
 						acceptOwner23, err := to1requestor.ProveToRV32(proveToRV32)
 						if err != nil {
 							log.Panic(err)

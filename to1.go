@@ -66,7 +66,6 @@ func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHe
 func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 
 	// create eASigInfo
-
 	helloRV30Bytes, err := cbor.Marshal(fdoshared.HelloRV30{
 		Guid: h.voucherDBEntry.Voucher.FdoGuid,
 		EASigInfo: fdoshared.SigInfo{
