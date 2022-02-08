@@ -50,6 +50,37 @@ func main() {
 					return nil
 				},
 			},
+			{
+				Name:  "testto1",
+				Usage: "",
+				Action: func(c *cli.Context) error {
+					vouchers, err := LoadLocalVouchers()
+					if err != nil {
+						log.Panic(err)
+					}
+
+					for _, voucher := range vouchers {
+						to1requestor := NewTo1Requestor(RVEntry{
+							RVURL:       "http://localhost:8083",
+							AccessToken: "",
+						}, voucher)
+
+						helloRVAck31, err := to1requestor.HelloRV30()
+						if err != nil {
+							log.Panic(err)
+						}
+
+						acceptOwner23, err := to1requestor.ProveToRV32(helloRVAck31.NonceTO1Proof)
+						if err != nil {
+							log.Panic(err)
+						}
+
+						log.Println(acceptOwner23)
+					}
+
+					return nil
+				},
+			},
 		},
 	}
 
