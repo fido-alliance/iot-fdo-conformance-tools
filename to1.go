@@ -100,8 +100,24 @@ func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 }
 
 // To1 - todo
-func (h *To1Requestor) ProveToRV32(proveToRV32 fdoshared.ProveToRV32) (*fdoshared.RVRedirect33, error) {
+func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher VoucherDBEntry) (*fdoshared.RVRedirect33, error) {
 	// To1
+	// This below needs to be refactored ... ?
+	// Need to include NonceTO1Proof in coseSignature --> generate with helloRVAck31.NonceTO1Proof
+	// -7 should be un-hardcoded
+	var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
+		EatNonce: helloRVAck31.NonceTO1Proof,
+	}
+	proveToRV32PayloadBytes, err := cbor.Marshal(proveToRV32Payload)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
+	}
+	privateKeyInst, err := fdoshared.ExtractPrivateKey(voucher.PrivateKeyX509)
+	proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, -7)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
+	}
+	// Above needs to be refactored...
 
 	proveToRV32Bytes, err := cbor.Marshal(proveToRV32)
 	if err != nil {
