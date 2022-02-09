@@ -19,13 +19,18 @@ const (
 	TO1_PROVE_TO_RV_32  FdoCmd = 32
 	TO1_RV_REDIRECT_33  FdoCmd = 33
 
-	// TO2_ // TODO
-	// TO2_
-	// TO2_
-	// TO2_
-	// TO2_
-	// TO2_
-	// TO2_
+	TO2_HELLO_DEVICE_60              FdoCmd = 60
+	TO2_PROVE_OVHDR_61               FdoCmd = 61
+	TO2_GET_OVNEXTENTRY_62           FdoCmd = 62
+	TO2_OV_NEXTENTRY_63              FdoCmd = 63
+	TO2_PROVE_DEVICE_64              FdoCmd = 64
+	TO2_SETUP_DEVICE_65              FdoCmd = 65
+	TO2_DEVICE_SERVICE_INFO_READY_66 FdoCmd = 66
+	TO2_OWNER_SERVICE_INFO_READY_67  FdoCmd = 67
+	TO2_DEVICE_SERVICE_INFO_68       FdoCmd = 68
+	TO2_OWNER_SERVICE_INFO_69        FdoCmd = 69
+	TO2_DONE_70                      FdoCmd = 70
+	TO2_DONE2_71                     FdoCmd = 71
 
 	TO_ERROR_255 FdoCmd = 255
 )

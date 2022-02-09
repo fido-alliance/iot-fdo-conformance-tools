@@ -21,11 +21,12 @@ func NewSessionDB(db *badger.DB) SessionDB {
 }
 
 type SessionEntry struct {
-	_             struct{} `cbor:",toarray"`
-	Protocol      fdoshared.FdoToProtocol
-	NonceTO0Sign  []byte
-	NonceTO1Proof []byte
-	EASigInfo     fdoshared.SigInfo
+	_               struct{} `cbor:",toarray"`
+	Protocol        fdoshared.FdoToProtocol
+	NonceTO0Sign    []byte
+	NonceTO1Proof   []byte
+	NonceTO2ProveOV []byte
+	EASigInfo       fdoshared.SigInfo
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
