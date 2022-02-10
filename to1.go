@@ -71,7 +71,7 @@ func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 		return nil, errors.New("HelloRV30: Error unmarshaling HelloRV30 OVHeader. " + err.Error())
 	}
 
-	helloRV30Bytes, err2 := cbor.Marshal(fdoshared.HelloRV30{
+	helloRV30Bytes, err := cbor.Marshal(fdoshared.HelloRV30{
 		Guid: ovHeader.OVGuid,
 		EASigInfo: fdoshared.SigInfo{
 			SgType: -7,
@@ -79,12 +79,12 @@ func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 		},
 	})
 
-	if err2 != nil {
+	if err != nil {
 		return nil, errors.New("HelloRV30: Error marshaling HelloRV30. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err3 := SendCborPost(h.rvEntry, fdoshared.TO1_HELLO_RV_30, helloRV30Bytes, &h.rvEntry.AccessToken)
-	if err3 != nil {
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_HELLO_RV_30, helloRV30Bytes, &h.rvEntry.AccessToken)
+	if err != nil {
 		return nil, errors.New("Hello30: " + err.Error())
 	}
 
@@ -104,6 +104,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher 
 	var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
 		EatNonce: helloRVAck31.NonceTO1Proof,
 	}
+
 	proveToRV32PayloadBytes, err := cbor.Marshal(proveToRV32Payload)
 	if err != nil {
 		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
