@@ -2,12 +2,12 @@ package fdoshared
 
 type HelloDevice60 struct {
 	_                    struct{} `cbor:",toarray"`
-	maxDeviceMessageSize uint16
+	MaxDeviceMessageSize uint16
 	Guid                 FdoGuid
 	NonceTO2ProveOV      []byte
 	kexSuiteName         string
 	cipherSuiteName      string
-	eASigInfo            SigInfo
+	EASigInfo            SigInfo
 }
 
 type ProveOVHdr61 = CoseSignature
@@ -16,10 +16,10 @@ type TO2ProveOVHdrPayload struct {
 	NumOVEntries        uint8
 	HMac                HashOrHmac
 	NonceTO2ProveOV     []byte
-	eBSigInfo           SigInfo
-	xAKeyExchange       string
-	helloDeviceHash     []byte
-	maxOwnerMessageSize uint16
+	EBSigInfo           SigInfo
+	XAKeyExchange       string // XAKeyExchange
+	HelloDeviceHash     HashOrHmac
+	MaxOwnerMessageSize uint16
 } // todo
 
 type GetOVNextEntry62 struct {

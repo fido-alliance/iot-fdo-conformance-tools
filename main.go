@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/WebauthnWorks/fdo-do/fdoshared"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/urfave/cli/v2"
 )
@@ -61,6 +62,14 @@ func main() {
 				Usage: "Starts rv",
 				Action: func(c *cli.Context) error {
 					StartServer(db)
+					return nil
+				},
+			},
+			{
+				Name:  "ecdh",
+				Usage: "Tests ech",
+				Action: func(c *cli.Context) error {
+					beginECDHKeyExchange(fdoshared.ECDH256)
 					return nil
 				},
 			},
