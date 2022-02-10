@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"log"
 	"math/big"
 
 	"fmt"
@@ -15,19 +14,15 @@ import (
 
 // TODO : Lengths are being stored as numbers in the byte array... eg 32 should be 20
 
-func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange, error) {
+func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange, *ecdsa.PrivateKey) {
 
 	priva, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	privb, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	puba := priva.PublicKey
-	pubb := privb.PublicKey
 
 	fmt.Printf("\nPrivate key (Alice) %x", priva.D)
-	fmt.Printf("\nPrivate key (Bob) %x\n", privb.D)
 
 	fmt.Printf("\nPublic key (Alice) (%x,%x)", puba.X, puba.Y)
-	fmt.Printf("\nPublic key (Bob) (%x %x)\n", pubb.X, pubb.Y)
 
 	var randomBytesLength uint8
 	if curve == fdoshared.ECDH256 {
@@ -35,8 +30,6 @@ func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange
 	} else {
 		randomBytesLength = 48
 	}
-	fmt.Printf("\nCurve: %x", string(curve[:]))
-	fmt.Printf("\nCurve: %x", randomBytesLength)
 
 	var lenX = big.NewInt(int64(len(puba.X.Bytes()))).Bytes()
 	var lenY = big.NewInt(int64(len(puba.Y.Bytes()))).Bytes()
@@ -51,14 +44,5 @@ func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange
 	xAKeyExchange = append(xAKeyExchange, lenRandom...)
 	xAKeyExchange = append(xAKeyExchange, randomBytes...)
 
-	log.Println(big.NewInt(int64(len(puba.X.Bytes()))))
-	log.Println(xAKeyExchange)
-
-	// a, _ := puba.Curve.ScalarMult(puba.X, puba.Y, privb.D.Bytes())
-	// b, _ := pubb.Curve.ScalarMult(pubb.X, pubb.Y, priva.D.Bytes())
-
-	// shared1 := sha256.Sum256(a.Bytes())
-	// shared2 := sha256.Sum256(b.Bytes())
-
-	return xAKeyExchange, nil
+	return xAKeyExchange, priva
 }
