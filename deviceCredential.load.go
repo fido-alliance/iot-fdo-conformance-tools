@@ -54,23 +54,16 @@ func LoadLocalCredentials() (fdoshared.WawDeviceCredential, error) {
 			return credential, fmt.Errorf("Error reading file \"%s\". The file is empty.", fileLoc)
 		}
 
-		credentialBlock, rest := pem.Decode(fileBytes)
+		credentialBlock, _ := pem.Decode(fileBytes)
 		if credentialBlock == nil {
 			return credential, fmt.Errorf("%s: Could not find voucher PEM data!", fileLoc)
 		}
-		log.Println(fileBytes)
 
 		if credentialBlock.Type != CREDENTIAL_PEM_TYPE {
 			return credential, fmt.Errorf("%s: Failed to decode PEM voucher. Unexpected type: %s", fileLoc, credentialBlock.Type)
 		}
 
-		privateKeyBytes, rest := pem.Decode(rest)
-		if privateKeyBytes == nil {
-			return credential, fmt.Errorf("%s: Could not find key PEM data!", fileLoc)
-		}
-
-		// CBOR decode voucher
-
+		log.Println(credentialBlock)
 		var credentialInst fdoshared.WawDeviceCredential
 		err = cbor.Unmarshal(credentialBlock.Bytes, &credentialInst)
 		if err != nil {

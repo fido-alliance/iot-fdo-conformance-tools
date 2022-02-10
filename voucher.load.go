@@ -70,6 +70,8 @@ func LoadLocalVouchers() ([]VoucherDBEntry, error) {
 
 		// CBOR decode voucher
 
+		log.Println(privateKeyBytes)
+
 		var voucherInst fdoshared.OwnershipVoucher
 		err = cbor.Unmarshal(voucherBlock.Bytes, &voucherInst)
 		if err != nil {
