@@ -99,7 +99,7 @@ func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
 	return &helloRVAck31, nil
 }
 
-func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher VoucherDBEntry) (*fdoshared.RVRedirect33, error) {
+func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdoshared.RVRedirect33, error) {
 
 	var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
 		EatNonce: helloRVAck31.NonceTO1Proof,
@@ -117,7 +117,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, voucher 
 		return nil, errors.New("ProveToRV32: Error extracting last OVEntry public key. " + err.Error())
 	}
 
-	privateKeyInst, err := fdoshared.ExtractPrivateKey(voucher.PrivateKeyX509)
+	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.voucherDBEntry.PrivateKeyX509)
 	if err != nil {
 		return nil, errors.New("ProveToRV32: Error extracting private key from voucher. " + err.Error())
 	}

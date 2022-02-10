@@ -70,7 +70,7 @@ func main() {
 							log.Panic(err)
 						}
 
-						acceptOwner23, err := to1requestor.ProveToRV32(*helloRVAck31, voucher)
+						acceptOwner23, err := to1requestor.ProveToRV32(*helloRVAck31)
 						if err != nil {
 							log.Panic(err)
 						}
