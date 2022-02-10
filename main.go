@@ -51,6 +51,19 @@ func main() {
 				},
 			},
 			{
+				Name:  "pem",
+				Usage: "",
+				Action: func(c *cli.Context) error {
+					_, err := LoadLocalCredentials()
+					if err != nil {
+						log.Panic(err)
+					}
+
+					log.Println("decodepem")
+					return nil
+				},
+			},
+			{
 				Name:  "testto1",
 				Usage: "",
 				Action: func(c *cli.Context) error {
@@ -60,6 +73,7 @@ func main() {
 					}
 
 					for _, voucher := range vouchers {
+						log.Println(voucher)
 						to1requestor := NewTo1Requestor(RVEntry{
 							RVURL:       "http://localhost:8083",
 							AccessToken: "",
