@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-device-implementation/fdoshared"
+	"github.com/fxamacker/cbor/v2"
 )
 
 type RVEntry struct {
@@ -62,80 +63,73 @@ func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHe
 	return bodyBytes, resp.Header.Get("Authorization"), nil
 }
 
-func (h *To1Requestor) HelloRV30() (*fdoshared.HelloRVAck31, error) {
+func (h *To1Requestor) HelloRV30() (fdoshared.HelloRVAck31, error) {
+	var helloRVAck31 fdoshared.HelloRVAck31
 
-	// extract OVHeader to get FdoGuid
-	// ovHeader, err := h.credential.Voucher.GetOVHeader()
-	// if err != nil {
-	// 	return nil, errors.New("HelloRV30: Error unmarshaling HelloRV30 OVHeader. " + err.Error())
-	// }
+	helloRV30Bytes, err := cbor.Marshal(fdoshared.HelloRV30{
+		Guid: h.credential.DCGuid,
+		EASigInfo: fdoshared.SigInfo{
+			SgType: -7,
+			Info:   "I am test!",
+		},
+	})
 
-	// helloRV30Bytes, err := cbor.Marshal(fdoshared.HelloRV30{
-	// 	Guid: ovHeader.OVGuid,
-	// 	EASigInfo: fdoshared.SigInfo{
-	// 		SgType: -7,
-	// 		Info:   "I am test!",
-	// 	},
-	// })
+	if err != nil {
+		return helloRVAck31, errors.New("HelloRV30: Error marshaling HelloRV30. " + err.Error())
+	}
 
-	// if err != nil {
-	// 	return nil, errors.New("HelloRV30: Error marshaling HelloRV30. " + err.Error())
-	// }
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_HELLO_RV_30, helloRV30Bytes, &h.rvEntry.AccessToken)
+	if err != nil {
+		return helloRVAck31, errors.New("Hello30: " + err.Error())
+	}
 
-	// resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_HELLO_RV_30, helloRV30Bytes, &h.rvEntry.AccessToken)
-	// if err != nil {
-	// 	return nil, errors.New("Hello30: " + err.Error())
-	// }
+	h.authzHeader = authzHeader
 
-	// h.authzHeader = authzHeader
+	err = cbor.Unmarshal(resultBytes, &helloRVAck31)
+	if err != nil {
+		return helloRVAck31, errors.New("HelloRV30: Failed to unmarshal HelloRVAck31. " + err.Error())
+	}
 
-	// var helloRVAck31 fdoshared.HelloRVAck31
-	// err = cbor.Unmarshal(resultBytes, &helloRVAck31)
-	// if err != nil {
-	// 	return nil, errors.New("HelloRV30: Failed to unmarshal HelloRVAck31. " + err.Error())
-	// }
-
-	// return &helloRVAck31, nil
-	return nil, nil
+	return helloRVAck31, nil
 }
 
 func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdoshared.RVRedirect33, error) {
 
-	// var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
-	// 	EatNonce: helloRVAck31.NonceTO1Proof,
-	// }
+	var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
+		EatNonce: helloRVAck31.NonceTO1Proof,
+	}
 
-	// proveToRV32PayloadBytes, err := cbor.Marshal(proveToRV32Payload)
-	// if err != nil {
-	// 	return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
-	// }
+	proveToRV32PayloadBytes, err := cbor.Marshal(proveToRV32Payload)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
+	}
 
-	// deviceHashAlg := fdoshared.HmacToHashAlg[h.credential.Voucher.OVHeaderHMac.Type]
+	deviceHashAlg := fdoshared.HmacToHashAlg[h.credential.DCHashAlg]
 
-	// lastOvEntryPubKey, err := h.credential.Voucher.GetFinalOwnerPublicKey()
-	// if err != nil {
-	// 	return nil, errors.New("ProveToRV32: Error extracting last OVEntry public key. " + err.Error())
-	// }
+	lastOvEntryPubKey, err := h.credential.Voucher.GetFinalOwnerPublicKey()
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error extracting last OVEntry public key. " + err.Error())
+	}
 
-	// privateKeyInst, err := fdoshared.ExtractPrivateKey(h.credential.PrivateKeyX509)
-	// if err != nil {
-	// 	return nil, errors.New("ProveToRV32: Error extracting private key from voucher. " + err.Error())
-	// }
+	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.credential.DCPrivateKeyDer)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error extracting private key from voucher. " + err.Error())
+	}
 
-	// sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
-	// if err != nil {
-	// 	return nil, errors.New("ProveToRV32: Error getting device SgType. " + err.Error())
-	// }
+	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error getting device SgType. " + err.Error())
+	}
 
-	// proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
-	// if err != nil {
-	// 	return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
-	// }
+	proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
+	}
 
-	// proveToRV32Bytes, err := cbor.Marshal(proveToRV32)
-	// if err != nil {
-	// 	return nil, errors.New("ProveToRV32: Error marshaling proveToRV32. " + err.Error())
-	// }
+	proveToRV32Bytes, err := cbor.Marshal(proveToRV32)
+	if err != nil {
+		return nil, errors.New("ProveToRV32: Error marshaling proveToRV32. " + err.Error())
+	}
 
 	// resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_PROVE_TO_RV_32, proveToRV32Bytes, &h.rvEntry.AccessToken)
 	// if err != nil {
