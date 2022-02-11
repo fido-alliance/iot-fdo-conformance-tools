@@ -54,12 +54,29 @@ func main() {
 				Name:  "pem",
 				Usage: "",
 				Action: func(c *cli.Context) error {
-					_, err := LoadLocalCredentials()
+					credential, err := LoadLocalCredentials()
 					if err != nil {
 						log.Panic(err)
 					}
 
 					log.Println("decodepem")
+					log.Println(credential.DCGuid)
+					to1requestor := NewTo1Requestor(RVEntry{
+						RVURL:       "http://localhost:8083",
+						AccessToken: "",
+					}, credential)
+
+					helloRVAck31, err := to1requestor.HelloRV30()
+					if err != nil {
+						log.Panic(err)
+					}
+
+					RVRedirect33, err := to1requestor.ProveToRV32(*helloRVAck31)
+					if err != nil {
+						log.Panic(err)
+					}
+					log.Println(RVRedirect33)
+
 					return nil
 				},
 			},
