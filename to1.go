@@ -67,11 +67,8 @@ func (h *To1Requestor) HelloRV30() (fdoshared.HelloRVAck31, error) {
 	var helloRVAck31 fdoshared.HelloRVAck31
 
 	helloRV30Bytes, err := cbor.Marshal(fdoshared.HelloRV30{
-		Guid: h.credential.DCGuid,
-		EASigInfo: fdoshared.SigInfo{
-			SgType: -7,
-			Info:   "I am test!",
-		},
+		Guid:      h.credential.DCGuid,
+		EASigInfo: h.credential.DCSigInfo,
 	})
 
 	if err != nil {
