@@ -104,22 +104,12 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdosha
 		return nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
 	}
 
-	deviceHashAlg := fdoshared.HmacToHashAlg[h.credential.DCHashAlg]
-
-	lastOvEntryPubKey, err := h.credential.Voucher.GetFinalOwnerPublicKey()
-	if err != nil {
-		return nil, errors.New("ProveToRV32: Error extracting last OVEntry public key. " + err.Error())
-	}
-
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.credential.DCPrivateKeyDer)
 	if err != nil {
 		return nil, errors.New("ProveToRV32: Error extracting private key from voucher. " + err.Error())
 	}
 
-	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
-	if err != nil {
-		return nil, errors.New("ProveToRV32: Error getting device SgType. " + err.Error())
-	}
+	sgType := helloRVAck31.EBSigInfo.SgType
 
 	proveToRV32, err := fdoshared.GenerateCoseSignature(proveToRV32PayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
 	if err != nil {
@@ -131,19 +121,18 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdosha
 		return nil, errors.New("ProveToRV32: Error marshaling proveToRV32. " + err.Error())
 	}
 
-	// resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_PROVE_TO_RV_32, proveToRV32Bytes, &h.rvEntry.AccessToken)
-	// if err != nil {
-	// 	return nil, errors.New("Hello30: " + err.Error())
-	// }
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_PROVE_TO_RV_32, proveToRV32Bytes, &h.rvEntry.AccessToken)
+	if err != nil {
+		return nil, errors.New("Hello30: " + err.Error())
+	}
 
-	// h.authzHeader = authzHeader
+	h.authzHeader = authzHeader
 
-	// var rvRedirect33 fdoshared.RVRedirect33
-	// err = cbor.Unmarshal(resultBytes, &rvRedirect33)
-	// if err != nil {
-	// 	return nil, errors.New("RVRedirect33: Failed to unmarshal RVRedirect33. " + err.Error())
-	// }
+	var rvRedirect33 fdoshared.RVRedirect33
+	err = cbor.Unmarshal(resultBytes, &rvRedirect33)
+	if err != nil {
+		return nil, errors.New("RVRedirect33: Failed to unmarshal RVRedirect33. " + err.Error())
+	}
 
-	// return &rvRedirect33, nil
-	return nil, nil
+	return &rvRedirect33, nil
 }

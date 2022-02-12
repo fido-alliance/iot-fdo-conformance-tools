@@ -36,6 +36,7 @@ type WawDeviceCredential struct {
 	DCPrivateKeyDer        []byte
 	DCCertificateChain     []X509CertificateBytes
 	DCCertificateChainHash HashOrHmac
+	DCSigInfo              SigInfo
 }
 
 const TestRootCert string = `-----BEGIN CERTIFICATE-----
@@ -153,7 +154,7 @@ AwEHoUQDQgAEEHbg0OZ9vOAP0LpyAvBzokps4frssgppoqrZsyA8tQOtHSSEHE+F
 1j2Ja0MQTl3TwCO3n4Dg1sYL1yWt5A+uMA==
 -----END EC PRIVATE KEY-----`
 
-func NewWawDeviceCredential(hmacAlgorithm HashType) (*WawDeviceCredential, error) {
+func NewWawDeviceCredential(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDeviceCredential, error) {
 	// Generate UUID
 	newUuid, _ := uuid.NewRandom()
 	uuidBytes, _ := newUuid.MarshalBinary()
@@ -233,6 +234,11 @@ func NewWawDeviceCredential(hmacAlgorithm HashType) (*WawDeviceCredential, error
 
 	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, dcHashAlg)
 
+	dcSigInfo := SigInfo{
+		SgType: sgType,
+		Info:   "random-info",
+	}
+
 	return &WawDeviceCredential{
 		DCProtVer:    ProtVer101,
 		DCHmacSecret: hmacSecret,
@@ -240,6 +246,7 @@ func NewWawDeviceCredential(hmacAlgorithm HashType) (*WawDeviceCredential, error
 		DCHashAlg:    dcHashAlg,
 		DCDeviceInfo: "I am a virtual Webauthn Works device!",
 		DCGuid:       dcGuid,
+		DCSigInfo:    dcSigInfo,
 		DCRVInfo: []RendezvousInstrList{
 			{
 				// {

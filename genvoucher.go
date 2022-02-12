@@ -92,7 +92,7 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 }
 
 func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
-	newDi, err := fdoshared.NewWawDeviceCredential(fdoshared.FDO_HMAC_SHA384)
+	newDi, err := fdoshared.NewWawDeviceCredential(fdoshared.FDO_HMAC_SHA384, sgType)
 
 	// Generate manufacturer private key.
 	mfgPrivateKey, mfgPublicKey, err := GenerateVoucherKeypair(sgType)

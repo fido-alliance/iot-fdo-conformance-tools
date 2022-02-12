@@ -59,19 +59,17 @@ func main() {
 						log.Panic(err)
 					}
 
-					log.Println("decodepem")
-					log.Println(credential.DCGuid)
 					to1requestor := NewTo1Requestor(RVEntry{
 						RVURL:       "http://localhost:8083",
 						AccessToken: "",
 					}, credential)
-					log.Println("test1")
 
 					helloRVAck31, err := to1requestor.HelloRV30()
 					if err != nil {
 						log.Panic(err)
 					}
-					log.Println("test2")
+					log.Println("Sending HelloRVAck31 to ProveToRV32")
+					log.Println(helloRVAck31)
 
 					RVRedirect33, err := to1requestor.ProveToRV32(helloRVAck31)
 					if err != nil {
