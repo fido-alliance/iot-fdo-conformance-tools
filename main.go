@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const PORT = 8080
+const PORT = 8083
 
 func StartServer(db *badger.DB) {
 	to0 := RvTo0{
