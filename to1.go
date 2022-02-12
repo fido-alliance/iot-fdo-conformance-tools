@@ -118,7 +118,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdosha
 		return nil, errors.New("ProveToRV32: Error marshaling proveToRV32. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_PROVE_TO_RV_32, proveToRV32Bytes, &h.rvEntry.AccessToken)
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_PROVE_TO_RV_32, proveToRV32Bytes, &h.authzHeader)
 	if err != nil {
 		return nil, errors.New("Hello30: " + err.Error())
 	}
