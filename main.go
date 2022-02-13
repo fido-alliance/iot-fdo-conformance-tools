@@ -69,9 +69,8 @@ func main() {
 				Name:  "ecdh",
 				Usage: "Tests ech",
 				Action: func(c *cli.Context) error {
-					xAKeyExchange, b := beginECDHKeyExchange(fdoshared.ECDH256)
-					log.Println(xAKeyExchange)
-					log.Println(b.D)
+					xAKeyExchange, _ := beginECDHKeyExchange(fdoshared.ECDH256)
+					extractComponentsFromKeyExchange(xAKeyExchange)
 					return nil
 				},
 			},

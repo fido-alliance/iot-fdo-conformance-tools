@@ -12,8 +12,33 @@ import (
 	"github.com/WebauthnWorks/fdo-do/fdoshared"
 )
 
-// TODO : Lengths are being stored as numbers in the byte array... eg 32 should be 20
+func extractComponentsFromKeyExchange(keyExchange fdoshared.XAKeyExchange) bool {
+	// mySlice := keyExchange{}
+	// log.Println(keyExchange[:1])
+	// data := binary.BigEndian.Uint64(mySlice)
+	return false
+}
 
+/**
+export const extractComponentsFromKeyExchange = (keyExchange: Buffer) => {
+  let i = 0;
+
+  const xLen = keyExchange.slice(0, 2).readInt16LE();
+  const x = keyExchange.slice(2, 2 + xLen);
+  i = 2 + xLen;
+
+  const yLen = keyExchange.slice(i, i + 2).readInt16LE();
+  const y = keyExchange.slice(i + 2, i + 2 + xLen);
+  i = i + 2 + yLen;
+
+  const randomLen = keyExchange.slice(i, i + 2).readInt16LE();
+  const theirRandom = keyExchange.slice(i + 2, i + 2 + randomLen);
+
+  return { x, y, theirRandom };
+};
+**/
+
+// TODO : Lengths are being stored as numbers in the byte array... eg 32 should be 20
 func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange, *ecdsa.PrivateKey) {
 
 	priva, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
