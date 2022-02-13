@@ -71,10 +71,6 @@ func LoadLocalCredentials() (fdoshared.WawDeviceCredential, error) {
 		}
 
 		return credentialInst, nil
-		// credentials = append(credentials, VoucherDBEntry{
-		// 	Voucher:        credentialInst,
-		// 	PrivateKeyX509: privateKeyBytes.Bytes,
-		// })
 	}
 
 	return credential, nil
