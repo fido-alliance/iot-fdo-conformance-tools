@@ -37,6 +37,44 @@ type CoseSignature struct {
 	Signature   []byte
 }
 
+type EATPayloadBase struct {
+	// EatFDO   []byte   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	// EatFDO   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	EatNonce []byte      `cbor:"10,keyasint,omitempty"`
+	EatUEID  [17]byte    `cbor:"11,keyasint,omitempty"`
+	EatFDO   EATPayloads `cbor:"-257,keyasint,omitempty"`
+}
+
+type EATPayloads struct {
+	TO2ProveDevicePayload *TO2ProveDevicePayload
+}
+
+type TO2ProveDevicePayload struct {
+	xBKeyExchange xBKeyExchange
+}
+
+type xAKeyExchange []byte
+type xBKeyExchange []byte
+
+type EATPayloadBase struct {
+	// EatFDO   []byte   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	// EatFDO   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	EatNonce []byte      `cbor:"10,keyasint,omitempty"`
+	EatUEID  [17]byte    `cbor:"11,keyasint,omitempty"`
+	EatFDO   EATPayloads `cbor:"-257,keyasint,omitempty"`
+}
+
+type EATPayloads struct {
+	TO2ProveDevicePayload *TO2ProveDevicePayload
+}
+
+type TO2ProveDevicePayload struct {
+	xBKeyExchange xBKeyExchange
+}
+
+type xAKeyExchange []byte
+type xBKeyExchange []byte
+
 type CoseContext string
 
 const Signature1 CoseContext = "Signature1"
@@ -116,25 +154,6 @@ const (
 	StEPID10    DeviceSgType = 90
 	StEPID11    DeviceSgType = 91
 )
-
-func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) {
-	switch pkType {
-	case SECP256R1:
-		return StSECP256R1, nil
-	case SECP384R1:
-		return StSECP384R1, nil
-	case RSA2048RESTR, RSAPKCS, RSAPSS:
-		if hashType == FDO_SHA256 {
-			return StRSA2048, nil
-		} else if hashType == FDO_SHA384 {
-			return StRSA3072, nil
-		} else {
-			return 0, fmt.Errorf("For RSA: %d is an unsupported hash type!", hashType)
-		}
-	default:
-		return 0, fmt.Errorf("For RSA: %d is an unsupported public key type!", pkType)
-	}
-}
 
 type SigInfo struct {
 	_      struct{} `cbor:",toarray"`
@@ -228,6 +247,25 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) (bool, e
 		return false, errors.New("CoseKey is not currently supported!") // TODO
 	default:
 		return false, fmt.Errorf("PublicKey encoding %d is not supported!", publicKey.PkEnc)
+	}
+}
+
+func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) {
+	switch pkType {
+	case SECP256R1:
+		return StSECP256R1, nil
+	case SECP384R1:
+		return StSECP384R1, nil
+	case RSA2048RESTR, RSAPKCS, RSAPSS:
+		if hashType == FDO_SHA256 {
+			return StRSA2048, nil
+		} else if hashType == FDO_SHA384 {
+			return StRSA3072, nil
+		} else {
+			return 0, fmt.Errorf("For RSA: %d is an unsupported hash type!", hashType)
+		}
+	default:
+		return 0, fmt.Errorf("For RSA: %d is an unsupported public key type!", pkType)
 	}
 }
 

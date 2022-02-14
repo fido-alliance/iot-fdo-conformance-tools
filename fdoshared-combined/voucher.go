@@ -2,6 +2,7 @@ package fdoshared
 
 import (
 	"errors"
+	"log"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -98,7 +99,7 @@ type RendezvousInstructionBlock struct {
 type OwnershipVoucherHeader struct {
 	_                  struct{} `cbor:",toarray"`
 	OVHProtVer         ProtVersion
-	OVGuid             FdoGuid
+	OVGuid             FDOGuid
 	OVRvInfo           interface{}
 	OVDeviceInfo       string
 	OVPublicKey        FdoPublicKey
@@ -126,14 +127,43 @@ func (h OwnershipVoucher) Validate() (bool, error) {
 	// TODO
 
 	// Verify ProtVersion
+	if h.OVProtVer != ProtVer101 {
+		log.Println("Error verifying ownershipVoucher protver. ")
+		return false, errors.New("error verifying ownershipVoucher protver. ")
+	}
 
 	// Decode Voucher Header
+	var OVHeaderInst OwnershipVoucherHeader
+	err := cbor.Unmarshal(h.OVHeaderTag, &OVHeaderInst)
+	if err != nil {
+		log.Println("Error verifying ownershipVoucher, couldn't decode OVHeader. ")
+		return false, errors.New("error verifying ownershipVoucher, couldn't decode OVHeader ")
+	}
 
-	// Verify ProtVersion
+	// Verify ProtVersion ??
 
 	// Verify OVDevCertChainHash
 
+	// “OVDevCertChainHash” = Hash of the concatenation of the contents of each byte string in “OwnershipVoucher.OVDevCertChain”,
+	//  in the presented order. When OVDevCertChain is CBOR null, OVDevCertChainHash is also CBOR null.
+
+	OVDevCertChain_Certs, err := ComputeOVDevCertChainHash(*h.OVDevCertChain, h.OVHeaderHMac.Type)
+	if err != nil {
+		log.Println("error verifying ownershipVoucher, couldn't compute bytes for OVDevCertChain. ")
+		return false, errors.New("error verifying ownershipVoucher, couldn't compute bytes for OVDevCertChain")
+	}
+
+	verifiedHash, err := VerifyHash(OVDevCertChain_Certs.Hash, *OVHeaderInst.OVDevCertChainHash)
+	if err != nil || !verifiedHash {
+		log.Println("error verifying ownershipVoucher, couldn't verify hash for OVDevCertChain. ")
+		return false, errors.New("error verifying ownershipVoucher, couldn't verify hash for OVDevCertChain")
+	}
+
 	// Verify OVDevCertChain
+	// => The certificates and signature chain of OwnershipVoucher.OVDevCertChain are verified.
+
+	// Verification of the Device Certificate Chain: The Device receiving the Ownership Voucher must verify it against
+	// the Device Credential and verify the HMAC in the Ownership Voucher using the secret stored in the device.
 
 	// Verify OVEntryArray
 
