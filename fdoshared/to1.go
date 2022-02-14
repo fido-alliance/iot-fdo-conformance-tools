@@ -14,4 +14,7 @@ type HelloRVAck31 struct {
 
 type ProveToRV32 = CoseSignature
 
-type RVRedirect33 = CoseSignature
+type RVRedirect33 struct {
+	_          struct{} `cbor:",toarray"`
+	RVRedirect CoseSignature
+}

@@ -126,7 +126,9 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdosha
 	h.authzHeader = authzHeader
 
 	var rvRedirect33 fdoshared.RVRedirect33
+
 	err = cbor.Unmarshal(resultBytes, &rvRedirect33)
+
 	if err != nil {
 		return nil, errors.New("RVRedirect33: Failed to unmarshal RVRedirect33. " + err.Error())
 	}
