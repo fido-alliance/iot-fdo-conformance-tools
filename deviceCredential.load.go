@@ -63,7 +63,6 @@ func LoadLocalCredentials() (fdoshared.WawDeviceCredential, error) {
 			return credential, fmt.Errorf("%s: Failed to decode PEM voucher. Unexpected type: %s", fileLoc, credentialBlock.Type)
 		}
 
-		log.Println(credentialBlock)
 		var credentialInst fdoshared.WawDeviceCredential
 		err = cbor.Unmarshal(credentialBlock.Bytes, &credentialInst)
 		if err != nil {

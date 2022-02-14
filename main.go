@@ -46,7 +46,6 @@ func main() {
 						log.Panic("Error decoding source: " + err.Error())
 					}
 
-					log.Println(helloRv30)
 					return nil
 				},
 			},
@@ -68,15 +67,12 @@ func main() {
 					if err != nil {
 						log.Panic(err)
 					}
-					log.Println("Sending HelloRVAck31 to ProveToRV32")
-					log.Println(helloRVAck31)
 
-					RVRedirect33, err := to1requestor.ProveToRV32(helloRVAck31)
+					_, err = to1requestor.ProveToRV32(helloRVAck31)
 					if err != nil {
 						log.Panic(err)
 					}
-					log.Println("test3")
-					log.Println(RVRedirect33)
+					log.Println("Success To1")
 
 					return nil
 				},
