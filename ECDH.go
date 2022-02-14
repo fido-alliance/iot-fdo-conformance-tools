@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"log"
 	"math/big"
 
 	"fmt"
@@ -12,11 +13,44 @@ import (
 	"github.com/WebauthnWorks/fdo-do/fdoshared"
 )
 
-func extractComponentsFromKeyExchange(keyExchange fdoshared.XAKeyExchange) bool {
-	// mySlice := keyExchange{}
-	// log.Println(keyExchange[:1])
-	// data := binary.BigEndian.Uint64(mySlice)
-	return false
+func convertCoefficientsToBigInt(keyExchange fdoshared.XAKeyExchange) (*big.Int, *big.Int, []byte) {
+	xLen := int(keyExchange[0])
+	xA_x := (keyExchange[1 : xLen+1])
+
+	yLen := int(keyExchange[xLen+1])
+	xA_y := (keyExchange[xLen+2 : xLen+2+yLen])
+	xA_x_Big := new(big.Int)
+	xA_y_Big := new(big.Int)
+	xA_x_Big.SetBytes(xA_x)
+	xA_y_Big.SetBytes(xA_y)
+
+	rLen := int(keyExchange[xLen+2+yLen])
+	r := (keyExchange[xLen+2+yLen+1 : xLen+2+yLen+1+rLen])
+
+	return xA_x_Big, xA_y_Big, r
+}
+
+// Completes Key Exchange from DO side using DI pub key
+func completeKeyExchange(priva ecdsa.PrivateKey, pubDI ecdsa.PublicKey) {
+	shx, _ := pubDI.Curve.ScalarMult(pubDI.X, pubDI.Y, priva.D.Bytes())
+	// shx.append deviceRandom
+	log.Println(shx)
+}
+
+func extractComponentsFromKeyExchange(keyExchange fdoshared.XAKeyExchange) ecdsa.PublicKey {
+	log.Println(keyExchange)
+
+	do_x, do_y, _ := convertCoefficientsToBigInt(keyExchange)
+
+	priva, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	puba := priva.PublicKey
+
+	shx, _ := puba.Curve.ScalarMult(do_x, do_y, priva.D.Bytes())
+	// shx.append doRandom
+
+	log.Println(shx)
+
+	return puba // return xBKeyExchange
 }
 
 /**
