@@ -1,0 +1,3 @@
+[submodule "fdoshared"]
+	path = fdoshared
+	url = https://github.com/WebauthnWorks/fdoshared.git
