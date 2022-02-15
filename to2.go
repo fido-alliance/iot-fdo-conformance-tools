@@ -126,14 +126,12 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	// requests the next OVEntry
 
-	lastOVEntryNum := getLastOVEntryNum(sessionId)
-
-	if lastOVEntryNum == nil && getOVNextEntry.OVEntryNum != 0 {
+	if session.LastOVEntryNum == nil && getOVNextEntry.OVEntryNum != 0 {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "2 Error with OVEntryNum!", http.StatusBadRequest)
 		return
 	}
 
-	if getOVNextEntry != lastOVEntryNum+1 {
+	if getOVNextEntry.OVEntryNum != session.LastOVEntryNum+1 {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "3 Error with OVEntryNum!", http.StatusBadRequest)
 		return
 	}
@@ -155,6 +153,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	ovNextEntryBytes, _ := cbor.Marshal(ovNextEntry63)
 
+	sessionIdToken := "Bearer " + string(sessionId)
 	w.Header().Set("Authorization", sessionIdToken)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
 	w.Header().Set("Message-Type", fdoshared.TO2_OV_NEXTENTRY_63.ToString())
