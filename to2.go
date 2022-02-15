@@ -71,6 +71,9 @@ type DoTo2 struct {
 // 		return
 // 	}
 
+// NonceTO2ProveDv61
+// store NonceTO2ProveDv61
+
 // 	proveOVHdrPayload := fdoshared.TO2ProveOVHdrPayload{
 // 		OVHeader:            OVHeaderBytes,
 // 		NumOVEntries:        255,                    // change
@@ -218,11 +221,15 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	TO2ProveDevicePayload := EATPayloadBase.EatFDO.TO2ProveDevicePayload
 	NonceTO2SetupDv := proveDevice64.Unprotected.CUPHNonce
 
+
+	// Complete Key Exchange here
+
+	// TODO:
 	TO2SetupDevicePayload := fdoshared.TO2SetupDevicePayload {
-		RendezvousInfo:
-		Guid:
-		NonceTO2SetupDv:
-		Owner2Key:
+		RendezvousInfo: []fdoshared.RendezvousInstrList{},
+		Guid: fdoshared.FdoGuid{},
+		NonceTO2SetupDv: NonceTO2SetupDv,
+		Owner2Key: nil,
 	}
 	
 	var TO2SetupDevicePayloadBytes []byte
@@ -232,8 +239,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		Protected: proveDevice64.Protected,
 		Unprotected: proveDevice64.Unprotected,
 		Payload: TO2SetupDevicePayloadBytes,
-		Signature: 
-
+		Signature: nil,
 	}
 
 	SetupDeviceBytes, _ := cbor.Marshal(SetupDevice65)
@@ -255,9 +261,47 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 // // 	return nil, nil
 // // }
 
-// // func (h *DoTo2) Done70() (*fdoshared.Done271, error) {
-// // 	return nil, nil
-// // }
+func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
+	log.Println("Receiving Done70...")
+
+	if !CheckHeaders(w, r, fdoshared.TO2_DONE_70) {
+		return
+	}
+
+	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DONE_70)
+	if !headerIsOk {
+		return
+	}
+
+	session, err := h.session.GetSessionEntry(sessionId)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Unauthorized (1)", http.StatusUnauthorized)
+		return
+	}
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to read body!", http.StatusBadRequest)
+		return
+	}
+
+	
+	var Done fdoshared.Done70 
+	err = cbor.Unmarshal(bodyBytes, &Done)
+
+	// check to see Nonce is equal to the nonce that was sent in 61
+	// Bytes compare..
+	
+	session, err := h.session.GetSessionEntry(sessionId)
+	NonceTO2ProveDv61 := session.NonceTO2ProveDv61
+	if bytes.Compare(NonceTO2ProveDv61, Done.NonceTO2ProveDv) != 0 {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Nonces did not match", http.StatusBadRequest)
+		return
+	} 
+	
+}
+
+}
 
 // // /**
 // // /60

@@ -26,6 +26,7 @@ type SessionEntry struct {
 	NonceTO0Sign         []byte
 	NonceTO1Proof        []byte
 	NonceTO2ProveOV      []byte
+	NonceTO2ProveDv61    []byte
 	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
 	LastOVEntryNum       uint8
 	EASigInfo            fdoshared.SigInfo
