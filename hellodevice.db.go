@@ -19,13 +19,13 @@ func NewOwnerSignDB(db *badger.DB) HelloDeviceDB {
 	}
 }
 
-func (h *HelloDeviceDB) Save(deviceGuid fdoshared.FdoGuid, helloDevice fdoshared.HelloDevice60, ttlSec uint32) error {
+func (h *HelloDeviceDB) Save(sessionId fdoshared.FdoGuid, helloDevice fdoshared.HelloDevice60, ttlSec uint32) error {
 	helloDeviceBytes, err := cbor.Marshal(helloDevice)
 	if err != nil {
 		return errors.New("Failed to marshal ownerSign. The error is: " + err.Error())
 	}
 
-	ownerSignStorageId := append([]byte("to1osstorage-"), deviceGuid[:]...)
+	ownerSignStorageId := append([]byte("to1osstorage-"), sessionId[:]...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -44,8 +44,8 @@ func (h *HelloDeviceDB) Save(deviceGuid fdoshared.FdoGuid, helloDevice fdoshared
 	return nil
 }
 
-func (h *HelloDeviceDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.HelloDevice60, error) {
-	ownerSignStorageId := append([]byte("to1osstorage-"), deviceGuid[:]...)
+func (h *HelloDeviceDB) Get(sessionId SessionEntry) (*fdoshared.HelloDevice60, error) {
+	ownerSignStorageId := append([]byte("to2osstorage-"), sessionId[:]...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()

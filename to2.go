@@ -1,21 +1,19 @@
 package main
 
-// import (
-// 	"crypto/rand"
-// 	"io/ioutil"
-// 	"log"
-// 	"net/http"
+import (
+	"io/ioutil"
+	"net/http"
 
-// 	"github.com/WebauthnWorks/fdo-do/fdoshared"
-// 	"github.com/fxamacker/cbor/v2"
-// )
+	"github.com/WebauthnWorks/fdo-do/fdoshared"
+	"github.com/fxamacker/cbor/v2"
+)
 
-// const agreedWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
+const agreedWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 
-// type DoTo2 struct {
-// 	session       *SessionDB
-// 	HelloDeviceDB *HelloDeviceDB
-// }
+type DoTo2 struct {
+	session       *SessionDB
+	HelloDeviceDB *HelloDeviceDB
+}
 
 // func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 // 	log.Println("Receiving HelloDevice60...")
@@ -23,11 +21,11 @@ package main
 // 		return
 // 	}
 
-// 	bodyBytes, err := ioutil.ReadAll(r.Body)
-// 	if err != nil {
-// 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed to read body!", http.StatusBadRequest)
-// 		return
-// 	}
+// bodyBytes, err := ioutil.ReadAll(r.Body)
+// if err != nil {
+// 	RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed to read body!", http.StatusBadRequest)
+// 	return
+// }
 
 // 	var helloDevice fdoshared.HelloDevice60
 // 	err = cbor.Unmarshal(bodyBytes, &helloDevice)
@@ -98,9 +96,71 @@ package main
 // 	w.Write(helloAckBytes)
 // }
 
-// // func (h *DoTo2) GetOVNextEntry62() (*fdoshared.OVNextEntry63, error) {
-// // 	return nil, nil
-// // }
+func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
+
+	if !CheckHeaders(w, r, fdoshared.TO0_OWNER_SIGN_22) {
+		return
+	}
+
+	headerIsOk, sessionId, authorizationHeader := ExtractAuthorizationHeader(w, r, fdoshared.TO0_OWNER_SIGN_22)
+	if !headerIsOk {
+		return
+	}
+
+	session, err := h.session.GetSessionEntry(sessionId)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Unauthorized (1)", http.StatusUnauthorized)
+		return
+	}
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Failed to read body!", http.StatusBadRequest)
+		return
+	}
+
+	var voucher fdoshared.OwnershipVoucher
+
+	var getOVNextEntry fdoshared.GetOVNextEntry62
+	err = cbor.Unmarshal(bodyBytes, &getOVNextEntry)
+
+	// requests the next OVEntry
+
+	lastOVEntryNum := getLastOVEntryNum(sessionId)
+
+	if lastOVEntryNum == nil && getOVNextEntry.OVEntryNum != 0 {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "2 Error with OVEntryNum!", http.StatusBadRequest)
+		return
+	}
+
+	if getOVNextEntry != lastOVEntryNum+1 {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "3 Error with OVEntryNum!", http.StatusBadRequest)
+		return
+	}
+
+	// update OVEntryNum in session storage
+
+	if getOVNextEntry.OVEntryNum == session.TO2ProveOVHdrPayload.NumOVEntries-1 {
+		// nextState = TO2.ProveDevice.
+	} else {
+		// nextState = getOVNextEntry
+	}
+
+	OVEntry := voucher.OVEntryArray[getOVNextEntry.OVEntryNum]
+
+	var ovNextEntry63 = fdoshared.OVNextEntry63{
+		OVEntryNum: getOVNextEntry.OVEntryNum,
+		OVEntry:    OVEntry,
+	}
+
+	ovNextEntryBytes, _ := cbor.Marshal(ovNextEntry63)
+
+	w.Header().Set("Authorization", sessionIdToken)
+	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
+	w.Header().Set("Message-Type", fdoshared.TO2_OV_NEXTENTRY_63.ToString())
+	w.WriteHeader(http.StatusOK)
+	w.Write(ovNextEntryBytes)
+}
 
 // // func (h *DoTo2) ProveDevice64() (*fdoshared.SetupDevice65, error) {
 // // 	log.Println("Receiving ProveDevice64...")
