@@ -44,8 +44,8 @@ func (h *HelloDeviceDB) Save(sessionId fdoshared.FdoGuid, helloDevice fdoshared.
 	return nil
 }
 
-func (h *HelloDeviceDB) Get(sessionId SessionEntry) (*fdoshared.HelloDevice60, error) {
-	ownerSignStorageId := append([]byte("to2osstorage-"), sessionId[:]...)
+func (h *HelloDeviceDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.HelloDevice60, error) {
+	ownerSignStorageId := append([]byte("to2osstorage-"), deviceGuid[:]...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()

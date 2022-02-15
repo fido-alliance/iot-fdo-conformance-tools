@@ -29,6 +29,7 @@ type SessionEntry struct {
 	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
 	LastOVEntryNum       uint8
 	EASigInfo            fdoshared.SigInfo
+	Voucher              fdoshared.OwnershipVoucher
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
