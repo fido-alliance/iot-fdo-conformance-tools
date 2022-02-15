@@ -150,7 +150,7 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !to0dHashIsValid {
+	if to0dHashIsValid {
 		log.Println("OwnerSign22: To0d hash is not valid!")
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 7!", http.StatusBadRequest)
 		return

@@ -130,19 +130,21 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var ownershipVoucher fdoshared.OwnershipVoucher
 	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
 
-	var placeHolder_publicKey fdoshared.FdoPublicKey
-	signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
-	if err != nil {
-		log.Println("ProveToRV32: Error verigetInfo_response[GetInfoRespKeys.fying. " + err.Error())
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
-		return
-	}
+	// TODO: FIX! => Error verigetInfo_response[GetInfoRespKeys.fying. EPID signatures are not currently supported!
 
-	if !signatureIsValid {
-		log.Println("ProveToRV32: Signature is not valid!")
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature!", http.StatusBadRequest)
-		return
-	}
+	// var placeHolder_publicKey fdoshared.FdoPublicKey
+	// signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
+	// if err != nil {
+	// 	log.Println("ProveToRV32: Error verigetInfo_response[GetInfoRespKeys.fying. " + err.Error())
+	// 	RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
+	// 	return
+	// }
+
+	// if !signatureIsValid {
+	// 	log.Println("ProveToRV32: Signature is not valid!")
+	// 	RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature!", http.StatusBadRequest)
+	// 	return
+	// }
 
 	rvRedirect := fdoshared.RVRedirect33{
 		RVRedirect: ownerSign22.To1d,
