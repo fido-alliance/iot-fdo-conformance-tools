@@ -12,3 +12,8 @@ const (
 )
 
 type XAKeyExchange []byte
+type KeyExchangeComponents struct {
+	x []byte
+	y []byte
+	r []byte
+}

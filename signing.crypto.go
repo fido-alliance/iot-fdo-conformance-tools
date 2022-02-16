@@ -53,6 +53,14 @@ type TO2ProveDevicePayload struct {
 	xBKeyExchange xBKeyExchange
 }
 
+type TO2SetupDevicePayload struct {
+	_               struct{} `cbor:",toarray"`
+	RendezvousInfo  []RendezvousInstrList
+	Guid            FdoGuid
+	NonceTO2SetupDv []byte
+	Owner2Key       FdoPublicKey
+}
+
 type xAKeyExchange []byte
 type xBKeyExchange []byte
 
