@@ -16,7 +16,7 @@ import (
 
 const PORT = 8080
 
-type storedVoucher struct {
+type StoredVoucher struct {
 	VoucherEntry VoucherDBEntry
 	RVURL        string
 }
@@ -29,7 +29,7 @@ func StartServer(db *badger.DB) {
 	}
 
 	http.HandleFunc("/fdo/voucher", voucher.saveVoucher)
-	// http.HandleFunc("/fdo/101/msg/20", to0.Handle20Hello)
+	http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
 	// http.HandleFunc("/fdo/101/msg/22", to0.Handle22OwnerSign)
 	// http.HandleFunc("/fdo/101/msg/30", to1.Handle30HelloRV)
 	// http.HandleFunc("/fdo/101/msg/32", to1.Handle32ProveToRV)
@@ -114,7 +114,7 @@ func main() {
 						}
 
 						// needs to be refactored into seperate function
-						storedVoucher := storedVoucher{
+						storedVoucher := StoredVoucher{
 							VoucherEntry: voucher,
 							RVURL:        "http://localhost:8083",
 						}
