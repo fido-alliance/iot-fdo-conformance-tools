@@ -1,37 +1,34 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/WebauthnWorks/fdo-do/fdoshared"
 	"github.com/dgraph-io/badger/v3"
+	"github.com/fxamacker/cbor/v2"
 	"github.com/urfave/cli/v2"
 )
 
 const PORT = 8080
 
+type storedVoucher struct {
+	VoucherEntry VoucherDBEntry
+	RVURL        string
+}
+
 func StartServer(db *badger.DB) {
-	// to0 := RvTo0{
-	// 	session: &SessionDB{
-	// 		db: db,
-	// 	},
-	// 	ownersignDB: &OwnerSignDB{
-	// 		db: db,
-	// 	},
-	// }
+	voucher := Voucher{
+		session: &SessionDB{
+			db: db,
+		},
+	}
 
-	// to1 := RvTo1{
-	// 	session: &SessionDB{
-	// 		db: db,
-	// 	},
-	// 	ownersignDB: &OwnerSignDB{
-	// 		db: db,
-	// 	},
-	// }
-
+	http.HandleFunc("/fdo/voucher", voucher.saveVoucher)
 	// http.HandleFunc("/fdo/101/msg/20", to0.Handle20Hello)
 	// http.HandleFunc("/fdo/101/msg/22", to0.Handle22OwnerSign)
 	// http.HandleFunc("/fdo/101/msg/30", to1.Handle30HelloRV)
@@ -70,16 +67,15 @@ func main() {
 				Usage: "Tests ech",
 				Action: func(c *cli.Context) error {
 					xAKeyExchange, priva := beginECDHKeyExchange(fdoshared.ECDH256)
-					log.Println(xAKeyExchange)
 					xBKeyExchange, privb := beginECDHKeyExchange(fdoshared.ECDH256)
 
 					shSeDI := finishKeyExchange(xAKeyExchange, xBKeyExchange, *privb, false)
-					log.Println("DI shSE:")
-					log.Println(shSeDI)
-
 					shSeDO := finishKeyExchange(xBKeyExchange, xAKeyExchange, *priva, true)
-					log.Println("DO shSE:")
-					log.Println(shSeDO)
+					if bytes.Compare(shSeDI, shSeDO) != 0 {
+						log.Panicln("Failed")
+						return nil
+					}
+					log.Println("Success")
 					return nil
 				},
 			},
@@ -106,6 +102,38 @@ func main() {
 						acceptOwner23, err := to0requestor.OwnerSign22(helloack21.NonceTO0Sign)
 						if err != nil {
 							log.Panic(err)
+						}
+
+						// store voucher with guid here.
+						dbtxn := db.NewTransaction(true)
+						defer dbtxn.Discard()
+
+						ovHeader, err := voucher.Voucher.GetOVHeader()
+						if err != nil {
+							log.Println("failed")
+						}
+
+						// needs to be refactored into seperate function
+						storedVoucher := storedVoucher{
+							VoucherEntry: voucher,
+							RVURL:        "http://localhost:8083",
+						}
+						var voucherBytes []byte
+						voucherBytes, err = cbor.Marshal(storedVoucher)
+						if err != nil {
+							log.Panicln("error marshaling")
+						}
+
+						entry := badger.NewEntry(ovHeader.OVGuid[:], voucherBytes).WithTTL(time.Minute * 10) // Session entry will only exist for 10 minutes
+						err = dbtxn.SetEntry(entry)
+						if err != nil {
+							log.Panicln("Failed creating session db entry %s", err.Error())
+							// return []byte{}, errors.New("Failed creating session db entry instance. The error is: " + err.Error())
+						}
+
+						dbtxn.Commit()
+						if err != nil {
+							log.Panicln("Failed saving session entry. The error is: %s", err.Error())
 						}
 
 						log.Println(acceptOwner23)
