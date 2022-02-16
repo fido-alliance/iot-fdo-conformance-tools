@@ -71,8 +71,15 @@ func main() {
 				Action: func(c *cli.Context) error {
 					xAKeyExchange, priva := beginECDHKeyExchange(fdoshared.ECDH256)
 					log.Println(xAKeyExchange)
-					pubb := extractComponentsFromKeyExchange(xAKeyExchange)
-					completeKeyExchange(*priva, pubb)
+					xBKeyExchange, privb := beginECDHKeyExchange(fdoshared.ECDH256)
+
+					shSeDI := finishKeyExchange(xAKeyExchange, xBKeyExchange, *privb, false)
+					log.Println("DI shSE:")
+					log.Println(shSeDI)
+
+					shSeDO := finishKeyExchange(xBKeyExchange, xAKeyExchange, *priva, true)
+					log.Println("DO shSE:")
+					log.Println(shSeDO)
 					return nil
 				},
 			},
