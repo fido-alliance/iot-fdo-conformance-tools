@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"time"
 
@@ -34,6 +35,11 @@ type SessionEntry struct {
 	EASigInfo            fdoshared.SigInfo
 	Voucher              fdoshared.OwnershipVoucher
 	SessionKey           []byte
+	PrivateKey           *ecdsa.PrivateKey
+
+	KexSuiteName    string
+	CipherSuiteName string
+	Guid            fdoshared.FdoGuid
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {

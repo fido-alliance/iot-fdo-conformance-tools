@@ -19,10 +19,16 @@ const PORT = 8080
 type StoredVoucher struct {
 	VoucherEntry VoucherDBEntry
 	RVURL        string
+	WaitSeconds  uint32
 }
 
 func StartServer(db *badger.DB) {
 	voucher := Voucher{
+		session: &SessionDB{
+			db: db,
+		},
+	}
+	DoTo2 := DoTo2{
 		session: &SessionDB{
 			db: db,
 		},
@@ -56,7 +62,7 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:  "serve",
-				Usage: "Starts rv",
+				Usage: "Starts do",
 				Action: func(c *cli.Context) error {
 					StartServer(db)
 					return nil
@@ -117,6 +123,7 @@ func main() {
 						storedVoucher := StoredVoucher{
 							VoucherEntry: voucher,
 							RVURL:        "http://localhost:8083",
+							WaitSeconds:  acceptOwner23.WaitSeconds,
 						}
 						var voucherBytes []byte
 						voucherBytes, err = cbor.Marshal(storedVoucher)

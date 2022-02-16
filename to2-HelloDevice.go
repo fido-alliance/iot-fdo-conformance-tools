@@ -21,19 +21,11 @@ type DoTo2 struct {
 
 func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving HelloDevice60...")
-	if !CheckHeaders(w, r, fdoshared.TO0_HELLO_20) {
+	if !CheckHeaders(w, r, fdoshared.TO2_HELLO_DEVICE_60) {
 		return
 	}
 
-	options := badger.DefaultOptions("./badger.local.db")
-	options.Logger = nil
-
-	db, err := badger.Open(options)
-	if err != nil {
-		log.Panicln("Error opening Badger DB. " + err.Error())
-	}
-	defer db.Close()
-
+	// Unmarshal body
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed to read body!", http.StatusBadRequest)
@@ -47,8 +39,16 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. Obtain voucher
-	// 1a. Marshal OVHeader from voucher
+	// Obtain stored voucher related to RV
+	options := badger.DefaultOptions("./badger.local.db")
+	options.Logger = nil
+
+	db, err := badger.Open(options)
+	if err != nil {
+		log.Panicln("Error opening Badger DB. " + err.Error())
+	}
+	defer db.Close()
+
 	var storedVoucher StoredVoucher
 	dbtxn := db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -72,24 +72,39 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed locating entry. The error is: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// END
+
+	// Generate NonceTO2ProveDv61
+	NonceTO2ProveDv := make([]byte, 16)
+	rand.Read(NonceTO2ProveDv)
 
 	// 2. Begin Key Exchange
-	// Write code here.
-	// xAKeyExchange, err := beginECDHKeyExchange(kexSuiteName)
-
-	// 3. Generate Nonce
-	NonceTO2ProveOV := make([]byte, 16)
-	rand.Read(NonceTO2ProveOV)
-
-	// 4. Encode response
-
-	err = h.HelloDeviceDB.Save(helloDevice.Guid, helloDevice, agreedWaitSeconds)
+	xAKeyExchange, privateKey := beginECDHKeyExchange(fdoshared.ECDH256) // _ => priva
 
 	// Response:
 
+	helloDeviceHash, err := fdoshared.GenerateFdoHash(bodyBytes, -16) // fix
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
+		return
+	}
+
+	// helloDevice.Guid
+	NumOVEntries := len(storedVoucher.VoucherEntry.Voucher.OVEntryArray)
+	if NumOVEntries > 255 {
+		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
+		return
+	}
+
+	// store priva here using sessionId + nonce
 	newSessionInst := SessionEntry{
-		Protocol:        fdoshared.To2,
-		NonceTO2ProveOV: helloDevice.NonceTO2ProveOV,
+		Protocol:          fdoshared.To2,
+		NonceTO2ProveOV:   helloDevice.NonceTO2ProveOV,
+		PrivateKey:        privateKey,
+		NonceTO2ProveDv61: NonceTO2ProveDv,
+		KexSuiteName:      helloDevice.KexSuiteName,
+		CipherSuiteName:   helloDevice.CipherSuiteName,
+		Guid:              helloDevice.Guid,
 	}
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)
@@ -98,37 +113,18 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helloDeviceHash, err := fdoshared.GenerateFdoHash(bodyBytes, -16) // fix
-	if err != nil {
-		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
-		return
-	}
-
-	// NonceTO2ProveDv61
-	// store NonceTO2ProveDv61
-
-	// helloDevice.Guid
-	var NumOVEntries int
-	NumOVEntries = len(storedVoucher.VoucherEntry.Voucher.OVEntryArray)
-	if NumOVEntries > 255 {
-		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
-		return
-	}
-
-	xAKeyExchange, _ := beginECDHKeyExchange(fdoshared.ECDH256) // _ => priva
-	// store priva here
-
 	proveOVHdrPayload := fdoshared.TO2ProveOVHdrPayload{
 		OVHeader:            storedVoucher.VoucherEntry.Voucher.OVHeaderTag,
-		NumOVEntries:        uint8(NumOVEntries),                             // change
+		NumOVEntries:        uint8(NumOVEntries),
 		HMac:                storedVoucher.VoucherEntry.Voucher.OVHeaderHMac, // Ownership Voucher "hmac" of hdr
 		NonceTO2ProveOV:     helloDevice.NonceTO2ProveOV,
 		EBSigInfo:           helloDevice.EASigInfo,
-		XAKeyExchange:       xAKeyExchange, // Key exchange first step
+		XAKeyExchange:       xAKeyExchange,
 		HelloDeviceHash:     helloDeviceHash,
-		MaxOwnerMessageSize: helloDevice.MaxDeviceMessageSize, // change
+		MaxOwnerMessageSize: helloDevice.MaxDeviceMessageSize,
 	}
 
+	// 4. Encode response
 	proveOVHdrPayloadBytes, _ := cbor.Marshal(proveOVHdrPayload)
 
 	helloAck, _ := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, storedVoucher.VoucherEntry.PrivateKeyX509, helloDevice.EASigInfo.SgType)
@@ -139,7 +135,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	sessionIdToken := "Bearer " + string(sessionId)
 	w.Header().Set("Authorization", sessionIdToken)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
-	w.Header().Set("Message-Type", fdoshared.TO0_HELLO_ACK_21.ToString())
+	w.Header().Set("Message-Type", fdoshared.TO2_PROVE_OVHDR_61.ToString())
 	w.WriteHeader(http.StatusOK)
 	w.Write(helloAckBytes)
 }
