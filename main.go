@@ -39,9 +39,9 @@ func StartServer(db *badger.DB) {
 	http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
 	http.HandleFunc("/fdo/101/msg/62", DoTo2.GetOVNextEntry62)
 	http.HandleFunc("/fdo/101/msg/64", DoTo2.ProveDevice64)
-	http.HandleFunc("/fdo/101/msg/66", DoTo2.GetOVNextEntry62)
-	http.HandleFunc("/fdo/101/msg/68", DoTo2.GetOVNextEntry62)
-	http.HandleFunc("/fdo/101/msg/70", DoTo2.GetOVNextEntry62)
+	http.HandleFunc("/fdo/101/msg/66", DoTo2.DeviceServiceInfoReady66)
+	http.HandleFunc("/fdo/101/msg/68", DoTo2.DeviceServiceInfo68)
+	http.HandleFunc("/fdo/101/msg/70", DoTo2.Done70)
 
 	log.Printf("Starting server at port %d... \n", PORT)
 

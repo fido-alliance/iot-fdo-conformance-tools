@@ -96,17 +96,16 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	privateKeyBytes, err := cbor.Marshal(privateKey)
+	// privateKeyBytes, err := cbor.Marshal(*privateKey)
+	privateKeyBytes, err := fdoshared.MarshalPrivateKey(privateKey, -7)
+	log.Println("PRIVATE KEY:::::::::::::::::::::::")
+	log.Println(privateKeyBytes)
 	if err != nil {
-		log.Println("Couldnt marshal privateKey")
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
 	// store priva here using sessionId + nonce
 
-	log.Println("oventries")
-	log.Println(NumOVEntries)
-	log.Println(uint8(NumOVEntries))
 	proveOVHdrPayload := fdoshared.TO2ProveOVHdrPayload{
 		OVHeader:            storedVoucher.VoucherEntry.Voucher.OVHeaderTag,
 		NumOVEntries:        uint8(NumOVEntries),
@@ -128,7 +127,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		CipherSuiteName:   helloDevice.CipherSuiteName,
 		Guid:              helloDevice.Guid,
 		NumOVEntries:      uint8(NumOVEntries),
-		Voucher:           storedVoucher.VoucherEntry.Voucher, // lol. fix!
+		Voucher:           storedVoucher.VoucherEntry.Voucher, // lol. fix! being stored twice
 	}
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)

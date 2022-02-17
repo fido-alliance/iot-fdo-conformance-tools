@@ -12,7 +12,7 @@ import (
 
 func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
-	log.Println("Receiving HelloDevice62...")
+	log.Println("Receiving GetOVNextEntry...")
 	if !CheckHeaders(w, r, fdoshared.TO2_GET_OVNEXTENTRY_62) {
 		return
 	}
@@ -65,7 +65,6 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	h.session.UpdateSessionEntry(sessionId, *session)
 
 	if getOVNextEntry.GetOVNextEntry == session.NumOVEntries-1 {
-
 		// nextState = TO2.ProveDevice.
 	} else {
 

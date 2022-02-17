@@ -1,36 +1,5 @@
 package main
 
-// func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request) {
-// 	log.Println("Receiving Done70...")
-
-// 	if !CheckHeaders(w, r, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66) {
-// 		return
-// 	}
-
-// 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66)
-// 	if !headerIsOk {
-// 		return
-// 	}
-
-// 	session, err := h.session.GetSessionEntry(sessionId)
-// 	if err != nil {
-// 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized (1)", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	bodyBytes, err := ioutil.ReadAll(r.Body)
-// 	if err != nil {
-// 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Failed to read body!", http.StatusBadRequest)
-// 		return
-// 	}
-// 	// bodyBytes will be encrypted
-// 	// need to decrypt it using the sessionKey
-
-// 	// var DeviceServiceInfo68 fdoshared.DeviceServiceInfo68
-// 	// err = cbor.Unmarshal(bodyBytes, &DeviceServiceInfo68)
-
-// }
-
 // // // func (h *DoTo2) DeviceServiceInfo68() (*fdoshared.OwnerServiceInfo69, error) {
 // // // 	return nil, nil
 // // // }
