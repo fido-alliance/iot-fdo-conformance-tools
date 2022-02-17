@@ -121,10 +121,17 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// ToDO
-	SetupDevice65, err := fdoshared.GenerateCoseSignature(TO2SetupDevicePayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, fdoshared.ProtectedHeader{}, -7)
-	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Internal Server Error", http.StatusBadRequest)
-		return
+	// SetupDevice65, err := fdoshared.GenerateCoseSignature(TO2SetupDevicePayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, fdoshared.ProtectedHeader{}, -7)
+	// if err != nil {
+	// 	RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Internal Server Error", http.StatusBadRequest)
+	// 	return
+	// }
+
+	SetupDevice65 := fdoshared.SetupDevice65{
+		Protected:   proveDevice64.Protected,
+		Unprotected: proveDevice64.Unprotected,
+		Payload:     TO2SetupDevicePayloadBytes,
+		Signature:   nil,
 	}
 
 	SetupDeviceBytes, _ := cbor.Marshal(SetupDevice65)

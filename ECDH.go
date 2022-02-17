@@ -5,7 +5,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/binary"
-	"log"
+	"errors"
 	"math/big"
 
 	"github.com/WebauthnWorks/fdo-do/fdoshared"
@@ -47,7 +47,6 @@ func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange
 	xAKeyExchange = append(xAKeyExchange, puba.Y.Bytes()...)
 	xAKeyExchange = append(xAKeyExchange, lenRandom...)
 	xAKeyExchange = append(xAKeyExchange, randomBytes...)
-	log.Println(xAKeyExchange)
 
 	return xAKeyExchange, priva
 }
@@ -55,9 +54,10 @@ func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange
 // func finishKeyExchange(keyExchange fdoshared.XAKeyExchange, keyExchange2 fdoshared.XAKeyExchange, privKey ecdsa.PrivateKey, isDO bool) []byte {
 func finishKeyExchange(keyExchange fdoshared.XAKeyExchange, keyExchange2 fdoshared.XAKeyExchange, privKey interface{}, isDO bool) []byte {
 
-	x, y, r := extractBytesFromKeyExchange(keyExchange) // extract x,y,r from other party's keyExchange struct
-
-	_, _, r2 := extractBytesFromKeyExchange(keyExchange2) // extract r from own keyExhange. This can be optimised
+	x, y, r, _ := extractBytesFromKeyExchange(keyExchange) // extract x,y,r from other party's keyExchange struct
+	// err handling
+	_, _, r2, _ := extractBytesFromKeyExchange(keyExchange2) // extract r from own keyExhange. This can be optimised
+	// err handling
 
 	bigX, bigY := convertCoefficientsToBigInt(x, y) // coverts other party's bytes into bigInt for scalar multipl.
 
@@ -85,19 +85,20 @@ func finishKeyExchange(keyExchange fdoshared.XAKeyExchange, keyExchange2 fdoshar
 }
 
 // See #1 at end of file for example
-func extractBytesFromKeyExchange(keyExchange fdoshared.XAKeyExchange) ([]byte, []byte, []byte) {
-	xLen := int(keyExchange[0])
+func extractBytesFromKeyExchange(keyExchange fdoshared.XAKeyExchange) ([]byte, []byte, []byte, error) {
 
-	xA_x := (keyExchange[1 : xLen+1])
+	xLen := int(binary.BigEndian.Uint16(keyExchange[0:2]))
+	yLen := int(binary.BigEndian.Uint16(keyExchange[xLen+2 : xLen+4]))
+	rLen := int(binary.BigEndian.Uint16(keyExchange[xLen+2+yLen+2 : xLen+2+yLen+2+2]))
 
-	yLen := int(keyExchange[xLen+1])
+	xA_x := (keyExchange[2 : xLen+2])
+	xA_y := (keyExchange[xLen+4 : xLen+4+yLen])
+	r := (keyExchange[xLen+4+yLen+2 : xLen+4+yLen+2+rLen])
+	if xLen+4+yLen+2+rLen != len(keyExchange) {
+		return nil, nil, nil, errors.New("Detected bytes != actual length")
+	}
 
-	xA_y := (keyExchange[xLen+2 : xLen+2+yLen])
-
-	rLen := int(keyExchange[xLen+2+yLen])
-	r := (keyExchange[xLen+2+yLen+1 : xLen+2+yLen+1+rLen])
-
-	return xA_x, xA_y, r
+	return xA_x, xA_y, r, nil
 }
 
 func convertCoefficientsToBigInt(x []byte, y []byte) (*big.Int, *big.Int) {
