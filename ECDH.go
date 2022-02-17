@@ -4,6 +4,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/binary"
+	"log"
 	"math/big"
 
 	"github.com/WebauthnWorks/fdo-do/fdoshared"
@@ -15,8 +17,8 @@ func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange
 	priva, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	puba := priva.PublicKey
 
-	// decide owner/device random length
 	var randomBytesLength uint8
+
 	if curve == fdoshared.ECDH256 {
 		randomBytesLength = 16
 	} else {
@@ -24,20 +26,28 @@ func beginECDHKeyExchange(curve fdoshared.KexSuiteName) (fdoshared.XAKeyExchange
 	}
 
 	// Convert public key x,y to bytes
-	var lenX = big.NewInt(int64(len(puba.X.Bytes()))).Bytes()
-	var lenY = big.NewInt(int64(len(puba.Y.Bytes()))).Bytes()
+
+	xLen := make([]byte, 2)
+	binary.BigEndian.PutUint16(xLen, uint16(len(puba.X.Bytes())))
+	yLen := make([]byte, 2)
+	binary.BigEndian.PutUint16(yLen, uint16(len(puba.Y.Bytes())))
+
+	// var lenX = big.NewInt(int64(len(puba.X.Bytes()))).Bytes()
+	// var lenY = big.NewInt(int64(len(puba.Y.Bytes()))).Bytes()
 
 	// Create device/owner random
+	lenRandom := make([]byte, 2)
 	randomBytes := make([]byte, randomBytesLength)
+	binary.BigEndian.PutUint16(lenRandom, uint16(len(randomBytes)))
 	rand.Read(randomBytes)
-	var lenRandom = big.NewInt(int64(randomBytesLength)).Bytes()
 
 	// Assemble into keyExchange
-	var xAKeyExchange fdoshared.XAKeyExchange = append(lenX, puba.X.Bytes()...)
-	xAKeyExchange = append(xAKeyExchange, lenY...)
+	var xAKeyExchange fdoshared.XAKeyExchange = append(xLen, puba.X.Bytes()...)
+	xAKeyExchange = append(xAKeyExchange, yLen...)
 	xAKeyExchange = append(xAKeyExchange, puba.Y.Bytes()...)
 	xAKeyExchange = append(xAKeyExchange, lenRandom...)
 	xAKeyExchange = append(xAKeyExchange, randomBytes...)
+	log.Println(xAKeyExchange)
 
 	return xAKeyExchange, priva
 }

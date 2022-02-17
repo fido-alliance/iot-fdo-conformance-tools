@@ -15,14 +15,12 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Done70...")
 
 	if !CheckHeaders(w, r, fdoshared.TO2_DONE_70) {
-
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DONE_70)
 	if !headerIsOk {
-
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body", http.StatusBadRequest)
 		return
 	}
