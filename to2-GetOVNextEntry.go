@@ -13,12 +13,14 @@ import (
 func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Receiving HelloDevice62...")
-	if !CheckHeaders(w, r, fdoshared.TO0_OWNER_SIGN_22) {
+	if !CheckHeaders(w, r, fdoshared.TO2_GET_OVNEXTENTRY_62) {
+		log.Println("1.")
 		return
 	}
 
-	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO0_OWNER_SIGN_22)
+	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_GET_OVNEXTENTRY_62)
 	if !headerIsOk {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized (1)", http.StatusUnauthorized)
 		return
 	}
 
@@ -43,6 +45,10 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	var getOVNextEntry fdoshared.GetOVNextEntry62
 	err = cbor.Unmarshal(bodyBytes, &getOVNextEntry)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Failed to decode body!", http.StatusBadRequest)
+		return
+	}
 
 	// check to see if LastOVEntryNum was never set, if so then the OVEntryNum must call 0
 	if session.LastOVEntryNum == 0 && getOVNextEntry.GetOVNextEntry != 0 {
@@ -50,7 +56,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if getOVNextEntry.GetOVNextEntry != session.LastOVEntryNum+1 {
+	if getOVNextEntry.GetOVNextEntry != 0 && getOVNextEntry.GetOVNextEntry != session.LastOVEntryNum+1 {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "3 Error with OVEntryNum!", http.StatusBadRequest)
 		return
 	}
@@ -59,20 +65,28 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	session.LastOVEntryNum = getOVNextEntry.GetOVNextEntry
 	h.session.UpdateSessionEntry(sessionId, *session)
 
-	if getOVNextEntry.GetOVNextEntry == session.TO2ProveOVHdrPayload.NumOVEntries-1 {
+	if getOVNextEntry.GetOVNextEntry == session.NumOVEntries-1 {
+		log.Println("1.9a")
 		// nextState = TO2.ProveDevice.
 	} else {
+		log.Println("1.9b")
 		// nextState = getOVNextEntry
 	}
 
+	log.Println("2.0")
+	log.Println(voucher.OVEntryArray) // Needs fixing
 	OVEntry := voucher.OVEntryArray[getOVNextEntry.GetOVNextEntry]
 
+	log.Println("2.1")
 	var ovNextEntry63 = fdoshared.OVNextEntry63{
 		OVEntryNum: getOVNextEntry.GetOVNextEntry,
 		OVEntry:    OVEntry,
 	}
 
+	log.Println("2.2")
 	ovNextEntryBytes, _ := cbor.Marshal(ovNextEntry63)
+
+	log.Println("2.3")
 
 	sessionIdToken := "Bearer " + string(sessionId)
 	w.Header().Set("Authorization", sessionIdToken)

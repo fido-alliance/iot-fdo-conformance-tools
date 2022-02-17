@@ -1,8 +1,8 @@
 package main
 
 import (
-	"crypto/ecdsa"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/WebauthnWorks/fdo-do/fdoshared"
@@ -29,17 +29,23 @@ type SessionEntry struct {
 	NonceTO1Proof     []byte
 	NonceTO2ProveOV   []byte
 	NonceTO2ProveDv61 []byte
+	NonceTO2SetupDv   []byte
+
+	NumOVEntries uint8
 
 	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
 	LastOVEntryNum       uint8
 	EASigInfo            fdoshared.SigInfo
 	Voucher              fdoshared.OwnershipVoucher
 	SessionKey           []byte
-	PrivateKey           *ecdsa.PrivateKey
+	// PrivateKey           *ecdsa.PrivateKey
+	PrivateKey    []byte
+	XAKeyExchange fdoshared.XAKeyExchange
 
 	KexSuiteName    string
 	CipherSuiteName string
 	Guid            fdoshared.FdoGuid
+	ShSeDO          []byte
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
@@ -47,6 +53,10 @@ func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
 	if err != nil {
 		return []byte{}, errors.New("Failed to marshal session. The error is: " + err.Error())
 	}
+	log.Println("SAVING")
+	log.Println(sessionInst)
+	log.Println(sessionBytes)
+	log.Println("SAVING")
 
 	randomEntryId, _ := uuid.NewRandom()
 	sessionEntryId := []byte("session-" + randomEntryId.String())
@@ -111,8 +121,10 @@ func (h *SessionDB) GetSessionEntry(entryId []byte) (*SessionEntry, error) {
 	}
 
 	var sessionEntryInst SessionEntry
+	log.Println(itemBytes)
 	err = cbor.Unmarshal(itemBytes, &sessionEntryInst)
 	if err != nil {
+		log.Println("WTF")
 		return nil, errors.New("Failed cbor decoding entry value. The error is: " + err.Error())
 	}
 

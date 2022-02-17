@@ -96,23 +96,17 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// store priva here using sessionId + nonce
-	newSessionInst := SessionEntry{
-		Protocol:          fdoshared.To2,
-		NonceTO2ProveOV:   helloDevice.NonceTO2ProveOV,
-		PrivateKey:        privateKey,
-		NonceTO2ProveDv61: NonceTO2ProveDv,
-		KexSuiteName:      helloDevice.KexSuiteName,
-		CipherSuiteName:   helloDevice.CipherSuiteName,
-		Guid:              helloDevice.Guid,
-	}
-
-	sessionId, err := h.session.NewSessionEntry(newSessionInst)
+	privateKeyBytes, err := cbor.Marshal(privateKey)
 	if err != nil {
+		log.Println("Couldnt marshal privateKey")
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
+	// store priva here using sessionId + nonce
 
+	log.Println("oventries")
+	log.Println(NumOVEntries)
+	log.Println(uint8(NumOVEntries))
 	proveOVHdrPayload := fdoshared.TO2ProveOVHdrPayload{
 		OVHeader:            storedVoucher.VoucherEntry.Voucher.OVHeaderTag,
 		NumOVEntries:        uint8(NumOVEntries),
@@ -122,6 +116,24 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		XAKeyExchange:       xAKeyExchange,
 		HelloDeviceHash:     helloDeviceHash,
 		MaxOwnerMessageSize: helloDevice.MaxDeviceMessageSize,
+	}
+
+	newSessionInst := SessionEntry{
+		Protocol:          fdoshared.To2,
+		NonceTO2ProveOV:   helloDevice.NonceTO2ProveOV,
+		PrivateKey:        privateKeyBytes,
+		XAKeyExchange:     xAKeyExchange,
+		NonceTO2ProveDv61: NonceTO2ProveDv,
+		KexSuiteName:      helloDevice.KexSuiteName,
+		CipherSuiteName:   helloDevice.CipherSuiteName,
+		Guid:              helloDevice.Guid,
+		NumOVEntries:      uint8(NumOVEntries),
+	}
+
+	sessionId, err := h.session.NewSessionEntry(newSessionInst)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
+		return
 	}
 
 	// 4. Encode response
