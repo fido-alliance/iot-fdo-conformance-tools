@@ -14,7 +14,6 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Receiving HelloDevice62...")
 	if !CheckHeaders(w, r, fdoshared.TO2_GET_OVNEXTENTRY_62) {
-		log.Println("1.")
 		return
 	}
 
@@ -66,27 +65,22 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	h.session.UpdateSessionEntry(sessionId, *session)
 
 	if getOVNextEntry.GetOVNextEntry == session.NumOVEntries-1 {
-		log.Println("1.9a")
+
 		// nextState = TO2.ProveDevice.
 	} else {
-		log.Println("1.9b")
+
 		// nextState = getOVNextEntry
 	}
 
-	log.Println("2.0")
-	log.Println(voucher.OVEntryArray) // Needs fixing
+	// Needs fixing
 	OVEntry := voucher.OVEntryArray[getOVNextEntry.GetOVNextEntry]
 
-	log.Println("2.1")
 	var ovNextEntry63 = fdoshared.OVNextEntry63{
 		OVEntryNum: getOVNextEntry.GetOVNextEntry,
 		OVEntry:    OVEntry,
 	}
 
-	log.Println("2.2")
 	ovNextEntryBytes, _ := cbor.Marshal(ovNextEntry63)
-
-	log.Println("2.3")
 
 	sessionIdToken := "Bearer " + string(sessionId)
 	w.Header().Set("Authorization", sessionIdToken)

@@ -128,6 +128,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		CipherSuiteName:   helloDevice.CipherSuiteName,
 		Guid:              helloDevice.Guid,
 		NumOVEntries:      uint8(NumOVEntries),
+		Voucher:           storedVoucher.VoucherEntry.Voucher, // lol. fix!
 	}
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)
