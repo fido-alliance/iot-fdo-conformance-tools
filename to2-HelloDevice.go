@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -26,11 +27,17 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Unmarshal body
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes2, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
+
+	// DELETE
+	hex.EncodeToString(bodyBytes2)
+	bodyBytesAsString := string(bodyBytes2)
+	bodyBytes, err := hex.DecodeString(bodyBytesAsString)
+	// DELETE
 
 	var helloDevice fdoshared.HelloDevice60
 	err = cbor.Unmarshal(bodyBytes, &helloDevice)
@@ -40,17 +47,9 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Obtain stored voucher related to RV
-	options := badger.DefaultOptions("./badger.local.db")
-	options.Logger = nil
-
-	db, err := badger.Open(options)
-	if err != nil {
-		log.Panicln("Error opening Badger DB. " + err.Error())
-	}
-	defer db.Close()
 
 	var storedVoucher StoredVoucher
-	dbtxn := db.NewTransaction(true)
+	dbtxn := h.session.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
 	item, err := dbtxn.Get(helloDevice.Guid[:])
@@ -79,6 +78,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	rand.Read(NonceTO2ProveDv)
 
 	// 2. Begin Key Exchange
+
 	xAKeyExchange, privateKey := beginECDHKeyExchange(fdoshared.ECDH256) // _ => priva
 
 	// Response:
@@ -127,8 +127,14 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	// 4. Encode response
 	proveOVHdrPayloadBytes, _ := cbor.Marshal(proveOVHdrPayload)
 
-	helloAck, _ := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, storedVoucher.VoucherEntry.PrivateKeyX509, helloDevice.EASigInfo.SgType)
-	// fdoshared.ProveOVHdr61
+	privateKeyInst, err := fdoshared.ExtractPrivateKey(storedVoucher.VoucherEntry.PrivateKeyX509)
+
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
+		return
+	}
+
+	helloAck, _ := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, helloDevice.EASigInfo.SgType)
 
 	helloAckBytes, _ := cbor.Marshal(helloAck)
 

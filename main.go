@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,7 +37,7 @@ func StartServer(db *badger.DB) {
 
 	http.HandleFunc("/fdo/voucher", voucher.saveVoucher)
 	http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
-	// http.HandleFunc("/fdo/101/msg/22", to0.Handle22OwnerSign)
+	http.HandleFunc("/fdo/101/msg/62", DoTo2.GetOVNextEntry62)
 	// http.HandleFunc("/fdo/101/msg/30", to1.Handle30HelloRV)
 	// http.HandleFunc("/fdo/101/msg/32", to1.Handle32ProveToRV)
 
@@ -144,6 +145,7 @@ func main() {
 						}
 
 						log.Println(acceptOwner23)
+						log.Println(hex.EncodeToString(ovHeader.OVGuid[:]))
 					}
 
 					return nil
