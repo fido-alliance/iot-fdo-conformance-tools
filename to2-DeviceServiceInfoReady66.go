@@ -10,7 +10,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-const MAX_DEVICE_SERVICE_INFO_SIZE = 1300
+const MAX_DEVICE_SERVICE_INFO_SIZE uint16 = uint16(1300)
 
 func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving DeviceServiceInfoReady66...")
@@ -31,6 +31,10 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	session, err := h.session.GetSessionEntry(sessionId)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized (1)", http.StatusUnauthorized)
+		return
+	}
+	if session.NextCmd != fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66 {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized. Didn't call /64 (1)", http.StatusUnauthorized)
 		return
 	}
 
@@ -60,14 +64,21 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	}
 	// bodyBytes will be encrypted
 	// need to decrypt it using the sessionKey
+	var OwnerServiceInfoReady fdoshared.OwnerServiceInfoReady67
+
 	maxDeviceServiceInfoSz := DeviceServiceInfoReady66.MaxOwnerServiceInfoSz
+
 	if maxDeviceServiceInfoSz == 0 {
 		maxDeviceServiceInfoSz = MAX_DEVICE_SERVICE_INFO_SIZE
+	} else {
+		OwnerServiceInfoReady.MaxDeviceServiceInfoSz = maxDeviceServiceInfoSz
 	}
 
-	var OwnerServiceInfoReady = fdoshared.OwnerServiceInfoReady67{
-		MaxDeviceServiceInfoSz: maxDeviceServiceInfoSz,
-	}
+	// Stores MaxSz for 68
+	session.MaxDeviceServiceInfoSz = maxDeviceServiceInfoSz
+	session.NextCmd = fdoshared.TO2_DEVICE_SERVICE_INFO_68
+	h.session.UpdateSessionEntry(sessionId, *session)
+
 	OwnerServiceInfoReadyBytes, err := cbor.Marshal(OwnerServiceInfoReady)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Failed to decode body!", http.StatusBadRequest)

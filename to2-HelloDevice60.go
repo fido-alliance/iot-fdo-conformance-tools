@@ -89,17 +89,14 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// helloDevice.Guid
 	NumOVEntries := len(storedVoucher.VoucherEntry.Voucher.OVEntryArray)
 	if NumOVEntries > 255 {
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
 
-	// privateKeyBytes, err := cbor.Marshal(*privateKey)
-	privateKeyBytes, err := fdoshared.MarshalPrivateKey(privateKey, -7)
-	log.Println("PRIVATE KEY:::::::::::::::::::::::")
-	log.Println(privateKeyBytes)
+	privateKeyBytes, err := fdoshared.MarshalPrivateKey(privateKey, -7) // TODO
+
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
 		return
@@ -128,6 +125,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		Guid:              helloDevice.Guid,
 		NumOVEntries:      uint8(NumOVEntries),
 		Voucher:           storedVoucher.VoucherEntry.Voucher, // lol. fix! being stored twice
+		NextCmd:           fdoshared.TO2_GET_OVNEXTENTRY_62,
 	}
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)

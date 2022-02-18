@@ -31,6 +31,7 @@ type SessionEntry struct {
 	NonceTO2SetupDv   []byte
 
 	NumOVEntries uint8
+	NextCmd      fdoshared.FdoCmd
 
 	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
 	LastOVEntryNum       uint8
@@ -44,6 +45,10 @@ type SessionEntry struct {
 	CipherSuiteName string
 	Guid            fdoshared.FdoGuid
 	ShSeDO          []byte
+
+	MaxDeviceServiceInfoSz                  uint16
+	ServiceInfoMsgNo                        uint8
+	OwnerServiceInfoIsMoreServiceInfoIsTrue bool
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {

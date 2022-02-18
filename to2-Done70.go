@@ -30,6 +30,10 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Unauthorized (1)", http.StatusUnauthorized)
 		return
 	}
+	if session.NextCmd != fdoshared.TO2_DONE_70 {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Unauthorized. Didn't call /68 (1)", http.StatusUnauthorized)
+		return
+	}
 
 	bodyBytes2, err := ioutil.ReadAll(r.Body)
 	if err != nil {

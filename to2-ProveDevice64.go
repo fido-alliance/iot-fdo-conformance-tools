@@ -32,6 +32,10 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized (1)", http.StatusUnauthorized)
 		return
 	}
+	if session.NextCmd != fdoshared.TO2_PROVE_DEVICE_64 {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized. Didn't call /62 (1)", http.StatusUnauthorized)
+		return
+	}
 
 	bodyBytes2, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -102,6 +106,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	// sesion[]
 
 	session.ShSeDO = shSeDO
+	session.NextCmd = fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66
 
 	h.session.UpdateSessionEntry(sessionId, *session)
 

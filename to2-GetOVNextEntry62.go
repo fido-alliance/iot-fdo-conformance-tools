@@ -28,6 +28,10 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized (1)", http.StatusUnauthorized)
 		return
 	}
+	if session.NextCmd != fdoshared.TO2_GET_OVNEXTENTRY_62 {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized. Didn't call /60 (1)", http.StatusUnauthorized)
+		return
+	}
 
 	bodyBytes2, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -62,13 +66,13 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	// update OVEntryNum in session storage
 	session.LastOVEntryNum = getOVNextEntry.GetOVNextEntry
+
 	h.session.UpdateSessionEntry(sessionId, *session)
 
 	if getOVNextEntry.GetOVNextEntry == session.NumOVEntries-1 {
-		// nextState = TO2.ProveDevice.
+		session.NextCmd = fdoshared.TO2_PROVE_DEVICE_64
 	} else {
-
-		// nextState = getOVNextEntry
+		session.NextCmd = fdoshared.TO2_GET_OVNEXTENTRY_62
 	}
 
 	// Needs fixing
