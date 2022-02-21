@@ -11,6 +11,8 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+// Enc: 8443a10105a13a010f01bd830000f658388347a1013a010f01bfa23a010f01bd830000f6055022a09fa54fa3e6380357634c1ff13c5e52a3a3bfb82c9e819680d63985e895ee7685c05820c067c9ba8e7059e8fa23eaef8eaa676cdf1af21130e1f4f2d2756317a1d09182
+// Unenc:
 func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Done70...")
 
@@ -21,7 +23,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DONE_70)
 	if !headerIsOk {
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body 1", http.StatusBadRequest)
 		return
 	}
 
@@ -56,7 +58,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	var Done70 fdoshared.Done70
 	err = cbor.Unmarshal(decryptionBytes, &Done70)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body 2!", http.StatusBadRequest)
 		return
 	}
 	// bodyBytes will be encrypted
@@ -72,7 +74,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	Done2Bytes, err := cbor.Marshal(Done2)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body 3!", http.StatusBadRequest)
 		return
 	}
 	// Encode(OwnerServiceInfoReadyBytes)

@@ -86,7 +86,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 
 	// TO2ProveDevicePayload := EATPayloadBase.EatFDO.TO2ProveDevicePayload
 	TO2ProveDevicePayload := EATPayloadBase.EatFDO
-	NonceTO2SetupDv := proveDevice64.Unprotected.CUPHNonce
+	NonceTO2SetupDv := proveDevice64.Unprotected.EUPHNonce
 
 	privateKeyBytes := session.PrivateKey
 
@@ -107,6 +107,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	// sesion[]
 
 	session.ShSeDO = shSeDO
+	session.NonceTO2SetupDv = NonceTO2SetupDv
 	session.NextCmd = fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66
 
 	h.session.UpdateSessionEntry(sessionId, *session)

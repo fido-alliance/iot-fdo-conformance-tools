@@ -30,6 +30,11 @@ var serviceInfo = map[string][]string{
 
 const MTU_BYTES = 1500
 
+// ORIGINAL:
+// 8443a10105a13a010f01bd830000f658458347a1013a010f01bfa23a010f01bd830000f60550eca62b5723f86c00c26084abffe35676581ed3fade08fb3761c19622f2be21d582551a85c9ca694b5d1b5e33e155e23a5820befd7fd86927830a118804f93accc3dfca2e3952d0e7d0bb25789c7d91037ef4
+// Without decryption
+//
+
 // Sends as many Owner to Device ServiceInfo entries as will conveniently fit into a message, based on protocol and implementation constraints.
 // No idea what this is referring to
 func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +49,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DEVICE_SERVICE_INFO_68)
 	if !headerIsOk {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body 1", http.StatusBadRequest)
 		return
 	}
 
@@ -84,7 +89,9 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	var DeviceServiceInfo68 fdoshared.DeviceServiceInfo68
 	err = cbor.Unmarshal(decryptionBytes, &DeviceServiceInfo68)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body!", http.StatusBadRequest)
+		log.Println(decryptionBytes)
+		log.Println(err)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body 2!", http.StatusBadRequest)
 		return
 	}
 	// bodyBytes will be encrypted
@@ -124,7 +131,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	}
 	OwnerServiceInfoReadyBytes, err := cbor.Marshal(OwnerServiceInfo)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body 3!", http.StatusBadRequest)
 		return
 	}
 	// Encode(OwnerServiceInfoReadyBytes)
