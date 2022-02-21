@@ -33,6 +33,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_PROVE_DEVICE_64 {
+		log.Println(session.NextCmd)
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized. Didn't call /62 (1)", http.StatusUnauthorized)
 		return
 	}

@@ -71,9 +71,12 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	if getOVNextEntry.GetOVNextEntry == session.NumOVEntries-1 {
 		session.NextCmd = fdoshared.TO2_PROVE_DEVICE_64
+		log.Println("next cmd is 64")
 	} else {
 		session.NextCmd = fdoshared.TO2_GET_OVNEXTENTRY_62
 	}
+
+	h.session.UpdateSessionEntry(sessionId, *session)
 
 	// Needs fixing
 	OVEntry := voucher.OVEntryArray[getOVNextEntry.GetOVNextEntry]

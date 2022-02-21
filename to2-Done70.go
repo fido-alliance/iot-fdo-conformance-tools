@@ -81,7 +81,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	sessionIdToken := "Bearer " + string(sessionId)
 	w.Header().Set("Authorization", sessionIdToken)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
-	w.Header().Set("Message-Type", fdoshared.TO2_OWNER_SERVICE_INFO_69.ToString())
+	w.Header().Set("Message-Type", fdoshared.TO2_DONE2_71.ToString())
 	w.WriteHeader(http.StatusOK)
 	w.Write(Done2Bytes)
 }
