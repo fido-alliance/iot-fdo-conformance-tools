@@ -47,7 +47,6 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Obtain stored voucher related to RV
-
 	var storedVoucher StoredVoucher
 	dbtxn := h.session.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -78,11 +77,9 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	rand.Read(NonceTO2ProveDv)
 
 	// 2. Begin Key Exchange
-
 	xAKeyExchange, privateKey := beginECDHKeyExchange(fdoshared.ECDH256) // _ => priva
 
 	// Response:
-
 	helloDeviceHash, err := fdoshared.GenerateFdoHash(bodyBytes, -16) // fix
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
@@ -124,7 +121,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		CipherSuiteName:   helloDevice.CipherSuiteName,
 		Guid:              helloDevice.Guid,
 		NumOVEntries:      uint8(NumOVEntries),
-		Voucher:           storedVoucher.VoucherEntry.Voucher, // lol. fix! being stored twice
+		Voucher:           storedVoucher.VoucherEntry.Voucher, // It's being stored twice in db, much more accessible from here
 		NextCmd:           fdoshared.TO2_GET_OVNEXTENTRY_62,
 	}
 
