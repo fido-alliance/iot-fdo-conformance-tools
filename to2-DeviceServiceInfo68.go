@@ -105,6 +105,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// TODO:
 	// On the first ServiceInfo message, the Device must include the devmod module messages.
 	if session.ServiceInfoMsgNo == 0 {
 		// Check for devmod module messages

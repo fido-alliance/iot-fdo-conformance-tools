@@ -23,6 +23,9 @@ func NewSessionDB(db *badger.DB) SessionDB {
 type SessionEntry struct {
 	_        struct{} `cbor:",toarray"`
 	Protocol fdoshared.FdoToProtocol
+	NextCmd  fdoshared.FdoCmd
+
+	SessionKey []byte
 
 	NonceTO0Sign      []byte
 	NonceTO1Proof     []byte
@@ -30,21 +33,20 @@ type SessionEntry struct {
 	NonceTO2ProveDv61 []byte
 	NonceTO2SetupDv   []byte
 
-	NumOVEntries uint8
-	NextCmd      fdoshared.FdoCmd
-
-	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
-	LastOVEntryNum       uint8
-	EASigInfo            fdoshared.SigInfo
-	Voucher              fdoshared.OwnershipVoucher
-	SessionKey           []byte
-	PrivateKey           []byte
-	XAKeyExchange        fdoshared.XAKeyExchange
-
+	EASigInfo       fdoshared.SigInfo
+	PrivateKey      []byte
+	XAKeyExchange   fdoshared.XAKeyExchange
 	KexSuiteName    string
 	CipherSuiteName string
 	Guid            fdoshared.FdoGuid
-	ShSeDO          []byte
+	Voucher         fdoshared.OwnershipVoucher
+
+	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
+
+	NumOVEntries   uint8
+	LastOVEntryNum uint8
+
+	ShSeDO []byte
 
 	MaxDeviceServiceInfoSz                  uint16
 	ServiceInfoMsgNo                        uint8

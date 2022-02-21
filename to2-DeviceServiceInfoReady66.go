@@ -34,7 +34,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66 {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized. Didn't call /64 (1)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized. Didn't call /64", http.StatusUnauthorized)
 		return
 	}
 

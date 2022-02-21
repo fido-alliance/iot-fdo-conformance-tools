@@ -84,15 +84,13 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TO2ProveDevicePayload := EATPayloadBase.EatFDO.TO2ProveDevicePayload
-	TO2ProveDevicePayload := EATPayloadBase.EatFDO
+	TO2ProveDevicePayload := EATPayloadBase.EatFDO // .TO2ProveDevicePayload
 	NonceTO2SetupDv := proveDevice64.Unprotected.EUPHNonce
 
 	privateKeyBytes := session.PrivateKey
 
 	privateKey, err := fdoshared.ExtractPrivateKey(privateKeyBytes)
 	if err != nil {
-
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}

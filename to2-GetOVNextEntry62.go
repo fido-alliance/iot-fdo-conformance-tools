@@ -25,7 +25,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.session.GetSessionEntry(sessionId)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized (1)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized (2)", http.StatusUnauthorized)
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_GET_OVNEXTENTRY_62 {
@@ -69,16 +69,16 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	h.session.UpdateSessionEntry(sessionId, *session)
 
+	// If there is more than 1 entry, must call next entry instead of /64
 	if getOVNextEntry.GetOVNextEntry == session.NumOVEntries-1 {
 		session.NextCmd = fdoshared.TO2_PROVE_DEVICE_64
-		log.Println("next cmd is 64")
 	} else {
 		session.NextCmd = fdoshared.TO2_GET_OVNEXTENTRY_62
 	}
 
 	h.session.UpdateSessionEntry(sessionId, *session)
 
-	// Needs fixing
+	// Needs fixing -- INVESTIGATE?
 	OVEntry := voucher.OVEntryArray[getOVNextEntry.GetOVNextEntry]
 
 	var ovNextEntry63 = fdoshared.OVNextEntry63{
