@@ -28,7 +28,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	session, err := h.session.GetSessionEntry(sessionId)
+	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized (1)", http.StatusUnauthorized)
 		return
@@ -77,7 +77,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	// Stores MaxSz for 68
 	session.MaxDeviceServiceInfoSz = maxDeviceServiceInfoSz
 	session.NextCmd = fdoshared.TO2_DEVICE_SERVICE_INFO_68
-	h.session.UpdateSessionEntry(sessionId, *session)
+	h.Session.UpdateSessionEntry(sessionId, *session)
 
 	OwnerServiceInfoReadyBytes, err := cbor.Marshal(OwnerServiceInfoReady)
 	if err != nil {

@@ -53,7 +53,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.session.GetSessionEntry(sessionId)
+	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Unauthorized (1)", http.StatusUnauthorized)
 		return
@@ -120,7 +120,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 
 	}
 	session.ServiceInfoMsgNo++
-	h.session.UpdateSessionEntry(sessionId, *session)
+	h.Session.UpdateSessionEntry(sessionId, *session)
 
 	var OwnerServiceInfo = fdoshared.OwnerServiceInfo69{}
 	// The IsMoreServiceInfo indicates whether the Device has more ServiceInfo to send.

@@ -23,7 +23,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.session.GetSessionEntry(sessionId)
+	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized (2)", http.StatusUnauthorized)
 		return
@@ -67,7 +67,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	// update OVEntryNum in session storage
 	session.LastOVEntryNum = getOVNextEntry.GetOVNextEntry
 
-	h.session.UpdateSessionEntry(sessionId, *session)
+	h.Session.UpdateSessionEntry(sessionId, *session)
 
 	// If there is more than 1 entry, must call next entry instead of /64
 	if getOVNextEntry.GetOVNextEntry == session.NumOVEntries-1 {
@@ -76,7 +76,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 		session.NextCmd = fdoshared.TO2_GET_OVNEXTENTRY_62
 	}
 
-	h.session.UpdateSessionEntry(sessionId, *session)
+	h.Session.UpdateSessionEntry(sessionId, *session)
 
 	// Needs fixing -- INVESTIGATE?
 	OVEntry := voucher.OVEntryArray[getOVNextEntry.GetOVNextEntry]

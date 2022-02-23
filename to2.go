@@ -16,7 +16,7 @@ package main
 // 		return
 // 	}
 
-// 	session, err := h.session.GetSessionEntry(sessionId)
+// 	session, err := h.Session.GetSessionEntry(sessionId)
 // 	if err != nil {
 // 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Unauthorized (1)", http.StatusUnauthorized)
 // 		return
@@ -34,7 +34,7 @@ package main
 // 	// check to see Nonce is equal to the nonce that was sent in 61
 // 	// Bytes compare..
 
-// 	session, err := h.session.GetSessionEntry(sessionId)
+// 	session, err := h.Session.GetSessionEntry(sessionId)
 // 	NonceTO2ProveDv61 := session.NonceTO2ProveDv61
 // 	if bytes.Compare(NonceTO2ProveDv61, Done.NonceTO2ProveDv) != 0 {
 // 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Nonces did not match", http.StatusBadRequest)

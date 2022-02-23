@@ -27,7 +27,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.session.GetSessionEntry(sessionId)
+	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Unauthorized (1)", http.StatusUnauthorized)
 		return

@@ -30,7 +30,7 @@ func StartServer(db *badger.DB) {
 		},
 	}
 	DoTo2 := DoTo2{
-		session: &SessionDB{
+		Session: &SessionDB{
 			db: db,
 		},
 	}
@@ -99,7 +99,7 @@ func main() {
 
 					for _, voucher := range vouchers {
 						to0requestor := NewTo0Requestor(RVEntry{
-							RVURL:       "http://localhost:8083",
+							RVURL:       "http://localhost:8086",
 							AccessToken: "",
 						}, voucher)
 

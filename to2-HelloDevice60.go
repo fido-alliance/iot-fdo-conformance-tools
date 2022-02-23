@@ -16,7 +16,7 @@ import (
 const agreedWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 
 type DoTo2 struct {
-	session       *SessionDB
+	Session       *SessionDB
 	HelloDeviceDB *HelloDeviceDB
 }
 
@@ -48,7 +48,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	// Obtain stored voucher related to RV
 	var storedVoucher StoredVoucher
-	dbtxn := h.session.db.NewTransaction(true)
+	dbtxn := h.Session.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
 	item, err := dbtxn.Get(helloDevice.Guid[:])
@@ -124,7 +124,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		Voucher:           storedVoucher.VoucherEntry.Voucher, // Stored twice in db, much more accessible from here
 	}
 
-	sessionId, err := h.session.NewSessionEntry(newSessionInst)
+	sessionId, err := h.Session.NewSessionEntry(newSessionInst)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
 		return

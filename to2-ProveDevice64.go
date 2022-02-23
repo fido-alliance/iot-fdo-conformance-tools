@@ -26,7 +26,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.session.GetSessionEntry(sessionId)
+	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
 
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized (1)", http.StatusUnauthorized)
@@ -108,7 +108,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	session.NonceTO2SetupDv = NonceTO2SetupDv
 	session.NextCmd = fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66
 
-	h.session.UpdateSessionEntry(sessionId, *session)
+	h.Session.UpdateSessionEntry(sessionId, *session)
 
 	// NonceTO2ProveDv := EATPayloadBase.EatNonce =>> this also goes in session for Done /70
 
