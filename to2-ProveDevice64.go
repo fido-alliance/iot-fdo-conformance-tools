@@ -15,21 +15,21 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 
 	if !CheckHeaders(w, r, fdoshared.TO2_PROVE_DEVICE_64) {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_PROVE_DEVICE_64)
 	if !headerIsOk {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Failed to decode body", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized", http.StatusInternalServerError)
 		return
 	}
 
 	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
 
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized (1)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_PROVE_DEVICE_64 {
@@ -45,9 +45,8 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// DELETE
-	hex.EncodeToString(bodyBytes2)
 	bodyBytesAsString := string(bodyBytes2)
-	bodyBytes, err := hex.DecodeString(bodyBytesAsString)
+	bodyBytes, _ := hex.DecodeString(bodyBytesAsString)
 	// DELETE
 
 	// voucher := session.Voucher
@@ -55,7 +54,6 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	var proveDevice64 fdoshared.ProveDevice64
 	err = cbor.Unmarshal(bodyBytes, &proveDevice64)
 	if err != nil {
-
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
@@ -66,13 +64,13 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	signatureIsValid, err := fdoshared.VerifyCoseSignature(proveDevice64, placeHolder_publicKey)
 	if 1 == 2 && err != nil {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Failed to verify signature ProveDevic64", http.StatusBadRequest)
 		return
 	}
 
 	if 1 == 2 && !signatureIsValid {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Failed to verify signature!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_PROVE_DEVICE_64, "Failed to verify signature ProveDevic64", http.StatusBadRequest)
 		return
 	}
 

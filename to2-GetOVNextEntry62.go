@@ -14,18 +14,19 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Receiving GetOVNextEntry...")
 	if !CheckHeaders(w, r, fdoshared.TO2_GET_OVNEXTENTRY_62) {
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_GET_OVNEXTENTRY_62)
 	if !headerIsOk {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized (1)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized. Header token invalid", http.StatusUnauthorized)
 		return
 	}
 
 	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized (2)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "Unauthorized.", http.StatusInternalServerError)
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_GET_OVNEXTENTRY_62 {
@@ -39,7 +40,6 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// DELETE
-	hex.EncodeToString(bodyBytes2)
 	bodyBytesAsString := string(bodyBytes2)
 	bodyBytes, err := hex.DecodeString(bodyBytesAsString)
 	// DELETE
@@ -55,12 +55,12 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	// check to see if LastOVEntryNum was never set, if so then the OVEntryNum must call 0
 	if session.LastOVEntryNum == 0 && getOVNextEntry.GetOVNextEntry != 0 {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "2 Error with OVEntryNum!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "getOVNextEntry.GetOVNextEntry invalid!", http.StatusBadRequest)
 		return
 	}
 
 	if getOVNextEntry.GetOVNextEntry != 0 && getOVNextEntry.GetOVNextEntry != session.LastOVEntryNum+1 {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "3 Error with OVEntryNum!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_GET_OVNEXTENTRY_62, "getOVNextEntry.GetOVNextEntry not incremented from previous request", http.StatusBadRequest)
 		return
 	}
 

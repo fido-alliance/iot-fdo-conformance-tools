@@ -42,20 +42,20 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 
 	if !CheckHeaders(w, r, fdoshared.TO2_DEVICE_SERVICE_INFO_68) {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DEVICE_SERVICE_INFO_68)
 	if !headerIsOk {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body 1", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Unauthorized (1)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Unauthorized.", http.StatusUnauthorized)
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_DEVICE_SERVICE_INFO_68 {
@@ -70,7 +70,6 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// DELETE
-	hex.EncodeToString(bodyBytes2)
 	bodyBytesAsString := string(bodyBytes2)
 	bodyBytes, err := hex.DecodeString(bodyBytesAsString)
 	// DELETE
@@ -132,7 +131,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	}
 	OwnerServiceInfoReadyBytes, err := cbor.Marshal(OwnerServiceInfo)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Failed to decode body 3!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_68, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
 	// Encode(OwnerServiceInfoReadyBytes)

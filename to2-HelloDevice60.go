@@ -13,6 +13,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+const MAX_NUM_OVENTRIES = 255
 const agreedWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 
 type DoTo2 struct {
@@ -34,7 +35,6 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// DELETE
-	hex.EncodeToString(bodyBytes2)
 	bodyBytesAsString := string(bodyBytes2)
 	bodyBytes, err := hex.DecodeString(bodyBytesAsString)
 	// DELETE
@@ -67,7 +67,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	err = cbor.Unmarshal(itemBytes, &storedVoucher)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed locating entry. The error is: "+err.Error(), http.StatusInternalServerError)
+		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed decoding entry. The error is: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	// END
@@ -80,15 +80,15 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	xAKeyExchange, privateKey := beginECDHKeyExchange(fdoshared.ECDH256)
 
 	// Response:
-	helloDeviceHash, err := fdoshared.GenerateFdoHash(bodyBytes, -16) // fix
+	helloDeviceHash, err := fdoshared.GenerateFdoHash(bodyBytes, -16) // TODO
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
 
 	NumOVEntries := len(storedVoucher.VoucherEntry.Voucher.OVEntryArray)
-	if NumOVEntries > 255 {
-		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error!", http.StatusInternalServerError)
+	if NumOVEntries > MAX_NUM_OVENTRIES {
+		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "NumOVEntries greater than max allowed!", http.StatusBadRequest)
 		return
 	}
 

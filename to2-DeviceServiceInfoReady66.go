@@ -16,21 +16,20 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	log.Println("Receiving DeviceServiceInfoReady66...")
 
 	if !CheckHeaders(w, r, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66) {
-
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66)
 	if !headerIsOk {
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Failed to decode body", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized (1)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_DEVICE_SERVICE_INFO_READY_66 {
@@ -45,7 +44,6 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	}
 
 	// DELETE
-	hex.EncodeToString(bodyBytes2)
 	bodyBytesAsString := string(bodyBytes2)
 	bodyBytes, err := hex.DecodeString(bodyBytesAsString)
 	// DELETE

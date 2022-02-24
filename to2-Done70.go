@@ -17,19 +17,19 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Done70...")
 
 	if !CheckHeaders(w, r, fdoshared.TO2_DONE_70) {
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	headerIsOk, sessionId, _ := ExtractAuthorizationHeader(w, r, fdoshared.TO2_DONE_70)
 	if !headerIsOk {
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body 1", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_DONE_70, "Unauthorized. Header token invalid", http.StatusBadRequest)
 		return
 	}
 
 	session, err := h.Session.GetSessionEntry(sessionId)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Unauthorized (1)", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Unauthorized.", http.StatusUnauthorized)
 		return
 	}
 	if session.NextCmd != fdoshared.TO2_DONE_70 {
@@ -44,7 +44,6 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// DELETE
-	hex.EncodeToString(bodyBytes2)
 	bodyBytesAsString := string(bodyBytes2)
 	bodyBytes, err := hex.DecodeString(bodyBytesAsString)
 	// DELETE
@@ -58,13 +57,13 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	var Done70 fdoshared.Done70
 	err = cbor.Unmarshal(decryptionBytes, &Done70)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body 2!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 	// bodyBytes will be encrypted
 	// need to decrypt it using the sessionKey
 	if bytes.Compare(Done70.NonceTO2ProveDv, session.NonceTO2ProveDv61) != 0 {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Nonce Error!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Nonce Invalid!", http.StatusBadRequest)
 		return
 	}
 
@@ -74,7 +73,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	Done2Bytes, err := cbor.Marshal(Done2)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Failed to decode body 3!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_DONE_70, "Internal Server Error!", http.StatusBadRequest)
 		return
 	}
 	// Encode(OwnerServiceInfoReadyBytes)
