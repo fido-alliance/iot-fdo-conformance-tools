@@ -25,7 +25,7 @@ func (h *Voucher) voucherHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		h.saveVoucher(w, r)
 	} else if r.Method == "DELETE" {
-		h.deleteVoucher(w, r)
+		h.deleteVoucherByGuid(w, r)
 	} else if r.Method == "GET" {
 		h.getVouchers(w, r)
 	}
@@ -44,7 +44,7 @@ func (h *Voucher) register(w http.ResponseWriter, r *http.Request) {
 }
 
 //  Can write some checking...
-func (h *Voucher) deleteVoucher(w http.ResponseWriter, r *http.Request) {
+func (h *Voucher) deleteVoucherByGuid(w http.ResponseWriter, r *http.Request) {
 	headerIsOk, authToken, _ := ExtractAuthorizationHeader(w, r, fdoshared.VOUCHER_API)
 	if !headerIsOk {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Header token invalid", http.StatusUnauthorized)
@@ -64,9 +64,8 @@ func (h *Voucher) deleteVoucher(w http.ResponseWriter, r *http.Request) {
 	}
 
 	guidToDelete := (r.URL.Query().Get("guid"))
-	guidToDeleteBytes, _ := hex.DecodeString(string(guidToDelete))
-	log.Println("DELETE: ")
-	log.Println(guidToDeleteBytes)
+	guidToDeleteBytes, _ := hex.DecodeString(string(guidToDelete)) // TODO
+
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed to read body!", http.StatusBadRequest)
 		return
@@ -75,25 +74,20 @@ func (h *Voucher) deleteVoucher(w http.ResponseWriter, r *http.Request) {
 	deleted := false
 	var newUserInfoGuidList []GuidToFileName
 	for _, storedVoucherGuid := range userInfo.GuidList {
-		log.Println("===========================")
-		log.Println(storedVoucherGuid.Guid)
 		if bytes.Compare(guidToDeleteBytes, storedVoucherGuid.Guid) == 0 {
-			// deleteFile(storedVoucherGuid.FileName)
-			log.Println("Attempting to Delete:")
-			log.Println(storedVoucherGuid.FileName)
 			err := os.Remove(fmt.Sprint(TEST_VOUCHER_LOC, storedVoucherGuid.FileName, ".voucher.pem"))
 			if err != nil {
-				log.Println(err)
+				w.WriteHeader(http.StatusBadRequest)
 			}
 			deleted = true
 		} else {
 			newUserInfoGuidList = append(newUserInfoGuidList, storedVoucherGuid)
 		}
 	}
-	if deleted == false {
-		log.Println("FAILED TO DELETE ANYTHING!!!!!!!!!!!!!!!!")
+	if !deleted {
+		w.WriteHeader(http.StatusBadRequest)
 	} else {
-		log.Println("SUCCCCCCCCCCCCCCESSSSSSSSS")
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -120,7 +114,6 @@ func (h *Voucher) getVouchers(w http.ResponseWriter, r *http.Request) {
 		GuidsOnly = append(GuidsOnly, storedVoucherGuid.Guid...)
 	}
 	// Need to try with different guids
-	log.Println(userInfo.GuidList)
 	GuidsOnlyBytes, err := cbor.Marshal(GuidsOnly)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
