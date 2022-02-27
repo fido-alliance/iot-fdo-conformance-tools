@@ -1,6 +1,7 @@
 package fdoshared
 
 type KexSuiteName string
+type CipherSuiteName string
 
 const (
 	ECDH256 KexSuiteName = "ECDH256"

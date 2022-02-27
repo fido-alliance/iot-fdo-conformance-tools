@@ -38,23 +38,15 @@ type CoseSignature struct {
 }
 
 type EATPayloadBase struct {
-	// EatFDO   []byte   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
-	// EatFDO   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
-	EatNonce []byte      `cbor:"10,keyasint,omitempty"`
-	EatUEID  [17]byte    `cbor:"11,keyasint,omitempty"`
-	EatFDO   EATPayloads `cbor:"-257,keyasint,omitempty"`
-}
-
-type EATPayloads struct {
-	TO2ProveDevicePayload *TO2ProveDevicePayload
+	EatNonce []byte        `cbor:"10,keyasint,omitempty"`
+	EatUEID  [17]byte      `cbor:"11,keyasint,omitempty"`
+	EatFDO   XAKeyExchange `cbor:"-257,keyasint,omitempty"` // fix?
 }
 
 type TO2ProveDevicePayload struct {
-	xBKeyExchange xBKeyExchange
+	_             struct{}      `cbor:",toarray"`
+	XBKeyExchange XAKeyExchange // change / refactor keyExcahnge types?
 }
-
-type xAKeyExchange []byte
-type xBKeyExchange []byte
 
 type CoseContext string
 
@@ -247,6 +239,14 @@ func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) 
 		}
 	default:
 		return 0, fmt.Errorf("For RSA: %d is an unsupported public key type!", pkType)
+	}
+}
+
+func MarshalPrivateKey(privKey interface{}, sgType DeviceSgType) ([]byte, error) {
+	if sgType == StSECP256R1 || sgType == StSECP384R1 {
+		return x509.MarshalECPrivateKey(privKey.(*ecdsa.PrivateKey))
+	} else {
+		return []byte{}, fmt.Errorf("%d is an unsupported SgType!", sgType)
 	}
 }
 
