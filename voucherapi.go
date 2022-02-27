@@ -111,7 +111,7 @@ func (h *Voucher) getVouchers(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
-	userInfo, err := h.session.GetAuthTokenInfo(authTokenBytes)
+	userInfo, err := h.session.GetAuthTokenInfo(authToken)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
 		return
@@ -144,10 +144,9 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authTokenBytes, _ := hex.DecodeString(string(authToken)) // TODO
-
-	_, err := h.session.AuthTokenExists(authTokenBytes)
+	_, err := h.session.AuthTokenExists(authToken)
 	if err != nil {
+		log.Println("Error here")
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
 		return
 	}
@@ -171,7 +170,52 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInfo, err := h.session.GetAuthTokenInfo(authTokenBytes)
+	// Run hash checks on DevCertChain:
+	// “OVDevCertChainHash” is the Hash of the concatenation of the contents of each byte string in “OwnershipVoucher.OVDevCertChain”,
+	// in the presented order. When OVDevCertChain is CBOR null, OVDevCertChainHash is also CBOR null.
+	// Outsource this
+	var concatenationByteString []byte
+	for _, bstr := range *voucherInst.OVDevCertChain {
+		concatenationByteString = append(concatenationByteString, bstr...)
+	}
+
+	verifiedHash, err := fdoshared.VerifyHash(concatenationByteString, *OVHeader.OVDevCertChainHash)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	if !verifiedHash {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Could not verify hash", http.StatusBadRequest)
+		return
+	}
+
+	// OVHeader.OVDevCertChainHash
+	// Run hash checks on OVE => outsource this
+	var lastOVEntry fdoshared.CoseSignature
+	for i, OVEntry := range voucherInst.OVEntryArray {
+		var OVEntryPayload fdoshared.OVEntryPayload
+		err := cbor.Unmarshal(OVEntry.Payload, &OVEntryPayload)
+		if err != nil {
+			RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Error Veriyfing OVEntries", http.StatusInternalServerError)
+			return
+		}
+		if i == 0 {
+			var firstEntryHashContents []byte
+			firstEntryHashContents = append(firstEntryHashContents, voucherInst.OVHeaderTag...)
+			firstEntryHashContents = append(firstEntryHashContents, voucherInst.OVHeaderHMac.Hash...)
+			fdoshared.VerifyHash(firstEntryHashContents, OVEntryPayload.OVEHashPrevEntry)
+		} else {
+			lastOVEntryBytes, err := cbor.Marshal(lastOVEntry)
+			if err != nil {
+				RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Error Veriyfing OVEntries", http.StatusInternalServerError)
+				return
+			}
+			fdoshared.VerifyHash(lastOVEntryBytes, OVEntryPayload.OVEHashPrevEntry)
+		}
+		lastOVEntry = OVEntry
+	}
+
+	userInfo, err := h.session.GetAuthTokenInfo(authToken)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
 		return
@@ -193,7 +237,7 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 	}
 	userInfo.GuidList = append(userInfo.GuidList, newGuidToFileName)
 
-	err = h.session.UpdateTokenEntry(authTokenBytes, *userInfo)
+	err = h.session.UpdateTokenEntry(authToken, *userInfo)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error", http.StatusBadRequest)
 		return

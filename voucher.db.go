@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"log"
@@ -47,13 +48,13 @@ func (h *SessionDB) RegisterAuthToken() (string, error) {
 	uuidBytes, _ := newUuid.MarshalBinary()
 	var userApiToken [16]byte
 	copy(userApiToken[:], uuidBytes)
+	userTokenBaseEncoded := base64.StdEncoding.EncodeToString(userApiToken[:])
 
 	// counter = 0. Generate UUID
 	userUUIDRandom, _ := uuid.NewRandom()
 	userUUIDBytes, _ := userUUIDRandom.MarshalBinary()
 	var userUUID [16]byte
 	copy(userUUID[:], userUUIDBytes)
-
 	UserInfo := UserInfo{
 		Counter:  0,
 		UUID:     hex.EncodeToString(userUUID[:]),
@@ -64,7 +65,7 @@ func (h *SessionDB) RegisterAuthToken() (string, error) {
 		return "", errors.New("Internal Server Error creating user profile " + err.Error())
 	}
 
-	entry := badger.NewEntry(userApiToken[:], UserInfoBytes).WithTTL(time.Minute * 10) // Session entry will only exist for 10 minutes
+	entry := badger.NewEntry([]byte(userTokenBaseEncoded), UserInfoBytes).WithTTL(time.Minute * 10) // Session entry will only exist for 10 minutes
 	err = dbtxn.SetEntry(entry)
 	if err != nil {
 		return "", errors.New("Failed creating session db entry instance. The error is: " + err.Error())
@@ -75,7 +76,7 @@ func (h *SessionDB) RegisterAuthToken() (string, error) {
 		return "", errors.New("Failed saving session entry. The error is: " + err.Error())
 	}
 
-	authToken := "Bearer " + hex.EncodeToString(userApiToken[:])
+	authToken := "Bearer " + userTokenBaseEncoded
 	return authToken, nil
 }
 
