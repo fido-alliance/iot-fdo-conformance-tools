@@ -34,7 +34,7 @@ func (h *Voucher) voucherHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Voucher) register(w http.ResponseWriter, r *http.Request) {
 	authToken, err := h.session.RegisterAuthToken()
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Header token invalid", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Authorization", authToken)
@@ -54,12 +54,12 @@ func (h *Voucher) deleteVoucherByGuid(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.session.AuthTokenExists(authTokenBytes)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
 		return
 	}
 	userInfo, err := h.session.GetAuthTokenInfo(authTokenBytes)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error. COuld not find user.", http.StatusBadRequest)
 		return
 	}
 
@@ -67,7 +67,7 @@ func (h *Voucher) deleteVoucherByGuid(w http.ResponseWriter, r *http.Request) {
 	guidToDeleteBytes, _ := hex.DecodeString(string(guidToDelete)) // TODO
 
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Could not find voucher using Guid", http.StatusBadRequest)
 		return
 	}
 
@@ -84,6 +84,13 @@ func (h *Voucher) deleteVoucherByGuid(w http.ResponseWriter, r *http.Request) {
 			newUserInfoGuidList = append(newUserInfoGuidList, storedVoucherGuid)
 		}
 	}
+	userInfo.GuidList = newUserInfoGuidList
+	err = h.session.UpdateTokenEntry(authTokenBytes, *userInfo)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error. Couldn't update vouchers", http.StatusBadRequest)
+		return
+	}
+
 	if !deleted {
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
@@ -94,7 +101,7 @@ func (h *Voucher) deleteVoucherByGuid(w http.ResponseWriter, r *http.Request) {
 func (h *Voucher) getVouchers(w http.ResponseWriter, r *http.Request) {
 	headerIsOk, authToken, _ := ExtractAuthorizationHeader(w, r, fdoshared.VOUCHER_API)
 	if !headerIsOk {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Header token invalid", http.StatusUnauthorized)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusUnauthorized)
 		return
 	}
 	authTokenBytes, _ := hex.DecodeString(string(authToken)) // TODO
@@ -141,38 +148,38 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.session.AuthTokenExists(authTokenBytes)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
 		return
 	}
 
 	voucherFileBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Could not read body", http.StatusBadRequest)
 		return
 	}
 
 	// marshal and validate voucher file bytes
 	voucherInst, err := validateVoucher(voucherFileBytes)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Could not validate voucher. Structure invalid.", http.StatusBadRequest)
 		return
 	}
 
 	OVHeader, err := voucherInst.GetOVHeader()
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Coud not validate voucher - could not detect OVHeader.", http.StatusBadRequest)
 		return
 	}
 
 	userInfo, err := h.session.GetAuthTokenInfo(authTokenBytes)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
 		return
 	}
 
 	for _, storedVoucherGuid := range userInfo.GuidList {
 		if bytes.Compare(storedVoucherGuid.Guid, OVHeader.OVGuid[:]) == 0 {
-			RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Voucher Guid already stored", http.StatusBadRequest)
+			RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Voucher Guid already stored", http.StatusBadRequest)
 			return
 		}
 	}
@@ -188,7 +195,7 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 
 	err = h.session.UpdateTokenEntry(authTokenBytes, *userInfo)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error", http.StatusBadRequest)
 		return
 	}
 
@@ -197,7 +204,7 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 	voucherWriteLocation := fmt.Sprintf("%s%s.voucher.pem", VOUCHERS_LOCATION, fileName)
 	err = os.WriteFile(voucherWriteLocation, voucherFileBytes, 0644)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_HELLO_DEVICE_60, "Internal Server Error", http.StatusBadRequest)
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error", http.StatusBadRequest)
 		return
 	}
 
