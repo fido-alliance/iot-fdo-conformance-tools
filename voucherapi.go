@@ -3,8 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/hex"
-	"encoding/pem"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -50,14 +48,14 @@ func (h *Voucher) deleteVoucherByGuid(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Header token invalid", http.StatusUnauthorized)
 		return
 	}
-	authTokenBytes, _ := hex.DecodeString(string(authToken)) // TODO
+	// authTokenBytes, _ := hex.DecodeString(string(authToken)) // TODO
 
-	_, err := h.session.AuthTokenExists(authTokenBytes)
+	_, err := h.session.AuthTokenExists(authToken)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
 		return
 	}
-	userInfo, err := h.session.GetAuthTokenInfo(authTokenBytes)
+	userInfo, err := h.session.GetAuthTokenInfo(authToken)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error. COuld not find user.", http.StatusBadRequest)
 		return
@@ -85,7 +83,7 @@ func (h *Voucher) deleteVoucherByGuid(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	userInfo.GuidList = newUserInfoGuidList
-	err = h.session.UpdateTokenEntry(authTokenBytes, *userInfo)
+	err = h.session.UpdateTokenEntry(authToken, *userInfo)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error. Couldn't update vouchers", http.StatusBadRequest)
 		return
@@ -104,9 +102,8 @@ func (h *Voucher) getVouchers(w http.ResponseWriter, r *http.Request) {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusUnauthorized)
 		return
 	}
-	authTokenBytes, _ := hex.DecodeString(string(authToken)) // TODO
 
-	_, err := h.session.AuthTokenExists(authTokenBytes)
+	_, err := h.session.AuthTokenExists(authToken)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Failed to read body!", http.StatusBadRequest)
 		return
@@ -157,43 +154,17 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// marshal and validate voucher file bytes
-	voucherInst, err := validateVoucherStruct(voucherFileBytes)
+	//  Validate cert bytes match ownershipVoucher struct
+	voucherInst, err := fdoshared.ValidateVoucherStructFromCert(voucherFileBytes)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Could not validate voucher. Structure invalid.", http.StatusBadRequest)
 		return
 	}
 
-	OVHeader, err := voucherInst.GetOVHeader()
-	if err != nil {
+	// Validate ownershipVoucher is valid
+	valid, OVHeader, err := voucherInst.Validate()
+	if err != nil || !valid { // OK? TODO?
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Coud not validate voucher - could not detect OVHeader.", http.StatusBadRequest)
-		return
-	}
-
-	// Run hash checks on DevCertChain:
-	// “OVDevCertChainHash” is the Hash of the concatenation of the contents of each byte string in “OwnershipVoucher.OVDevCertChain”,
-	// in the presented order. When OVDevCertChain is CBOR null, OVDevCertChainHash is also CBOR null.
-	// Outsource this
-	var concatenationByteString []byte
-	for _, bstr := range *voucherInst.OVDevCertChain {
-		concatenationByteString = append(concatenationByteString, bstr...)
-	}
-
-	verifiedHash, err := fdoshared.VerifyHash(concatenationByteString, *OVHeader.OVDevCertChainHash)
-	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	if !verifiedHash {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Could not verify hash", http.StatusBadRequest)
-		return
-	}
-
-	// OVHeader.OVDevCertChainHash
-	// Run hash checks on OVE => outsource this
-	err = fdoshared.VerifyOVEntries(*voucherInst)
-	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
 		return
 	}
 
@@ -236,30 +207,4 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Successful Voucher Save")
 
-}
-
-func validateVoucherStruct(voucherFileBytes []byte) (*fdoshared.OwnershipVoucher, error) {
-	voucherBlock, rest := pem.Decode(voucherFileBytes)
-	if voucherBlock == nil {
-		return nil, errors.New("Detected bytes != actual length")
-	}
-
-	if voucherBlock.Type != OWNERSHIP_VOUCHER_PEM_TYPE {
-		return nil, errors.New("Detected bytes != actual length")
-	}
-
-	privateKeyBytes, rest := pem.Decode(rest)
-	if privateKeyBytes == nil {
-		return nil, errors.New("Detected bytes != actual length")
-	}
-
-	// CBOR decode voucher
-
-	var voucherInst fdoshared.OwnershipVoucher
-	err := cbor.Unmarshal(voucherBlock.Bytes, &voucherInst)
-	if err != nil {
-		return nil, errors.New("Detected bytes != actual length")
-	}
-
-	return &voucherInst, nil
 }
