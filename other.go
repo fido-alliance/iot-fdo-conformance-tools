@@ -2,7 +2,9 @@ package fdoshared
 
 import (
 	"encoding/pem"
+	"errors"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/google/uuid"
 )
 
@@ -86,4 +88,40 @@ func ComputeOVDevCertChainHash(certs []X509CertificateBytes, hashType HashType) 
 	}
 
 	return GenerateFdoHash(totalBytes, hashType)
+}
+
+func verifyOVEntries(voucherInst OwnershipVoucher) error {
+	var lastOVEntry CoseSignature
+	for i, OVEntry := range voucherInst.OVEntryArray {
+		var OVEntryPayload OVEntryPayload
+		err := cbor.Unmarshal(OVEntry.Payload, &OVEntryPayload)
+		if err != nil {
+			return errors.New("Error Verifying OVEntries" + err.Error())
+		}
+		if i == 0 {
+			headerHmacBytes, _ := cbor.Marshal(voucherInst.OVHeaderHMac)
+			firstEntryHashContents := append(voucherInst.OVHeaderTag, headerHmacBytes...)
+			verifiedHash, err := VerifyHash(firstEntryHashContents, OVEntryPayload.OVEHashPrevEntry)
+			if err != nil {
+				return errors.New("Internal Server Error" + err.Error())
+			}
+			if !verifiedHash {
+				return errors.New("Could not verify hash of entry 0" + err.Error())
+			}
+		} else {
+			lastOVEntryBytes, err := cbor.Marshal(lastOVEntry)
+			if err != nil {
+				return errors.New("Error Verifying OVEntries" + err.Error())
+			}
+			verifiedHash, err := VerifyHash(lastOVEntryBytes, OVEntryPayload.OVEHashPrevEntry)
+			if err != nil {
+				return errors.New("Internal Server Error" + err.Error())
+			}
+			if !verifiedHash {
+				return errors.New("Could not verify hash (Entry)" + err.Error())
+			}
+		}
+		lastOVEntry = OVEntry
+	}
+	return nil
 }

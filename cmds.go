@@ -32,6 +32,8 @@ const (
 	TO2_DONE_70                      FdoCmd = 70
 	TO2_DONE2_71                     FdoCmd = 71
 
+	VOUCHER_API FdoCmd = 101
+
 	TO_ERROR_255 FdoCmd = 255
 )
 
