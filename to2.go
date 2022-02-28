@@ -26,8 +26,8 @@ type TO2ProveOVHdrPayload struct {
 } // todo
 
 type GetOVNextEntry62 struct {
-	_          struct{} `cbor:",toarray"`
-	OVEntryNum uint8
+	_              struct{} `cbor:",toarray"`
+	GetOVNextEntry uint8
 }
 
 type OVNextEntry63 struct {
