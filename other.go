@@ -90,7 +90,7 @@ func ComputeOVDevCertChainHash(certs []X509CertificateBytes, hashType HashType) 
 	return GenerateFdoHash(totalBytes, hashType)
 }
 
-func verifyOVEntries(voucherInst OwnershipVoucher) error {
+func VerifyOVEntries(voucherInst OwnershipVoucher) error {
 	var lastOVEntry CoseSignature
 	for i, OVEntry := range voucherInst.OVEntryArray {
 		var OVEntryPayload OVEntryPayload
