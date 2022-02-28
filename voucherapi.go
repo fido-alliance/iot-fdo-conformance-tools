@@ -158,7 +158,7 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// marshal and validate voucher file bytes
-	voucherInst, err := validateVoucher(voucherFileBytes)
+	voucherInst, err := validateVoucherStruct(voucherFileBytes)
 	if err != nil {
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Could not validate voucher. Structure invalid.", http.StatusBadRequest)
 		return
@@ -191,28 +191,10 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 
 	// OVHeader.OVDevCertChainHash
 	// Run hash checks on OVE => outsource this
-	var lastOVEntry fdoshared.CoseSignature
-	for i, OVEntry := range voucherInst.OVEntryArray {
-		var OVEntryPayload fdoshared.OVEntryPayload
-		err := cbor.Unmarshal(OVEntry.Payload, &OVEntryPayload)
-		if err != nil {
-			RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Error Veriyfing OVEntries", http.StatusInternalServerError)
-			return
-		}
-		if i == 0 {
-			var firstEntryHashContents []byte
-			firstEntryHashContents = append(firstEntryHashContents, voucherInst.OVHeaderTag...)
-			firstEntryHashContents = append(firstEntryHashContents, voucherInst.OVHeaderHMac.Hash...)
-			fdoshared.VerifyHash(firstEntryHashContents, OVEntryPayload.OVEHashPrevEntry)
-		} else {
-			lastOVEntryBytes, err := cbor.Marshal(lastOVEntry)
-			if err != nil {
-				RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Error Veriyfing OVEntries", http.StatusInternalServerError)
-				return
-			}
-			fdoshared.VerifyHash(lastOVEntryBytes, OVEntryPayload.OVEHashPrevEntry)
-		}
-		lastOVEntry = OVEntry
+	err = fdoshared.VerifyOVEntries(*voucherInst)
+	if err != nil {
+		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.VOUCHER_API, "Unauthorized. Bearer token is invalid", http.StatusBadRequest)
+		return
 	}
 
 	userInfo, err := h.session.GetAuthTokenInfo(authToken)
@@ -256,7 +238,7 @@ func (h *Voucher) saveVoucher(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func validateVoucher(voucherFileBytes []byte) (*fdoshared.OwnershipVoucher, error) {
+func validateVoucherStruct(voucherFileBytes []byte) (*fdoshared.OwnershipVoucher, error) {
 	voucherBlock, rest := pem.Decode(voucherFileBytes)
 	if voucherBlock == nil {
 		return nil, errors.New("Detected bytes != actual length")
