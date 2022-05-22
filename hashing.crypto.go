@@ -81,7 +81,7 @@ func VerifyHash(data []byte, fdoHashB HashOrHmac) (bool, error) {
 		}
 
 		fdoHashA, _ := GenerateFdoHash(data, fdoHashB.Type)
-		if bytes.Compare(fdoHashB.Hash, fdoHashA.Hash) == 0 {
+		if bytes.Equal(fdoHashB.Hash, fdoHashA.Hash) {
 			return true, nil
 		} else {
 			return false, nil
@@ -92,7 +92,7 @@ func VerifyHash(data []byte, fdoHashB HashOrHmac) (bool, error) {
 		}
 
 		fdoHashA, _ := GenerateFdoHash(data, fdoHashB.Type)
-		if bytes.Compare(fdoHashB.Hash, fdoHashA.Hash) == 0 {
+		if bytes.Equal(fdoHashB.Hash, fdoHashA.Hash) {
 			return true, nil
 		} else {
 			return false, nil
@@ -109,7 +109,7 @@ func VerifyHMac(data []byte, inputHmac HashOrHmac, key []byte) (bool, error) {
 		macInst.Write(data)
 		computedMac := macInst.Sum(nil)
 
-		if bytes.Compare(inputHmac.Hash, computedMac) == 0 {
+		if bytes.Equal(inputHmac.Hash, computedMac) {
 			return true, nil
 		} else {
 			return false, nil
@@ -119,7 +119,7 @@ func VerifyHMac(data []byte, inputHmac HashOrHmac, key []byte) (bool, error) {
 		macInst.Write(data)
 		computedMac := macInst.Sum(nil)
 
-		if bytes.Compare(inputHmac.Hash, computedMac) == 0 {
+		if bytes.Equal(inputHmac.Hash, computedMac) {
 			return true, nil
 		} else {
 			return false, nil

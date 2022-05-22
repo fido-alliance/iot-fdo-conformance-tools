@@ -38,15 +38,23 @@ type CoseSignature struct {
 }
 
 type EATPayloadBase struct {
-	EatNonce []byte        `cbor:"10,keyasint,omitempty"`
-	EatUEID  [17]byte      `cbor:"11,keyasint,omitempty"`
-	EatFDO   XAKeyExchange `cbor:"-257,keyasint,omitempty"` // fix?
+	// EatFDO   []byte   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	// EatFDO   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
+	EatNonce []byte      `cbor:"10,keyasint,omitempty"`
+	EatUEID  [17]byte    `cbor:"11,keyasint,omitempty"`
+	EatFDO   EATPayloads `cbor:"-257,keyasint,omitempty"`
+}
+
+type EATPayloads struct {
+	TO2ProveDevicePayload *TO2ProveDevicePayload
 }
 
 type TO2ProveDevicePayload struct {
-	_             struct{}      `cbor:",toarray"`
-	XBKeyExchange XAKeyExchange // change / refactor keyExcahnge types?
+	xBKeyExchange xBKeyExchange
 }
+
+type xAKeyExchange []byte
+type xBKeyExchange []byte
 
 type CoseContext string
 
@@ -114,7 +122,7 @@ type FdoPublicKey struct {
 	_      struct{} `cbor:",toarray"`
 	PkType FdoPkType
 	PkEnc  FdoPkEnc
-	PkBody []byte
+	PkBody interface{}
 }
 
 type DeviceSgType int
@@ -152,6 +160,62 @@ type CosePublicKey struct {
 	Y      []byte      `cbor:"-3,keyasint,omitempty"`
 }
 
+func VerifyCertificateChain(chain [][]byte) (bool, []*x509.Certificate, error) {
+	var finalChain []*x509.Certificate
+
+	if len(chain) < 2 {
+		return false, finalChain, errors.New("Failed to verify certificate chain. The length must be at least two!")
+	}
+
+	leafCertBytes := chain[0]
+	leafCert, err := x509.ParseCertificate(leafCertBytes)
+	if err != nil {
+		return false, finalChain, errors.New("Error decoding leaf certificate. " + err.Error())
+
+	}
+
+	rootCertBytes := chain[len(chain)-1]
+	rootCert, err := x509.ParseCertificate(rootCertBytes)
+	if err != nil {
+		return false, finalChain, errors.New("Error decoding root certificate. " + err.Error())
+	}
+
+	rootPool := x509.NewCertPool()
+	rootPool.AddCert(rootCert)
+
+	interPool := x509.NewCertPool()
+
+	if len(chain) > 2 {
+		for i, interCertBytes := range chain[1 : len(chain)-1] {
+			interCert, err := x509.ParseCertificate(interCertBytes)
+			if err != nil {
+				return false, finalChain, fmt.Errorf("Error decoding intermediate %d certificate. %s", i, err.Error())
+			}
+			interPool.AddCert(interCert)
+		}
+	}
+
+	verificationChain, err := leafCert.Verify(x509.VerifyOptions{
+		Intermediates: interPool,
+		Roots:         rootPool,
+	})
+	if err != nil {
+		return false, nil, errors.New("Error verifying certificate chain! " + err.Error())
+	}
+	finalChain = verificationChain[0]
+
+	return true, finalChain, nil
+}
+
+func VerifyCoseSignatureWithCertificate(coseSig CoseSignature, publicKey FdoPublicKey, certs [][]byte) (bool, error) {
+	newPubKey := FdoPublicKey{
+		PkType: publicKey.PkType,
+		PkEnc:  X5CHAIN,
+		PkBody: certs,
+	}
+
+	return VerifyCoseSignature(coseSig, newPubKey)
+}
 func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}, pkType FdoPkType) (bool, error) {
 	switch pkType {
 	case SECP256R1:
@@ -203,7 +267,7 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) (bool, e
 	case Crypto:
 		return false, errors.New("EPID signatures are not currently supported!")
 	case X509:
-		pubKeyInst, err := x509.ParsePKIXPublicKey(publicKey.PkBody)
+		pubKeyInst, err := x509.ParsePKIXPublicKey(publicKey.PkBody.([]byte))
 		if err != nil {
 			return false, errors.New("Error parsing PKIX X509 Public Key. " + err.Error())
 		}
@@ -215,7 +279,29 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) (bool, e
 
 		return signatureIsValid, nil
 	case X5CHAIN:
-		return false, errors.New("X5C is not currently supported!") // TODO
+		var decCertBytes [][]byte
+
+		for _, certBytesInst := range publicKey.PkBody.([]interface{}) {
+			decCertBytes = append(decCertBytes, certBytesInst.([]byte))
+		}
+
+		chainIsValid, successChain, err := VerifyCertificateChain(decCertBytes)
+		if err != nil {
+			return false, err
+		}
+
+		if !chainIsValid {
+			return false, errors.New("Failed to verify pkBody x5chain!")
+		}
+
+		leafCert := successChain[0]
+
+		signatureIsValid, err := VerifySignature(coseSigPayloadBytes, coseSig.Signature, leafCert.PublicKey, publicKey.PkType)
+		if err != nil {
+			return false, err
+		}
+
+		return signatureIsValid, nil
 	case COSEKEY:
 		return false, errors.New("CoseKey is not currently supported!") // TODO
 	default:
@@ -239,14 +325,6 @@ func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) 
 		}
 	default:
 		return 0, fmt.Errorf("For RSA: %d is an unsupported public key type!", pkType)
-	}
-}
-
-func MarshalPrivateKey(privKey interface{}, sgType DeviceSgType) ([]byte, error) {
-	if sgType == StSECP256R1 || sgType == StSECP384R1 {
-		return x509.MarshalECPrivateKey(privKey.(*ecdsa.PrivateKey))
-	} else {
-		return []byte{}, fmt.Errorf("%d is an unsupported SgType!", sgType)
 	}
 }
 
