@@ -26,7 +26,7 @@ type SessionEntry struct {
 	NonceTO0Sign  []byte
 	NonceTO1Proof []byte
 	EASigInfo     fdoshared.SigInfo
-	Guid          fdoshared.FDOGuid
+	Guid          fdoshared.FdoGuid
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {

@@ -117,7 +117,7 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 
 	// Verify nonces
 
-	if bytes.Compare(to0d.NonceTO0Sign[:], session.NonceTO0Sign[:]) != 0 {
+	if bytes.Equal(to0d.NonceTO0Sign[:], session.NonceTO0Sign[:]) {
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 1!", http.StatusBadRequest)
 		return
 	}
@@ -136,7 +136,7 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !to1dIsValid {
-		log.Println("OwnerSign22: To1D signature can not be validated!")
+		log.Println("OwnerSign22: To1d hash is not valid! ")
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 5!", http.StatusBadRequest)
 		return
 	}
@@ -150,7 +150,7 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if to0dHashIsValid {
+	if !to0dHashIsValid {
 		log.Println("OwnerSign22: To0d hash is not valid!")
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 7!", http.StatusBadRequest)
 		return

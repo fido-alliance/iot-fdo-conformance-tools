@@ -19,7 +19,7 @@ func NewOwnerSignDB(db *badger.DB) OwnerSignDB {
 	}
 }
 
-func (h *OwnerSignDB) Save(deviceGuid fdoshared.FDOGuid, ownerSign fdoshared.OwnerSign22, ttlSec uint32) error {
+func (h *OwnerSignDB) Save(deviceGuid fdoshared.FdoGuid, ownerSign fdoshared.OwnerSign22, ttlSec uint32) error {
 	ownerSignBytes, err := cbor.Marshal(ownerSign)
 	if err != nil {
 		return errors.New("Failed to marshal ownerSign. The error is: " + err.Error())
@@ -44,7 +44,7 @@ func (h *OwnerSignDB) Save(deviceGuid fdoshared.FDOGuid, ownerSign fdoshared.Own
 	return nil
 }
 
-func (h *OwnerSignDB) Get(deviceGuid fdoshared.FDOGuid) (*fdoshared.OwnerSign22, error) {
+func (h *OwnerSignDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.OwnerSign22, error) {
 	ownerSignStorageId := append([]byte("to1osstorage-"), deviceGuid[:]...)
 
 	dbtxn := h.db.NewTransaction(true)

@@ -113,22 +113,22 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if bytes.Compare(pb.EatNonce[:], session.NonceTO1Proof[:]) != 0 {
+	if bytes.Equal(pb.EatNonce[:], session.NonceTO1Proof[:]) {
 		log.Println("Nonce Invalid")
 		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "NonceTo1Proof mismatch", http.StatusBadRequest)
 		return
 	}
 
-	// Get ownerSign from to0 storage
-	ownerSign22, err := h.ownersignDB.Get(session.Guid)
+	// Get ownerSign from ownerSign storage
+	savedOwnerSign, err := h.ownersignDB.Get(session.Guid)
 	if err != nil {
 		log.Println("Couldn't find item in database with guid" + err.Error())
 
 		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Server Error", http.StatusInternalServerError)
 		return
 	}
-	var ownershipVoucher fdoshared.OwnershipVoucher
-	cbor.Unmarshal(ownerSign22.To0d, &ownershipVoucher)
+	var to0d fdoshared.To0d
+	err = cbor.Unmarshal(savedOwnerSign.To0d, &to0d)
 
 	// TODO: FIX! => Error verigetInfo_response[GetInfoRespKeys.fying. EPID signatures are not currently supported!
 
@@ -146,11 +146,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	rvRedirect := fdoshared.RVRedirect33{
-		RVRedirect: ownerSign22.To1d,
-	}
-
-	rvRedirectBytes, _ := cbor.Marshal(rvRedirect)
+	rvRedirectBytes, _ := cbor.Marshal(savedOwnerSign.To1d)
 
 	w.Header().Set("Authorization", authorizationHeader)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
