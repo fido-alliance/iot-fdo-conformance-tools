@@ -1,6 +1,7 @@
 package fdoshared
 
 import (
+	"encoding/pem"
 	"errors"
 	"log"
 
