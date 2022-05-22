@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const PORT = 8080
+const PORT = 8083
 
 func StartServer(db *badger.DB) {
 	to0 := RvTo0{
@@ -61,6 +61,14 @@ func main() {
 				Usage: "Starts rv",
 				Action: func(c *cli.Context) error {
 					StartServer(db)
+					return nil
+				},
+			},
+			{
+				Name:  "gen",
+				Usage: "Generates OwnerSign22 payload",
+				Action: func(c *cli.Context) error {
+					GenPayload22()
 					return nil
 				},
 			},
