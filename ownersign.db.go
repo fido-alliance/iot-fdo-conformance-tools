@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/WebauthnWorks/fdo-rv/fdoshared"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 )

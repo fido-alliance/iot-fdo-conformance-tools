@@ -7,6 +7,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/google/uuid v1.3.0
 	github.com/urfave/cli/v2 v2.3.0
+	github.com/WebauthnWorks/fdo-shared v0.0.0
 )
 
 require (
@@ -43,3 +44,5 @@ require (
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 )
+
+replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared

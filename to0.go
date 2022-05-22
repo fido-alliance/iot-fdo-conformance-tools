@@ -1,13 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 
-	"github.com/WebauthnWorks/fdo-rv/fdoshared"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -117,9 +116,9 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 
 	// Verify nonces
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 1!", http.StatusBadRequest)
-		return
-	}
+	// 	RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign 1!", http.StatusBadRequest)
+	// 	return
+	// }
 
 	ovHeader, _ := to0d.OwnershipVoucher.GetOVHeader()
 
