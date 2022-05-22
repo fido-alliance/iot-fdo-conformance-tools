@@ -79,3 +79,12 @@ type RVTO2AddrEntry struct {
 	RVPort     uint16
 	RVProtocol TransportProtocol
 }
+
+func ComputeOVDevCertChainHash(certs []X509CertificateBytes, hashType HashType) (HashOrHmac, error) {
+	var totalBytes []byte
+	for _, cert := range certs {
+		totalBytes = append(totalBytes, cert...)
+	}
+
+	return GenerateFdoHash(totalBytes, hashType)
+}
