@@ -23,17 +23,34 @@ func NewSessionDB(db *badger.DB) *SessionDB {
 type SessionEntry struct {
 	_        struct{} `cbor:",toarray"`
 	Protocol fdoshared.FdoToProtocol
+	NextCmd  fdoshared.FdoCmd
+
+	SessionKey []byte
 
 	NonceTO0Sign      []byte
 	NonceTO1Proof     []byte
 	NonceTO2ProveOV   []byte
 	NonceTO2ProveDv61 []byte
+	NonceTO2SetupDv   []byte
+
+	EASigInfo       fdoshared.SigInfo
+	PrivateKey      []byte
+	XAKeyExchange   fdoshared.XAKeyExchange
+	KexSuiteName    string
+	CipherSuiteName string
+	Guid            fdoshared.FdoGuid
+	Voucher         fdoshared.OwnershipVoucher
 
 	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
-	LastOVEntryNum       uint8
-	EASigInfo            fdoshared.SigInfo
-	Voucher              fdoshared.OwnershipVoucher
-	SessionKey           []byte
+
+	NumOVEntries   uint8
+	LastOVEntryNum uint8
+
+	ShSeDO []byte
+
+	MaxDeviceServiceInfoSz                  uint16
+	ServiceInfoMsgNo                        uint8
+	OwnerServiceInfoIsMoreServiceInfoIsTrue bool
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
@@ -105,8 +122,10 @@ func (h *SessionDB) GetSessionEntry(entryId []byte) (*SessionEntry, error) {
 	}
 
 	var sessionEntryInst SessionEntry
+
 	err = cbor.Unmarshal(itemBytes, &sessionEntryInst)
 	if err != nil {
+
 		return nil, errors.New("Failed cbor decoding entry value. The error is: " + err.Error())
 	}
 

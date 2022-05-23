@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,20 +19,27 @@ const PORT = 8080
 type StoredVoucher struct {
 	VoucherEntry dbs.VoucherDBEntry
 	RVURL        string
+	WaitSeconds  uint32
 }
 
 func StartServer(db *badger.DB) {
 	voucher := Voucher{
 		session: dbs.NewSessionDB(db),
 	}
+	DoTo2 := DoTo2{
+		Session: &SessionDB{
+			db: db,
+		},
+	}
 
-	// doto2 := DoTo2
-
-	http.HandleFunc("/fdo/voucher", voucher.saveVoucher)
-	// http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
-	// http.HandleFunc("/fdo/101/msg/22", to0.Handle22OwnerSign)
-	// http.HandleFunc("/fdo/101/msg/30", to1.Handle30HelloRV)
-	// http.HandleFunc("/fdo/101/msg/32", to1.Handle32ProveToRV)
+	http.HandleFunc("/fdo/voucher", voucher.voucherHandler)
+	http.HandleFunc("/fdo/register-voucher-sender", voucher.register)
+	http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
+	http.HandleFunc("/fdo/101/msg/62", DoTo2.GetOVNextEntry62)
+	http.HandleFunc("/fdo/101/msg/64", DoTo2.ProveDevice64)
+	http.HandleFunc("/fdo/101/msg/66", DoTo2.DeviceServiceInfoReady66)
+	http.HandleFunc("/fdo/101/msg/68", DoTo2.DeviceServiceInfo68)
+	http.HandleFunc("/fdo/101/msg/70", DoTo2.Done70)
 
 	log.Printf("Starting server at port %d... \n", PORT)
 
@@ -55,7 +63,7 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:  "serve",
-				Usage: "Starts rv",
+				Usage: "Starts do",
 				Action: func(c *cli.Context) error {
 					StartServer(db)
 					return nil
@@ -89,7 +97,7 @@ func main() {
 
 					for _, voucher := range vouchers {
 						to0requestor := NewTo0Requestor(RVEntry{
-							RVURL:       "http://localhost:8083",
+							RVURL:       "http://localhost:8086",
 							AccessToken: "",
 						}, voucher)
 
@@ -116,6 +124,7 @@ func main() {
 						storedVoucher := StoredVoucher{
 							VoucherEntry: voucher,
 							RVURL:        "http://localhost:8083",
+							WaitSeconds:  acceptOwner23.WaitSeconds,
 						}
 						var voucherBytes []byte
 						voucherBytes, err = cbor.Marshal(storedVoucher)
@@ -136,6 +145,7 @@ func main() {
 						}
 
 						log.Println(acceptOwner23)
+						log.Println(hex.EncodeToString(ovHeader.OVGuid[:]))
 					}
 
 					return nil
