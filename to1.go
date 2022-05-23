@@ -18,26 +18,29 @@ type RvTo1 struct {
 
 func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving HelloRV30...")
-	if !CheckHeaders(w, r, fdoshared.TO1_HELLO_RV_30) {
+	if !fdoshared.CheckHeaders(w, r, fdoshared.TO1_HELLO_RV_30) {
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_HELLO_20, "Failed to read body!", http.StatusBadRequest)
+		return
+	}
 
 	var helloRV30 fdoshared.HelloRV30
 	err = cbor.Unmarshal(bodyBytes, &helloRV30)
 
 	if err != nil {
 		log.Println(err)
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_HELLO_RV_30, "Failed to read body!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_HELLO_RV_30, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
-	// TODO - check to see if GUID exists. (RESOURCE_NOT_FOUND if not)
 	_, err = h.ownersignDB.Get(helloRV30.Guid)
 	if err != nil {
 		log.Println(err)
-		RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, fdoshared.TO1_HELLO_RV_30, "Could not find guid!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, fdoshared.TO1_HELLO_RV_30, "Could not find guid!", http.StatusBadRequest)
 		return
 	}
 
@@ -52,7 +55,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_HELLO_RV_30, "Internal Server Error!", http.StatusInternalServerError)
+		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_HELLO_RV_30, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
 
@@ -74,34 +77,38 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 
 func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving ProveToRV32...")
-	if !CheckHeaders(w, r, fdoshared.TO1_PROVE_TO_RV_32) {
+	if !fdoshared.CheckHeaders(w, r, fdoshared.TO1_PROVE_TO_RV_32) {
 		return
 	}
 
-	headerIsOk, sessionId, authorizationHeader := ExtractAuthorizationHeader(w, r, fdoshared.TO0_OWNER_SIGN_22)
+	headerIsOk, sessionId, authorizationHeader := fdoshared.ExtractAuthorizationHeader(w, r, fdoshared.TO0_OWNER_SIGN_22)
 	if !headerIsOk {
 		return
 	}
 
 	session, err := h.session.GetSessionEntry(sessionId)
 	if err != nil {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Unauthorized", http.StatusUnauthorized)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	if session.Protocol != fdoshared.To1 {
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Unauthorized", http.StatusUnauthorized)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_HELLO_20, "Failed to read body!", http.StatusBadRequest)
+		return
+	}
 
 	var proveToRV32 fdoshared.ProveToRV32
 	err = cbor.Unmarshal(bodyBytes, &proveToRV32)
 
 	if err != nil {
 		log.Println(err)
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (1)!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (1)!", http.StatusBadRequest)
 		return
 	}
 
@@ -109,13 +116,13 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	err = cbor.Unmarshal(proveToRV32.Payload, &pb)
 	if err != nil {
 		log.Println(err)
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (2)!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (2)!", http.StatusBadRequest)
 		return
 	}
 
 	if bytes.Equal(pb.EatNonce[:], session.NonceTO1Proof[:]) {
 		log.Println("Nonce Invalid")
-		RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "NonceTo1Proof mismatch", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "NonceTo1Proof mismatch", http.StatusBadRequest)
 		return
 	}
 
@@ -124,7 +131,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Couldn't find item in database with guid" + err.Error())
 
-		RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Server Error", http.StatusInternalServerError)
+		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Server Error", http.StatusInternalServerError)
 		return
 	}
 	var to0d fdoshared.To0d
@@ -136,13 +143,13 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	// signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
 	// if err != nil {
 	// 	log.Println("ProveToRV32: Error verigetInfo_response[GetInfoRespKeys.fying. " + err.Error())
-	// 	RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
+	// 	fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
 	// 	return
 	// }
 
 	// if !signatureIsValid {
 	// 	log.Println("ProveToRV32: Signature is not valid!")
-	// 	RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature!", http.StatusBadRequest)
+	// 	fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature!", http.StatusBadRequest)
 	// 	return
 	// }
 
