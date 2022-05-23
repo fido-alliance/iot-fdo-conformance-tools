@@ -1,14 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/WebauthnWorks/fdo-do/fdoshared"
+	"github.com/WebauthnWorks/fdo-do/dbs"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/urfave/cli/v2"
@@ -17,19 +16,19 @@ import (
 const PORT = 8080
 
 type StoredVoucher struct {
-	VoucherEntry VoucherDBEntry
+	VoucherEntry dbs.VoucherDBEntry
 	RVURL        string
 }
 
 func StartServer(db *badger.DB) {
 	voucher := Voucher{
-		session: &SessionDB{
-			db: db,
-		},
+		session: dbs.NewSessionDB(db),
 	}
 
+	// doto2 := DoTo2
+
 	http.HandleFunc("/fdo/voucher", voucher.saveVoucher)
-	http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
+	// http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
 	// http.HandleFunc("/fdo/101/msg/22", to0.Handle22OwnerSign)
 	// http.HandleFunc("/fdo/101/msg/30", to1.Handle30HelloRV)
 	// http.HandleFunc("/fdo/101/msg/32", to1.Handle32ProveToRV)
@@ -62,23 +61,23 @@ func main() {
 					return nil
 				},
 			},
-			{
-				Name:  "ecdh",
-				Usage: "Tests ech",
-				Action: func(c *cli.Context) error {
-					xAKeyExchange, priva := beginECDHKeyExchange(fdoshared.ECDH256)
-					xBKeyExchange, privb := beginECDHKeyExchange(fdoshared.ECDH256)
+			// {
+			// 	Name:  "ecdh",
+			// 	Usage: "Tests ech",
+			// 	Action: func(c *cli.Context) error {
+			// 		xAKeyExchange, priva := beginECDHKeyExchange(fdoshared.ECDH256)
+			// 		xBKeyExchange, privb := beginECDHKeyExchange(fdoshared.ECDH256)
 
-					shSeDI := finishKeyExchange(xAKeyExchange, xBKeyExchange, *privb, false)
-					shSeDO := finishKeyExchange(xBKeyExchange, xAKeyExchange, *priva, true)
-					if bytes.Compare(shSeDI, shSeDO) != 0 {
-						log.Panicln("Failed")
-						return nil
-					}
-					log.Println("Success")
-					return nil
-				},
-			},
+			// 		shSeDI := finishKeyExchange(xAKeyExchange, xBKeyExchange, *privb, false)
+			// 		shSeDO := finishKeyExchange(xBKeyExchange, xAKeyExchange, *priva, true)
+			// 		if bytes.Compare(shSeDI, shSeDO) != 0 {
+			// 			log.Panicln("Failed")
+			// 			return nil
+			// 		}
+			// 		log.Println("Success")
+			// 		return nil
+			// 	},
+			// },
 			{
 				Name:  "testto0",
 				Usage: "",

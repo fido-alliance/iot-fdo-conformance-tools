@@ -7,7 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/WebauthnWorks/fdo-do/fdoshared"
+	"github.com/WebauthnWorks/fdo-do/dbs"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -20,11 +21,11 @@ type RVEntry struct {
 
 type To0Requestor struct {
 	rvEntry        RVEntry
-	voucherDBEntry VoucherDBEntry
+	voucherDBEntry dbs.VoucherDBEntry
 	authzHeader    string
 }
 
-func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry VoucherDBEntry) To0Requestor {
+func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry dbs.VoucherDBEntry) To0Requestor {
 	return To0Requestor{
 		rvEntry:        rvEntry,
 		voucherDBEntry: voucherDBEntry,
@@ -126,6 +127,9 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign []byte) (*fdoshared.AcceptOwner2
 	}
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.voucherDBEntry.PrivateKeyX509)
+	if err != nil {
+		return nil, errors.New("OwnerSign22: Error extracting private key. " + err.Error())
+	}
 
 	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
 	if err != nil {

@@ -9,7 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/WebauthnWorks/fdo-do/fdoshared"
+	"github.com/WebauthnWorks/fdo-do/dbs"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -36,18 +37,18 @@ func GetVoucherFileList() ([]string, error) {
 	return voucherFiles, nil
 }
 
-func LoadLocalVouchers() ([]VoucherDBEntry, error) {
-	var vouchers []VoucherDBEntry
+func LoadLocalVouchers() ([]dbs.VoucherDBEntry, error) {
+	var vouchers []dbs.VoucherDBEntry
 
 	fileList, err := GetVoucherFileList()
 	if err != nil {
-		return []VoucherDBEntry{}, errors.New("Error getting vouchers file list. " + err.Error())
+		return []dbs.VoucherDBEntry{}, errors.New("Error getting vouchers file list. " + err.Error())
 	}
 
 	for _, fileLoc := range fileList {
 		fileBytes, err := os.ReadFile(fileLoc)
 		if err != nil {
-			return []VoucherDBEntry{}, fmt.Errorf("Error reading file \"%s\". %s ", fileLoc, err.Error())
+			return []dbs.VoucherDBEntry{}, fmt.Errorf("Error reading file \"%s\". %s ", fileLoc, err.Error())
 		}
 
 		if len(fileBytes) == 0 {
@@ -76,7 +77,7 @@ func LoadLocalVouchers() ([]VoucherDBEntry, error) {
 			return vouchers, fmt.Errorf("%s: Could not CBOR unmarshal voucher! %s", fileLoc, err.Error())
 		}
 
-		vouchers = append(vouchers, VoucherDBEntry{
+		vouchers = append(vouchers, dbs.VoucherDBEntry{
 			Voucher:        voucherInst,
 			PrivateKeyX509: privateKeyBytes.Bytes,
 		})

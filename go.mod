@@ -2,6 +2,11 @@ module github.com/WebauthnWorks/fdo-do
 
 go 1.17
 
+
+require (
+	github.com/WebauthnWorks/fdo-shared v0.0.0
+)
+
 require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
@@ -27,3 +32,5 @@ require (
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 )
+
+replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared

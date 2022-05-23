@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/WebauthnWorks/fdo-do/fdoshared"
+	"github.com/WebauthnWorks/fdo-do/dbs"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
 const VOUCHERS_LOCATION string = "./_test_vouchers/"
 
 type Voucher struct {
-	session *SessionDB
+	session *dbs.SessionDB
 }
 
 //  Can write some checking...

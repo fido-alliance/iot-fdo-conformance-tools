@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/WebauthnWorks/fdo-do/fdoshared"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
