@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/WebauthnWorks/fdo-device-implementation/fdoshared"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/urfave/cli/v2"
 )
@@ -50,7 +50,7 @@ func main() {
 				},
 			},
 			{
-				Name:  "pem",
+				Name:  "testTo1",
 				Usage: "",
 				Action: func(c *cli.Context) error {
 					credential, err := LoadLocalCredentials()

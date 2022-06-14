@@ -12,7 +12,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/WebauthnWorks/fdo-device-implementation/fdoshared"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
