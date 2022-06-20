@@ -1,17 +1,14 @@
 package fdoshared
 
 import (
-	"encoding/pem"
-
 	"github.com/google/uuid"
 )
 
 type ProtVersion uint16
 
 const (
-	ProtVer100                 ProtVersion = 100
-	ProtVer101                 ProtVersion = 101
-	OWNERSHIP_VOUCHER_PEM_TYPE string      = "OWNERSHIP VOUCHER"
+	ProtVer100 ProtVersion = 100
+	ProtVer101 ProtVersion = 101
 )
 
 type FdoGuid [16]byte
@@ -21,19 +18,6 @@ func (h *FdoGuid) GetFormatted() string {
 	uuidInst, _ := uuid.ParseBytes(uuidBytes)
 
 	return uuidInst.String()
-}
-
-type X509CertificateBytes []byte
-
-func (h *X509CertificateBytes) GetPEM() string {
-	block := &pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: *h,
-	}
-
-	pemBytes := pem.EncodeToMemory(block)
-
-	return string(pemBytes)
 }
 
 // timestamp = null / UTCStr / UTCInt / TIME_T

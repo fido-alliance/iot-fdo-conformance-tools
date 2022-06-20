@@ -165,13 +165,13 @@ func NewWawDeviceCredential(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDe
 	var hmacSecret []byte
 	var dcHashAlg HashType
 
-	if hmacAlgorithm == FDO_HMAC_SHA256 {
+	if hmacAlgorithm == HASH_HMAC_SHA256 {
 		hmacSecret = make([]byte, sha256.Size)
-		dcHashAlg = FDO_SHA256
+		dcHashAlg = HASH_SHA256
 
-	} else if hmacAlgorithm == FDO_HMAC_SHA384 {
+	} else if hmacAlgorithm == HASH_HMAC_SHA384 {
 		hmacSecret = make([]byte, sha512.Size384)
-		dcHashAlg = FDO_SHA384
+		dcHashAlg = HASH_SHA384
 	} else {
 		return nil, fmt.Errorf("%d is unsupported HMAC algorithm", hmacAlgorithm)
 	}
@@ -210,10 +210,10 @@ func NewWawDeviceCredential(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDe
 	}
 
 	var certPrivKey *ecdsa.PrivateKey
-	if dcHashAlg == FDO_SHA256 {
-		certPrivKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	} else if dcHashAlg == FDO_SHA384 {
-		certPrivKey, err = ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if dcHashAlg == HASH_SHA256 {
+		certPrivKey, _ = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	} else if dcHashAlg == HASH_SHA384 {
+		certPrivKey, _ = ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	} else {
 		return nil, fmt.Errorf("%d is unsupported hashing algorithm", dcHashAlg)
 	}

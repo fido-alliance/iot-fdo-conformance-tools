@@ -12,10 +12,10 @@ import (
 type HashType int
 
 const (
-	FDO_SHA256      HashType = -16
-	FDO_SHA384      HashType = -43
-	FDO_HMAC_SHA256 HashType = 5
-	FDO_HMAC_SHA384 HashType = 6
+	HASH_SHA256      HashType = -16
+	HASH_SHA384      HashType = -43
+	HASH_HMAC_SHA256 HashType = 5
+	HASH_HMAC_SHA384 HashType = 6
 )
 
 type HashOrHmac struct {
@@ -25,20 +25,20 @@ type HashOrHmac struct {
 }
 
 var HmacToHashAlg map[HashType]HashType = map[HashType]HashType{
-	FDO_HMAC_SHA256: FDO_SHA256,
-	FDO_HMAC_SHA384: FDO_SHA384,
+	HASH_HMAC_SHA256: HASH_SHA256,
+	HASH_HMAC_SHA384: HASH_SHA384,
 }
 
 func GenerateFdoHash(data []byte, hashType HashType) (HashOrHmac, error) {
 	switch hashType {
-	case FDO_SHA256:
+	case HASH_SHA256:
 		hashDigest := sha256.Sum256(data)
 
 		return HashOrHmac{
 			Type: hashType,
 			Hash: hashDigest[:],
 		}, nil
-	case FDO_SHA384:
+	case HASH_SHA384:
 		hashDigest := sha512.Sum384(data)
 
 		return HashOrHmac{
@@ -52,7 +52,7 @@ func GenerateFdoHash(data []byte, hashType HashType) (HashOrHmac, error) {
 
 func GenerateFdoHmac(data []byte, hashType HashType, key []byte) (HashOrHmac, error) {
 	switch hashType {
-	case FDO_HMAC_SHA256:
+	case HASH_HMAC_SHA256:
 		macInst := hmac.New(sha256.New, key)
 		macInst.Write(data)
 
@@ -60,7 +60,7 @@ func GenerateFdoHmac(data []byte, hashType HashType, key []byte) (HashOrHmac, er
 			Type: hashType,
 			Hash: macInst.Sum(nil),
 		}, nil
-	case FDO_HMAC_SHA384:
+	case HASH_HMAC_SHA384:
 		macInst := hmac.New(sha512.New384, key)
 		macInst.Write(data)
 
@@ -75,7 +75,7 @@ func GenerateFdoHmac(data []byte, hashType HashType, key []byte) (HashOrHmac, er
 
 func VerifyHash(data []byte, fdoHashB HashOrHmac) (bool, error) {
 	switch fdoHashB.Type {
-	case FDO_SHA256:
+	case HASH_SHA256:
 		if len(fdoHashB.Hash) != sha256.New().Size() {
 			return false, errors.New("Failed to verify hash. The input hash does not match expected hash size.")
 		}
@@ -86,7 +86,7 @@ func VerifyHash(data []byte, fdoHashB HashOrHmac) (bool, error) {
 		} else {
 			return false, nil
 		}
-	case FDO_SHA384:
+	case HASH_SHA384:
 		if len(fdoHashB.Hash) != sha512.New384().Size() {
 			return false, errors.New("Failed to verify hash. The input hash does not match expected hash size.")
 		}
@@ -104,7 +104,7 @@ func VerifyHash(data []byte, fdoHashB HashOrHmac) (bool, error) {
 
 func VerifyHMac(data []byte, inputHmac HashOrHmac, key []byte) (bool, error) {
 	switch inputHmac.Type {
-	case FDO_HMAC_SHA256:
+	case HASH_HMAC_SHA256:
 		macInst := hmac.New(sha256.New, key)
 		macInst.Write(data)
 		computedMac := macInst.Sum(nil)
@@ -114,7 +114,7 @@ func VerifyHMac(data []byte, inputHmac HashOrHmac, key []byte) (bool, error) {
 		} else {
 			return false, nil
 		}
-	case FDO_HMAC_SHA384:
+	case HASH_HMAC_SHA384:
 		macInst := hmac.New(sha512.New384, key)
 		macInst.Write(data)
 		computedMac := macInst.Sum(nil)

@@ -15,10 +15,10 @@ import (
 )
 
 type UnprotectedHeader struct {
-	CUPHNonce       []byte       `cbor:"256,keyasint,omitempty"`
+	CUPHNonce       FdoNonce     `cbor:"256,keyasint,omitempty"`
 	CUPHOwnerPubKey FdoPublicKey `cbor:"257,keyasint,omitempty"`
 	EATMAROEPrefix  []byte       `cbor:"-258,keyasint,omitempty"`
-	EUPHNonce       []byte       `cbor:"-259,keyasint,omitempty"`
+	EUPHNonce       FdoNonce     `cbor:"-259,keyasint,omitempty"`
 	AESIV           []byte       `cbor:"5,keyasint,omitempty"`
 }
 
@@ -40,21 +40,14 @@ type CoseSignature struct {
 type EATPayloadBase struct {
 	// EatFDO   []byte   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
 	// EatFDO   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
-	EatNonce []byte      `cbor:"10,keyasint,omitempty"`
-	EatUEID  [17]byte    `cbor:"11,keyasint,omitempty"`
-	EatFDO   EATPayloads `cbor:"-257,keyasint,omitempty"`
-}
-
-type EATPayloads struct {
-	TO2ProveDevicePayload *TO2ProveDevicePayload
+	EatNonce FdoNonce              `cbor:"10,keyasint,omitempty"`
+	EatUEID  [17]byte              `cbor:"11,keyasint,omitempty"`
+	EatFDO   TO2ProveDevicePayload `cbor:"-257,keyasint,omitempty"`
 }
 
 type TO2ProveDevicePayload struct {
-	xBKeyExchange xBKeyExchange
+	XBKeyExchange []byte
 }
-
-type xAKeyExchange []byte
-type xBKeyExchange []byte
 
 type CoseContext string
 
@@ -207,9 +200,9 @@ func VerifyCertificateChain(chain [][]byte) (bool, []*x509.Certificate, error) {
 	return true, finalChain, nil
 }
 
-func VerifyCoseSignatureWithCertificate(coseSig CoseSignature, publicKey FdoPublicKey, certs [][]byte) (bool, error) {
+func VerifyCoseSignatureWithCertificate(coseSig CoseSignature, pkType FdoPkType, certs []X509CertificateBytes) (bool, error) {
 	newPubKey := FdoPublicKey{
-		PkType: publicKey.PkType,
+		PkType: pkType,
 		PkEnc:  X5CHAIN,
 		PkBody: certs,
 	}
@@ -316,9 +309,9 @@ func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) 
 	case SECP384R1:
 		return StSECP384R1, nil
 	case RSA2048RESTR, RSAPKCS, RSAPSS:
-		if hashType == FDO_SHA256 {
+		if hashType == HASH_SHA256 {
 			return StRSA2048, nil
-		} else if hashType == FDO_SHA384 {
+		} else if hashType == HASH_SHA384 {
 			return StRSA3072, nil
 		} else {
 			return 0, fmt.Errorf("For RSA: %d is an unsupported hash type!", hashType)

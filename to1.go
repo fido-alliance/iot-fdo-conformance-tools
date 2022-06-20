@@ -8,11 +8,9 @@ type HelloRV30 struct {
 
 type HelloRVAck31 struct {
 	_             struct{} `cbor:",toarray"`
-	NonceTO1Proof []byte
+	NonceTO1Proof FdoNonce
 	EBSigInfo     SigInfo
 }
-
-type ProveToRV32 = CoseSignature
 
 type RVRedirect33 struct {
 	_          struct{} `cbor:",toarray"`

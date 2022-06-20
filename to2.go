@@ -1,14 +1,12 @@
 package fdoshared
 
-import "reflect"
-
 type HelloDevice60 struct {
 	_                    struct{} `cbor:",toarray"`
 	MaxDeviceMessageSize uint16
 	Guid                 FdoGuid
-	NonceTO2ProveOV      []byte
-	KexSuiteName         string
-	CipherSuiteName      string
+	NonceTO2ProveOV      FdoNonce
+	KexSuiteName         KexSuiteName
+	CipherSuiteName      CipherSuiteName
 	EASigInfo            SigInfo
 }
 
@@ -18,12 +16,12 @@ type TO2ProveOVHdrPayload struct {
 	OVHeader            []byte
 	NumOVEntries        uint8
 	HMac                HashOrHmac
-	NonceTO2ProveOV     []byte
+	NonceTO2ProveOV     FdoNonce
 	EBSigInfo           SigInfo
-	XAKeyExchange       XAKeyExchange
+	XAKeyExchange       []byte
 	HelloDeviceHash     HashOrHmac
 	MaxOwnerMessageSize uint16
-} // todo
+}
 
 type GetOVNextEntry62 struct {
 	_              struct{} `cbor:",toarray"`
@@ -45,19 +43,19 @@ type TO2SetupDevicePayload struct {
 	_               struct{}    `cbor:",toarray"`
 	RendezvousInfo  interface{} // change
 	Guid            FdoGuid
-	NonceTO2SetupDv []byte
+	NonceTO2SetupDv FdoNonce
 	Owner2Key       FdoPublicKey
 }
 
 type DeviceServiceInfoReady66 struct {
 	_                     struct{} `cbor:",toarray"`
 	ReplacementHMac       *HashOrHmac
-	MaxOwnerServiceInfoSz uint16 // *uint16?
+	MaxOwnerServiceInfoSz *uint16
 }
 
 type OwnerServiceInfoReady67 struct {
 	_                      struct{} `cbor:",toarray"`
-	MaxDeviceServiceInfoSz uint16   // *uint16?
+	MaxDeviceServiceInfoSz *uint16
 }
 
 type DeviceServiceInfo68 struct {
@@ -74,18 +72,16 @@ type OwnerServiceInfo69 struct {
 }
 
 type ServiceInfoKV struct {
-	// ServiceInfoKey []byte // check
-	ServiceInfoKey string // check
-	// ServiceInfoVal []byte
-	ServiceInfoVal reflect.Type
+	ServiceInfoKey string
+	ServiceInfoVal []byte
 }
 
 type Done70 struct {
 	_               struct{} `cbor:",toarray"`
-	NonceTO2ProveDv []byte
+	NonceTO2ProveDv FdoNonce
 }
 
 type Done271 struct {
 	_               struct{} `cbor:",toarray"`
-	NonceTO2SetupDv []byte
+	NonceTO2SetupDv FdoNonce
 }

@@ -9,28 +9,28 @@ func (h FdoCmd) ToString() string {
 }
 
 const (
-	TO0_HELLO_20        FdoCmd = 20
-	TO0_HELLO_ACK_21    FdoCmd = 21
-	TO0_OWNER_SIGN_22   FdoCmd = 22
-	TO0_ACCEPT_OWNER_23 FdoCmd = 23
+	TO0_20_HELLO        FdoCmd = 20
+	TO0_21_HELLO_ACK    FdoCmd = 21
+	TO0_22_OWNER_SIGN   FdoCmd = 22
+	TO0_23_ACCEPT_OWNER FdoCmd = 23
 
-	TO1_HELLO_RV_30     FdoCmd = 30
-	TO1_HELLO_RV_ACK_31 FdoCmd = 31
-	TO1_PROVE_TO_RV_32  FdoCmd = 32
-	TO1_RV_REDIRECT_33  FdoCmd = 33
+	TO1_30_HELLO_RV     FdoCmd = 30
+	TO1_31_HELLO_RV_ACK FdoCmd = 31
+	TO1_32_PROVE_TO_RV  FdoCmd = 32
+	TO1_33_RV_REDIRECT  FdoCmd = 33
 
-	TO2_HELLO_DEVICE_60              FdoCmd = 60
-	TO2_PROVE_OVHDR_61               FdoCmd = 61
-	TO2_GET_OVNEXTENTRY_62           FdoCmd = 62
-	TO2_OV_NEXTENTRY_63              FdoCmd = 63
-	TO2_PROVE_DEVICE_64              FdoCmd = 64
-	TO2_SETUP_DEVICE_65              FdoCmd = 65
-	TO2_DEVICE_SERVICE_INFO_READY_66 FdoCmd = 66
-	TO2_OWNER_SERVICE_INFO_READY_67  FdoCmd = 67
-	TO2_DEVICE_SERVICE_INFO_68       FdoCmd = 68
-	TO2_OWNER_SERVICE_INFO_69        FdoCmd = 69
-	TO2_DONE_70                      FdoCmd = 70
-	TO2_DONE2_71                     FdoCmd = 71
+	TO2_60_HELLO_DEVICE              FdoCmd = 60
+	TO2_61_PROVE_OVHDR               FdoCmd = 61
+	TO2_62_GET_OVNEXTENTRY           FdoCmd = 62
+	TO2_63_OV_NEXTENTRY              FdoCmd = 63
+	TO2_64_PROVE_DEVICE              FdoCmd = 64
+	TO2_65_SETUP_DEVICE              FdoCmd = 65
+	TO2_66_DEVICE_SERVICE_INFO_READY FdoCmd = 66
+	TO2_67_OWNER_SERVICE_INFO_READY  FdoCmd = 67
+	TO2_68_DEVICE_SERVICE_INFO       FdoCmd = 68
+	TO2_69_OWNER_SERVICE_INFO        FdoCmd = 69
+	TO2_70_DONE                      FdoCmd = 70
+	TO2_71_DONE2                     FdoCmd = 71
 
 	VOUCHER_API FdoCmd = 101
 

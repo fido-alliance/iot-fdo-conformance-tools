@@ -32,8 +32,6 @@ const (
 	KEX_ASYMKEX3072 KexSuiteName = "ASYMKEX3072"
 )
 
-type XAKeyExchange []byte
-
 const KEX_ECDH256_RANDOM_LEN uint8 = 128 / 8
 const KEX_ECDH384_RANDOM_LEN uint8 = 384 / 8
 
