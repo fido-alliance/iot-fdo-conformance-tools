@@ -23,8 +23,8 @@ func NewSessionDB(db *badger.DB) SessionDB {
 type SessionEntry struct {
 	_             struct{} `cbor:",toarray"`
 	Protocol      fdoshared.FdoToProtocol
-	NonceTO0Sign  []byte
-	NonceTO1Proof []byte
+	NonceTO0Sign  fdoshared.FdoNonce
+	NonceTO1Proof fdoshared.FdoNonce
 	EASigInfo     fdoshared.SigInfo
 	Guid          fdoshared.FdoGuid
 }

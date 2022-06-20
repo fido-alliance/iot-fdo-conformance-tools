@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
@@ -44,8 +43,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nonceTO1Proof := make([]byte, 16)
-	rand.Read(nonceTO1Proof)
+	nonceTO1Proof := fdoshared.NewFdoNonce()
 
 	newSessionInst := SessionEntry{
 		Protocol:      fdoshared.To1,
@@ -103,12 +101,11 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var proveToRV32 fdoshared.ProveToRV32
+	var proveToRV32 fdoshared.CoseSignature
 	err = cbor.Unmarshal(bodyBytes, &proveToRV32)
-
 	if err != nil {
 		log.Println(err)
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (1)!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
@@ -116,7 +113,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	err = cbor.Unmarshal(proveToRV32.Payload, &pb)
 	if err != nil {
 		log.Println(err)
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body /32 (2)!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body payload!", http.StatusBadRequest)
 		return
 	}
 
@@ -136,22 +133,25 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	}
 	var to0d fdoshared.To0d
 	err = cbor.Unmarshal(savedOwnerSign.To0d, &to0d)
+	if err != nil {
+		log.Println(err)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to decode body!", http.StatusBadRequest)
+		return
+	}
 
-	// TODO: FIX! => Error verigetInfo_response[GetInfoRespKeys.fying. EPID signatures are not currently supported!
+	var placeHolder_publicKey fdoshared.FdoPublicKey
+	signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
+	if err != nil {
+		log.Println("ProveToRV32: Error verifying ProveToRV32 signature. " + err.Error())
+		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Error to verify signature ProveToRV32, some error", http.StatusBadRequest)
+		return
+	}
 
-	// var placeHolder_publicKey fdoshared.FdoPublicKey
-	// signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
-	// if err != nil {
-	// 	log.Println("ProveToRV32: Error verigetInfo_response[GetInfoRespKeys.fying. " + err.Error())
-	// 	fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature ProveToRV32, some error", http.StatusBadRequest)
-	// 	return
-	// }
-
-	// if !signatureIsValid {
-	// 	log.Println("ProveToRV32: Signature is not valid!")
-	// 	fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature!", http.StatusBadRequest)
-	// 	return
-	// }
+	if !signatureIsValid {
+		log.Println("ProveToRV32: Signature is not valid!")
+		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_PROVE_TO_RV_32, "Failed to verify signature!", http.StatusBadRequest)
+		return
+	}
 
 	rvRedirectBytes, _ := cbor.Marshal(savedOwnerSign.To1d)
 

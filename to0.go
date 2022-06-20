@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
@@ -39,8 +38,7 @@ func (h *RvTo0) Handle20Hello(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nonceTO0Sign := make([]byte, 16)
-	rand.Read(nonceTO0Sign)
+	nonceTO0Sign := fdoshared.NewFdoNonce()
 
 	newSessionInst := SessionEntry{
 		Protocol:     fdoshared.To0,
@@ -119,7 +117,7 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 
 	/* ----- Verify OwnerSign ----- */
 
-	if !bytes.Equal(to0d.NonceTO0Sign, session.NonceTO0Sign) {
+	if !bytes.Equal(to0d.NonceTO0Sign[:], session.NonceTO0Sign[:]) {
 		log.Println("OwnerSign22: NonceTO0Sign does not match!")
 		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_OWNER_SIGN_22, "Failed to validate owner sign!", http.StatusBadRequest)
 		return
