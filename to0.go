@@ -66,7 +66,7 @@ func (h *To0Requestor) Hello20() (*fdoshared.HelloAck21, error) {
 		return nil, errors.New("Hell20: Error marshaling Hello20. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO0_HELLO_20, hello20Bytes, &h.rvEntry.AccessToken)
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO0_20_HELLO, hello20Bytes, &h.rvEntry.AccessToken)
 	if err != nil {
 		return nil, errors.New("Hell20: " + err.Error())
 	}
@@ -82,7 +82,7 @@ func (h *To0Requestor) Hello20() (*fdoshared.HelloAck21, error) {
 	return &helloAck21, nil
 }
 
-func (h *To0Requestor) OwnerSign22(nonceTO0Sign []byte) (*fdoshared.AcceptOwner23, error) {
+func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce) (*fdoshared.AcceptOwner23, error) {
 	// TO0D
 	var to0d fdoshared.To0d = fdoshared.To0d{
 		OwnershipVoucher: h.voucherDBEntry.Voucher,
@@ -150,7 +150,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign []byte) (*fdoshared.AcceptOwner2
 		return nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO0_OWNER_SIGN_22, ownerSign22Bytes, &h.authzHeader)
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
 	if err != nil {
 		return nil, errors.New("OwnerSign22: " + err.Error())
 	}
