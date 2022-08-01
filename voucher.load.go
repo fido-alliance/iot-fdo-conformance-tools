@@ -1,4 +1,4 @@
-package main
+package fdodo
 
 import (
 	"encoding/pem"

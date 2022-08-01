@@ -1,4 +1,4 @@
-package main
+package fdodo
 
 // // // func (h *DoTo2) DeviceServiceInfo68() (*fdoshared.OwnerServiceInfo69, error) {
 // // // 	return nil, nil
