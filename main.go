@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/WebauthnWorks/fdo-do/dbs"
+	"github.com/WebauthnWorks/fdo-do/to2"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/urfave/cli/v2"
@@ -23,17 +24,16 @@ type StoredVoucher struct {
 }
 
 func StartServer(db *badger.DB) {
-	voucher := Voucher{
-		session: dbs.NewSessionDB(db),
-	}
-	DoTo2 := DoTo2{
-		Session: &SessionDB{
-			db: db,
-		},
+	// voucher := Voucher{
+	// 	session: dbs.NewSessionDB(db),
+	// }
+
+	DoTo2 := to2.DoTo2{
+		Session: dbs.NewSessionDB(db),
 	}
 
-	http.HandleFunc("/fdo/voucher", voucher.voucherHandler)
-	http.HandleFunc("/fdo/register-voucher-sender", voucher.register)
+	// http.HandleFunc("/fdo/voucher", voucher.voucherHandler)
+	// http.HandleFunc("/fdo/register-voucher-sender", voucher.register)
 	http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
 	http.HandleFunc("/fdo/101/msg/62", DoTo2.GetOVNextEntry62)
 	http.HandleFunc("/fdo/101/msg/64", DoTo2.ProveDevice64)

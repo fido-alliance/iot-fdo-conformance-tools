@@ -25,7 +25,10 @@ type SessionEntry struct {
 	Protocol fdoshared.FdoToProtocol
 	PrevCMD  fdoshared.FdoCmd
 
-	SessionKey []byte
+	// Session encryption key
+	SessionKey   []byte
+	XAKex        fdoshared.KeXParams
+	KexSuiteName fdoshared.KexSuiteName
 
 	NonceTO2ProveOV60 fdoshared.FdoNonce
 	NonceTO2ProveDv61 fdoshared.FdoNonce
@@ -33,23 +36,22 @@ type SessionEntry struct {
 
 	EASigInfo       fdoshared.SigInfo
 	PrivateKey      []byte
-	XAKex           fdoshared.KeXParams
-	KexSuiteName    fdoshared.KexSuiteName
 	CipherSuiteName fdoshared.CipherSuiteName
 	SignatureType   fdoshared.DeviceSgType
 	PublicKeyType   fdoshared.FdoPkType
 	Guid            fdoshared.FdoGuid
 	Voucher         fdoshared.OwnershipVoucher
 
-	TO2ProveOVHdrPayload fdoshared.TO2ProveOVHdrPayload
-
 	NumOVEntries uint8
-
-	ShSe []byte
 
 	MaxDeviceServiceInfoSz                  uint16
 	ServiceInfoMsgNo                        uint8
 	OwnerServiceInfoIsMoreServiceInfoIsTrue bool
+
+	DeviceSIMs               []fdoshared.ServiceInfoKV
+	OwnerSIMsSendCounter     uint16
+	OwnerSIMsFinishedSending bool
+	OwnerSIMs                []fdoshared.ServiceInfoKV
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
