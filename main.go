@@ -12,7 +12,7 @@ import (
 
 const PORT = 8083
 
-func StartServer(db *badger.DB) {
+func SetupServer(db *badger.DB) {
 	to0 := RvTo0{
 		session: &SessionDB{
 			db: db,
@@ -35,13 +35,6 @@ func StartServer(db *badger.DB) {
 	http.HandleFunc("/fdo/101/msg/22", to0.Handle22OwnerSign)
 	http.HandleFunc("/fdo/101/msg/30", to1.Handle30HelloRV)
 	http.HandleFunc("/fdo/101/msg/32", to1.Handle32ProveToRV)
-
-	log.Printf("Starting server at port %d... \n", PORT)
-
-	err := http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
-	if err != nil {
-		log.Panicln("Error starting HTTP server. " + err.Error())
-	}
 }
 
 func main() {
@@ -60,18 +53,25 @@ func main() {
 				Name:  "serve",
 				Usage: "Starts rv",
 				Action: func(c *cli.Context) error {
-					StartServer(db)
+					SetupServer(db)
+
+					log.Printf("Starting server at port %d... \n", PORT)
+
+					err := http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
+					if err != nil {
+						log.Panicln("Error starting HTTP server. " + err.Error())
+					}
 					return nil
 				},
 			},
-			{
-				Name:  "gen",
-				Usage: "Generates OwnerSign22 payload",
-				Action: func(c *cli.Context) error {
-					GenPayload22()
-					return nil
-				},
-			},
+			// {
+			// 	Name:  "gen",
+			// 	Usage: "Generates OwnerSign22 payload",
+			// 	Action: func(c *cli.Context) error {
+			// 		GenPayload22()
+			// 		return nil
+			// 	},
+			// },
 		},
 	}
 

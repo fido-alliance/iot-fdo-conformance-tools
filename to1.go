@@ -117,7 +117,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if bytes.Equal(pb.EatNonce[:], session.NonceTO1Proof[:]) {
+	if !bytes.Equal(pb.EatNonce[:], session.NonceTO1Proof[:]) {
 		log.Println("Nonce Invalid")
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "NonceTo1Proof mismatch", http.StatusBadRequest)
 		return
@@ -127,20 +127,27 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	savedOwnerSign, err := h.ownersignDB.Get(session.Guid)
 	if err != nil {
 		log.Println("Couldn't find item in database with guid" + err.Error())
-
 		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Server Error", http.StatusInternalServerError)
 		return
 	}
+
 	var to0d fdoshared.To0d
 	err = cbor.Unmarshal(savedOwnerSign.To0d, &to0d)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error decoding To0d" + err.Error())
+
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
-	var placeHolder_publicKey fdoshared.FdoPublicKey
-	signatureIsValid, err := fdoshared.VerifyCoseSignature(proveToRV32, placeHolder_publicKey)
+	voucherHeader, err := to0d.OwnershipVoucher.GetOVHeader()
+	if err != nil {
+		log.Println("ProveToRV32: Error decoding OVHeader. " + err.Error())
+		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32, some error", http.StatusBadRequest)
+		return
+	}
+
+	signatureIsValid, err := fdoshared.VerifyCoseSignatureWithCertificate(proveToRV32, voucherHeader.OVPublicKey.PkType, *to0d.OwnershipVoucher.OVDevCertChain)
 	if err != nil {
 		log.Println("ProveToRV32: Error verifying ProveToRV32 signature. " + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32, some error", http.StatusBadRequest)
