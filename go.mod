@@ -3,9 +3,10 @@ module github.com/WebauthnWorks/fdo-device-implementation
 go 1.17
 
 require (
+	github.com/WebauthnWorks/fdo-shared v0.0.0
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/google/uuid v1.3.0
-	github.com/WebauthnWorks/fdo-shared v0.0.0
+	github.com/urfave/cli/v2 v2.3.0
 )
 
 require (
@@ -25,7 +26,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect

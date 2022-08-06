@@ -81,7 +81,7 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 		Alg: int(sgType),
 	}
 
-	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, sgType)
+	ovEntry, _ := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, sgType)
 
 	marshaledPrivateKey, err := MarshalPrivateKey(newOVEPrivateKey, sgType)
 	if err != nil {
@@ -92,7 +92,12 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 }
 
 func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
-	newDi, err := fdoshared.NewWawDeviceCredential(fdoshared.FDO_HMAC_SHA384, sgType)
+	getSgAlgInfo, err := fdoshared.GetAlgInfoFromSgType(sgType)
+	if err != nil {
+		return errors.New("Generating voucher! " + err.Error())
+	}
+
+	newDi, err := fdoshared.NewWawDeviceCredential(getSgAlgInfo.HmacType, sgType)
 
 	// Generate manufacturer private key.
 	mfgPrivateKey, mfgPublicKey, err := GenerateVoucherKeypair(sgType)
@@ -134,7 +139,7 @@ func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
 	prevEntryPayloadBytes := append(ovHeaderBytes, headerHmacBytes...)
 	prevEntryHash, _ := fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
 
-	ovEntryPrivateKeyBytes, firstOvEntry, err := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, sgType)
+	ovEntryPrivateKeyBytes, firstOvEntry, _ := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, sgType)
 
 	// Voucher
 	voucherInst := fdoshared.OwnershipVoucher{

@@ -1,66 +1,23 @@
 package main
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
-type RVEntry struct {
-	RVURL       string
-	AccessToken string
-}
-
 type To1Requestor struct {
-	rvEntry     RVEntry
+	rvEntry     SRVEntry
 	credential  fdoshared.WawDeviceCredential
 	authzHeader string
 }
 
-type VoucherDBEntry struct {
-	_              struct{} `cbor:",toarray"`
-	Voucher        fdoshared.OwnershipVoucher
-	PrivateKeyX509 []byte
-}
-
-func NewTo1Requestor(rvEntry RVEntry, credential fdoshared.WawDeviceCredential) To1Requestor {
+func NewTo1Requestor(srvEntry SRVEntry, credential fdoshared.WawDeviceCredential) To1Requestor {
 	return To1Requestor{
-		rvEntry:    rvEntry,
+		rvEntry:    srvEntry,
 		credential: credential,
 	}
-}
-
-func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, error) {
-	url := rvEntry.RVURL + fdoshared.FDO_101_URL_BASE + cmd.ToString()
-
-	httpClient := &http.Client{}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	if err != nil {
-		return nil, "", errors.New("Error creating new request. " + err.Error())
-	}
-
-	if authzHeader != nil {
-		req.Header.Set("Authorization", *authzHeader)
-	}
-
-	req.Header.Set("Content-Type", "application/cbor")
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, "", fmt.Errorf("Error sending post request to %s url. %s", url, err.Error())
-	}
-
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, "", fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
-	}
-
-	return bodyBytes, resp.Header.Get("Authorization"), nil
 }
 
 func (h *To1Requestor) HelloRV30() (fdoshared.HelloRVAck31, error) {
@@ -75,7 +32,7 @@ func (h *To1Requestor) HelloRV30() (fdoshared.HelloRVAck31, error) {
 		return helloRVAck31, errors.New("HelloRV30: Error marshaling HelloRV30. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_HELLO_RV_30, helloRV30Bytes, &h.rvEntry.AccessToken)
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_30_HELLO_RV, helloRV30Bytes, &h.rvEntry.AccessToken)
 	if err != nil {
 		return helloRVAck31, errors.New("Hello30: " + err.Error())
 	}
@@ -90,7 +47,7 @@ func (h *To1Requestor) HelloRV30() (fdoshared.HelloRVAck31, error) {
 	return helloRVAck31, nil
 }
 
-func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdoshared.RVRedirect33, error) {
+func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdoshared.CoseSignature, error) {
 
 	var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
 		EatNonce: helloRVAck31.NonceTO1Proof,
@@ -118,14 +75,14 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31) (*fdosha
 		return nil, errors.New("ProveToRV32: Error marshaling proveToRV32. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_PROVE_TO_RV_32, proveToRV32Bytes, &h.authzHeader)
+	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO1_32_PROVE_TO_RV, proveToRV32Bytes, &h.authzHeader)
 	if err != nil {
 		return nil, errors.New("Hello30: " + err.Error())
 	}
 
 	h.authzHeader = authzHeader
 
-	var rvRedirect33 fdoshared.RVRedirect33
+	var rvRedirect33 fdoshared.CoseSignature
 
 	err = cbor.Unmarshal(resultBytes, &rvRedirect33)
 

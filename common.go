@@ -1,0 +1,50 @@
+package main
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
+)
+
+type SRVEntry struct {
+	SrvURL      string
+	AccessToken string // FUTURE
+}
+
+type VoucherDBEntry struct {
+	_              struct{} `cbor:",toarray"`
+	Voucher        fdoshared.OwnershipVoucher
+	PrivateKeyX509 []byte
+}
+
+func SendCborPost(rvEntry SRVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, error) {
+	url := rvEntry.SrvURL + fdoshared.FDO_101_URL_BASE + cmd.ToString()
+
+	httpClient := &http.Client{}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, "", errors.New("Error creating new request. " + err.Error())
+	}
+
+	if authzHeader != nil {
+		req.Header.Set("Authorization", *authzHeader)
+	}
+
+	req.Header.Set("Content-Type", "application/cbor")
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error sending post request to %s url. %s", url, err.Error())
+	}
+
+	defer resp.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
+	}
+
+	return bodyBytes, resp.Header.Get("Authorization"), nil
+}
