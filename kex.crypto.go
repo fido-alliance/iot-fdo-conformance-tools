@@ -148,7 +148,7 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) ([]b
 	case KEX_ECDH256:
 		expectedLen := 2 + 32 + 2 + 32 + 2 + int(KEX_ECDH256_RANDOM_LEN)
 		if len(xBKeyExchange) != expectedLen {
-			return nil, fmt.Errorf("Unexpected xBKeyExchange for ECDH384 length. Expected %d bytes long", expectedLen)
+			return nil, fmt.Errorf("Unexpected xBKeyExchange for ECDH256 length. Expected %d bytes long", expectedLen)
 		}
 
 		deviceX := xBKeyExchange[2:34]
