@@ -147,16 +147,10 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signatureIsValid, err := fdoshared.VerifyCoseSignatureWithCertificate(proveToRV32, voucherHeader.OVPublicKey.PkType, *to0d.OwnershipVoucher.OVDevCertChain)
+	err = fdoshared.VerifyCoseSignatureWithCertificate(proveToRV32, voucherHeader.OVPublicKey.PkType, *to0d.OwnershipVoucher.OVDevCertChain)
 	if err != nil {
 		log.Println("ProveToRV32: Error verifying ProveToRV32 signature. " + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32, some error", http.StatusBadRequest)
-		return
-	}
-
-	if !signatureIsValid {
-		log.Println("ProveToRV32: Signature is not valid!")
-		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to verify signature!", http.StatusBadRequest)
 		return
 	}
 

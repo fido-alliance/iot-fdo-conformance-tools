@@ -138,29 +138,18 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	to1dIsValid, err := fdoshared.VerifyCoseSignature(ownerSign.To1d, finalPublicKey)
+	err = fdoshared.VerifyCoseSignature(ownerSign.To1d, finalPublicKey)
 	if err != nil {
 		log.Println("OwnerSign22: Error verifying to1d. " + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to validate owner sign 4!", http.StatusBadRequest)
 		return
 	}
 
-	if !to1dIsValid {
-		log.Println("OwnerSign22: To1d hash is not valid! ")
-		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to validate owner sign 5!", http.StatusBadRequest)
-		return
-	}
-
 	// Verify To0D Hash
-	to0dHashIsValid, err := fdoshared.VerifyHash(ownerSign.To0d, to1dPayload.To1dTo0dHash)
+	err = fdoshared.VerifyHash(ownerSign.To0d, to1dPayload.To1dTo0dHash)
 	if err != nil {
 		log.Println("OwnerSign22: Error verifying to0dHash. " + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to validate owner sign 6!", http.StatusBadRequest)
-		return
-	}
-
-	if !to0dHashIsValid {
-		fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to validate owner sign 7!", http.StatusBadRequest)
 		return
 	}
 
