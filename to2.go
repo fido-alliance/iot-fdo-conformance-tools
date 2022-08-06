@@ -10,7 +10,6 @@ type HelloDevice60 struct {
 	EASigInfo            SigInfo
 }
 
-type ProveOVHdr61 = CoseSignature
 type TO2ProveOVHdrPayload struct {
 	_                   struct{} `cbor:",toarray"`
 	OVHeader            []byte
@@ -61,7 +60,7 @@ type OwnerServiceInfoReady67 struct {
 type DeviceServiceInfo68 struct {
 	_                 struct{} `cbor:",toarray"`
 	IsMoreServiceInfo bool
-	ServiceInfo       *[]ServiceInfoKV
+	ServiceInfo       *ServiceInfoKV
 }
 
 type OwnerServiceInfo69 struct {
@@ -69,11 +68,6 @@ type OwnerServiceInfo69 struct {
 	IsMoreServiceInfo bool
 	IsDone            bool
 	ServiceInfo       *ServiceInfoKV
-}
-
-type ServiceInfoKV struct {
-	ServiceInfoKey string
-	ServiceInfoVal []byte
 }
 
 type Done70 struct {
