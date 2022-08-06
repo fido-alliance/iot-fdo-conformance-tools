@@ -1,6 +1,7 @@
 package fdodo
 
 import (
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -76,6 +77,9 @@ func LoadLocalVouchers() ([]dbs.VoucherDBEntry, error) {
 		if err != nil {
 			return vouchers, fmt.Errorf("%s: Could not CBOR unmarshal voucher! %s", fileLoc, err.Error())
 		}
+
+		ovHeader, _ := voucherInst.GetOVHeader()
+		log.Println("Loading voucher " + hex.EncodeToString(ovHeader.OVGuid[:]))
 
 		vouchers = append(vouchers, dbs.VoucherDBEntry{
 			Voucher:        voucherInst,

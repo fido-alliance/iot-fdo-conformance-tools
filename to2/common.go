@@ -29,10 +29,36 @@ func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) 
 
 func GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV, error) {
 
-	return []fdoshared.ServiceInfoKV{}, nil
+	// TODO
+	return []fdoshared.ServiceInfoKV{
+		{
+			ServiceInfoKey: "owner:test1",
+			ServiceInfoVal: []byte("1234"),
+		},
+		{
+			ServiceInfoKey: "owner:test2",
+			ServiceInfoVal: []byte("1234"),
+		},
+		{
+			ServiceInfoKey: "owner:test3",
+			ServiceInfoVal: []byte("1234"),
+		},
+		{
+			ServiceInfoKey: "owner:test4",
+			ServiceInfoVal: []byte("1234"),
+		},
+		{
+			ServiceInfoKey: "owner:test5",
+			ServiceInfoVal: []byte("1234"),
+		},
+		{
+			ServiceInfoKey: "owner:test6",
+			ServiceInfoVal: []byte("1234"),
+		},
+	}, nil
 }
 
-func (h *DoTo2) receiveAndDecrypt(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, error) {
+func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, error) {
 	if !fdoshared.CheckHeaders(w, r, fdoshared.TO2_64_PROVE_DEVICE) {
 		return nil, []byte{}, "", []byte{}, fmt.Errorf("Error checking header!")
 	}
@@ -49,11 +75,19 @@ func (h *DoTo2) receiveAndDecrypt(w http.ResponseWriter, r *http.Request, curren
 		return nil, []byte{}, "", []byte{}, fmt.Errorf("%d: Can not find session... %s", currentCmd, err.Error())
 	}
 
-	rawBodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("%d: Error reading body... %s", currentCmd, err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Failed to read body!", http.StatusBadRequest)
 		return nil, []byte{}, "", []byte{}, fmt.Errorf("%d: Error reading body... %s", currentCmd, err.Error())
+	}
+	return session, sessionId, authorizationHeader, bodyBytes, nil
+}
+
+func (h *DoTo2) receiveAndDecrypt(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, error) {
+	session, sessionId, authorizationHeader, rawBodyBytes, err := h.receiveAndVerify(w, r, currentCmd)
+	if err != nil {
+		return nil, []byte{}, "", []byte{}, err
 	}
 
 	bodyBytes, err := fdoshared.RemoveEncryptionWrapping(rawBodyBytes, session.SessionKey, session.CipherSuiteName)

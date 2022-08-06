@@ -35,7 +35,7 @@ type SessionEntry struct {
 	NonceTO2SetupDv64 fdoshared.FdoNonce
 
 	EASigInfo       fdoshared.SigInfo
-	PrivateKey      []byte
+	PrivateKeyDER   []byte
 	CipherSuiteName fdoshared.CipherSuiteName
 	SignatureType   fdoshared.DeviceSgType
 	PublicKeyType   fdoshared.FdoPkType

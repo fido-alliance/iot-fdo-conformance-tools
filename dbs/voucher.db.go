@@ -1,7 +1,9 @@
 package dbs
 
 import (
+	"encoding/hex"
 	"errors"
+	"fmt"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/dgraph-io/badger/v3"
@@ -55,13 +57,13 @@ func (h *VoucherDB) Save(voucherDBEntry VoucherDBEntry) error {
 	return nil
 }
 
-func (h *VoucherDB) Get(fdoguid fdoshared.FdoGuid) (*VoucherDBEntry, error) {
+func (h *VoucherDB) Get(deviceGuid fdoshared.FdoGuid) (*VoucherDBEntry, error) {
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
-	item, err := dbtxn.Get(h.getEntryID(fdoguid))
+	item, err := dbtxn.Get(h.getEntryID(deviceGuid))
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, nil
+		return nil, fmt.Errorf("The entry with id %s does not exist", hex.EncodeToString(deviceGuid[:]))
 	} else if err != nil {
 		return nil, errors.New("Failed locating voucher entry. " + err.Error())
 	}
@@ -75,7 +77,6 @@ func (h *VoucherDB) Get(fdoguid fdoshared.FdoGuid) (*VoucherDBEntry, error) {
 
 	err = cbor.Unmarshal(itemBytes, &voucherDBEInst)
 	if err != nil {
-
 		return nil, errors.New("Failed cbor decoding voucherdb entry " + err.Error())
 	}
 

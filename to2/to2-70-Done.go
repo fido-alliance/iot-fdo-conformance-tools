@@ -31,7 +31,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if bytes.Equal(done70.NonceTO2ProveDv[:], session.NonceTO2ProveDv61[:]) {
+	if !bytes.Equal(done70.NonceTO2ProveDv[:], session.NonceTO2ProveDv61[:]) {
 		log.Println("Done70: Can not verify NonceTO2ProveDv vs NonceTO2ProveDv61...")
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_70_DONE, "Failed to verify Done70!", http.StatusBadRequest)
 		return

@@ -56,6 +56,13 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Stores MaxSz for 68
+	session.OwnerSIMs, err = GetOwnerSIMs(session.Guid)
+	if err != nil {
+		log.Println("DeviceServiceInfoReady66: Error generating owner SIMs..." + err.Error())
+		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Internal server error!", http.StatusInternalServerError)
+		return
+	}
+
 	session.MaxDeviceServiceInfoSz = maxDeviceServiceInfoSz
 	session.PrevCMD = fdoshared.TO2_67_OWNER_SERVICE_INFO_READY
 	err = h.Session.UpdateSessionEntry(sessionId, *session)

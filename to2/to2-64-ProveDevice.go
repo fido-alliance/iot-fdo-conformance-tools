@@ -12,7 +12,7 @@ import (
 func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	log.Println("ProveDevice64: Receiving...")
 
-	session, sessionId, authorizationHeader, bodyBytes, err := h.receiveAndDecrypt(w, r, fdoshared.TO2_64_PROVE_DEVICE)
+	session, sessionId, authorizationHeader, bodyBytes, err := h.receiveAndVerify(w, r, fdoshared.TO2_64_PROVE_DEVICE)
 	if err != nil {
 		return
 	}
@@ -32,16 +32,10 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid, err := fdoshared.VerifyCoseSignatureWithCertificate(proveDevice64, session.PublicKeyType, *session.Voucher.OVDevCertChain)
+	err = fdoshared.VerifyCoseSignatureWithCertificate(proveDevice64, session.PublicKeyType, *session.Voucher.OVDevCertChain)
 	if err != nil {
 		log.Println("ProveDevice64: Error validating cose signature with certificate..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error to verify cose signature!", http.StatusBadRequest)
-		return
-	}
-
-	if !valid {
-		log.Println("ProveDevice64: Cose signature is invalid...")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Failed to verify cose signature!", http.StatusBadRequest)
 		return
 	}
 
@@ -72,9 +66,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	// ----- RESPONSE ----- //
 
 	nonceTO2SetupDv := proveDevice64.Unprotected.EUPHNonce
-
 	ownerHeader, _ := session.Voucher.GetOVHeader()
-
 	setupDevicePayload := fdoshared.TO2SetupDevicePayload{
 		RendezvousInfo:  []fdoshared.RendezvousInstrList{},
 		Guid:            session.Guid,
@@ -83,7 +75,25 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	}
 	setupDevicePayloadBytes, _ := cbor.Marshal(setupDevicePayload)
 
-	setupDeviceBytes, err := fdoshared.AddEncryptionWrapping(setupDevicePayloadBytes, sessionKey, session.CipherSuiteName)
+	// Response signature
+	privateKeyInst, err := fdoshared.ExtractPrivateKey(session.PrivateKeyDER)
+	if err != nil {
+		log.Println("HelloDevice60: Error decoding private key... " + err.Error())
+		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal Server Error!", http.StatusInternalServerError)
+		return
+	}
+
+	setupDevice, err := fdoshared.GenerateCoseSignature(setupDevicePayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, session.SignatureType)
+	if err != nil {
+		log.Println("ProveDevice64: Error generating setup device signature..." + err.Error())
+		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Internal server error!", http.StatusInternalServerError)
+		return
+	}
+
+	setupDeviceBytes, _ := cbor.Marshal(setupDevice)
+
+	// Response encrypted
+	setupDeviceBytesEnc, err := fdoshared.AddEncryptionWrapping(setupDeviceBytes, sessionKey, session.CipherSuiteName)
 	if err != nil {
 		log.Println("ProveDevice64: Error encrypting..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Internal server error!", http.StatusInternalServerError)
@@ -104,5 +114,5 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
 	w.Header().Set("Message-Type", fdoshared.TO2_65_SETUP_DEVICE.ToString())
 	w.WriteHeader(http.StatusOK)
-	w.Write(setupDeviceBytes)
+	w.Write(setupDeviceBytesEnc)
 }

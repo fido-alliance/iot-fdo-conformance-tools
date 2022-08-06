@@ -40,7 +40,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		ownerServiceInfo.IsDone = false
 		ownerServiceInfo.IsMoreServiceInfo = false
 
-		session.DeviceSIMs = append(session.DeviceSIMs, *deviceServiceInfo.ServiceInfo...)
+		session.DeviceSIMs = append(session.DeviceSIMs, *deviceServiceInfo.ServiceInfo)
 	} else {
 		if int(session.OwnerSIMsSendCounter+1) >= len(session.OwnerSIMs) {
 			ownerServiceInfo.IsDone = true
@@ -54,7 +54,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		}
 		ownerServiceInfo.ServiceInfo = &session.OwnerSIMs[session.OwnerSIMsSendCounter]
 
-		session.OwnerSIMsSendCounter += 1
+		session.OwnerSIMsSendCounter = session.OwnerSIMsSendCounter + 1
 	}
 
 	ownerServiceInfoBytes, _ := cbor.Marshal(ownerServiceInfo)

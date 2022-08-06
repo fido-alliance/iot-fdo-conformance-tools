@@ -59,7 +59,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// HelloDevice HASH
-	helloDeviceHash, _ := fdoshared.GenerateFdoHash(bodyBytes, cryptoParams.HmacAlg)
+	helloDeviceHash, _ := fdoshared.GenerateFdoHash(bodyBytes, cryptoParams.HashAlg)
 
 	voucherHeader, err := voucherDBEntry.Voucher.GetOVHeader()
 	if err != nil {
@@ -80,11 +80,23 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		MaxOwnerMessageSize: helloDevice.MaxDeviceMessageSize,
 	}
 
+	lastOwnerPubKey, err := voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
+	if err != nil {
+		log.Println("HelloDevice60: Error getting last owner public key... " + err.Error())
+		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal server error!", http.StatusInternalServerError)
+		return
+	}
+
+	proveOVHdrUnprotectedHeader := fdoshared.UnprotectedHeader{
+		CUPHNonce:       NonceTO2ProveDv,
+		CUPHOwnerPubKey: lastOwnerPubKey,
+	}
+
 	newSessionInst := dbs.SessionEntry{
 		Protocol:                 fdoshared.To2,
 		PrevCMD:                  fdoshared.TO2_61_PROVE_OVHDR,
 		NonceTO2ProveOV60:        helloDevice.NonceTO2ProveOV,
-		PrivateKey:               voucherDBEntry.PrivateKeyX509,
+		PrivateKeyDER:            voucherDBEntry.PrivateKeyX509,
 		XAKex:                    *kex,
 		NonceTO2ProveDv61:        NonceTO2ProveDv,
 		KexSuiteName:             helloDevice.KexSuiteName,
@@ -105,7 +117,6 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Encode response
 	proveOVHdrPayloadBytes, _ := cbor.Marshal(proveOVHdrPayload)
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(voucherDBEntry.PrivateKeyX509)
@@ -115,7 +126,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helloAck, err := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, helloDevice.EASigInfo.SgType)
+	helloAck, err := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, proveOVHdrUnprotectedHeader, privateKeyInst, helloDevice.EASigInfo.SgType)
 	if err != nil {
 		log.Println("HelloDevice60: Error generating cose signature... " + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal Server Error!", http.StatusInternalServerError)
