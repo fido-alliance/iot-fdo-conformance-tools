@@ -10,7 +10,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/WebauthnWorks/fdo-do/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -38,18 +37,18 @@ func GetVoucherFileList() ([]string, error) {
 	return voucherFiles, nil
 }
 
-func LoadLocalVouchers() ([]dbs.VoucherDBEntry, error) {
-	var vouchers []dbs.VoucherDBEntry
+func LoadLocalVouchers() ([]fdoshared.VoucherDBEntry, error) {
+	var vouchers []fdoshared.VoucherDBEntry
 
 	fileList, err := GetVoucherFileList()
 	if err != nil {
-		return []dbs.VoucherDBEntry{}, errors.New("Error getting vouchers file list. " + err.Error())
+		return []fdoshared.VoucherDBEntry{}, errors.New("Error getting vouchers file list. " + err.Error())
 	}
 
 	for _, fileLoc := range fileList {
 		fileBytes, err := os.ReadFile(fileLoc)
 		if err != nil {
-			return []dbs.VoucherDBEntry{}, fmt.Errorf("Error reading file \"%s\". %s ", fileLoc, err.Error())
+			return []fdoshared.VoucherDBEntry{}, fmt.Errorf("Error reading file \"%s\". %s ", fileLoc, err.Error())
 		}
 
 		if len(fileBytes) == 0 {
@@ -81,7 +80,7 @@ func LoadLocalVouchers() ([]dbs.VoucherDBEntry, error) {
 		ovHeader, _ := voucherInst.GetOVHeader()
 		log.Println("Loading voucher " + hex.EncodeToString(ovHeader.OVGuid[:]))
 
-		vouchers = append(vouchers, dbs.VoucherDBEntry{
+		vouchers = append(vouchers, fdoshared.VoucherDBEntry{
 			Voucher:        voucherInst,
 			PrivateKeyX509: privateKeyBytes.Bytes,
 		})

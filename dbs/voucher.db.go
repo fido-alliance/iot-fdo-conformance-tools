@@ -13,11 +13,6 @@ import (
 type VoucherDB struct {
 	db *badger.DB
 }
-type VoucherDBEntry struct {
-	_              struct{} `cbor:",toarray"`
-	Voucher        fdoshared.OwnershipVoucher
-	PrivateKeyX509 []byte
-}
 
 func NewVoucherDB(db *badger.DB) *VoucherDB {
 	return &VoucherDB{
@@ -29,7 +24,7 @@ func (h VoucherDB) getEntryID(guid fdoshared.FdoGuid) []byte {
 	return append([]byte("voucher-"), guid[:]...)
 }
 
-func (h *VoucherDB) Save(voucherDBEntry VoucherDBEntry) error {
+func (h *VoucherDB) Save(voucherDBEntry fdoshared.VoucherDBEntry) error {
 	voucherDBBytes, err := cbor.Marshal(voucherDBEntry)
 	if err != nil {
 		return errors.New("Failed to marshal voucher. " + err.Error())
@@ -57,7 +52,7 @@ func (h *VoucherDB) Save(voucherDBEntry VoucherDBEntry) error {
 	return nil
 }
 
-func (h *VoucherDB) Get(deviceGuid fdoshared.FdoGuid) (*VoucherDBEntry, error) {
+func (h *VoucherDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.VoucherDBEntry, error) {
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
@@ -73,7 +68,7 @@ func (h *VoucherDB) Get(deviceGuid fdoshared.FdoGuid) (*VoucherDBEntry, error) {
 		return nil, errors.New("Failed reading voucherdb entry value. " + err.Error())
 	}
 
-	var voucherDBEInst VoucherDBEntry
+	var voucherDBEInst fdoshared.VoucherDBEntry
 
 	err = cbor.Unmarshal(itemBytes, &voucherDBEInst)
 	if err != nil {

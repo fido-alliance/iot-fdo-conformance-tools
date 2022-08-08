@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/WebauthnWorks/fdo-do/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -21,11 +20,11 @@ type RVEntry struct {
 
 type To0Requestor struct {
 	rvEntry        RVEntry
-	voucherDBEntry dbs.VoucherDBEntry
+	voucherDBEntry fdoshared.VoucherDBEntry
 	authzHeader    string
 }
 
-func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry dbs.VoucherDBEntry) To0Requestor {
+func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry fdoshared.VoucherDBEntry) To0Requestor {
 	return To0Requestor{
 		rvEntry:        rvEntry,
 		voucherDBEntry: voucherDBEntry,
