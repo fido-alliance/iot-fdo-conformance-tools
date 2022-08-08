@@ -1,12 +1,14 @@
 package fdoshared
 
 import (
+	"bytes"
 	"encoding/pem"
 	"errors"
-	"log"
 
 	"github.com/fxamacker/cbor/v2"
 )
+
+const OWNERSHIP_VOUCHER_PEM_TYPE string = "OWNERSHIP VOUCHER"
 
 type RVMediumValue uint8
 
@@ -113,7 +115,7 @@ type OwnershipVoucher struct {
 	OVHeaderTag    []byte
 	OVHeaderHMac   HashOrHmac
 	OVDevCertChain *[]X509CertificateBytes
-	OVEntryArray   []CoseSignature
+	OVEntryArray   OVEntryArray
 }
 
 type OVEntryPayload struct {
@@ -124,51 +126,33 @@ type OVEntryPayload struct {
 	OVEPubKey        FdoPublicKey
 }
 
-func (h OwnershipVoucher) Validate() (bool, error) {
+func (h OwnershipVoucher) Validate() error {
 	// TODO
 
-	// Verify ProtVersion
 	if h.OVProtVer != ProtVer101 {
-		log.Println("Error verifying ownershipVoucher protver. ")
-		return false, errors.New("error verifying ownershipVoucher protver. ")
+		return errors.New("error verifying ownershipVoucher. OVProtVer is not 101. ")
 	}
 
-	// Decode Voucher Header
-	var OVHeaderInst OwnershipVoucherHeader
-	err := cbor.Unmarshal(h.OVHeaderTag, &OVHeaderInst)
+	ovHeader, err := h.GetOVHeader()
 	if err != nil {
-		log.Println("Error verifying ownershipVoucher, couldn't decode OVHeader. ")
-		return false, errors.New("error verifying ownershipVoucher, couldn't decode OVHeader ")
+		return errors.New("error verifying ownershipVoucher. " + err.Error())
 	}
 
-	// Verify ProtVersion ??
-
-	// Verify OVDevCertChainHash
-
-	// “OVDevCertChainHash” = Hash of the concatenation of the contents of each byte string in “OwnershipVoucher.OVDevCertChain”,
-	//  in the presented order. When OVDevCertChain is CBOR null, OVDevCertChainHash is also CBOR null.
-
-	OVDevCertChain_Certs, err := ComputeOVDevCertChainHash(*h.OVDevCertChain, h.OVHeaderHMac.Type)
+	ovDevCertChainCert, err := ComputeOVDevCertChainHash(*h.OVDevCertChain, ovHeader.OVDevCertChainHash.Type)
 	if err != nil {
-		log.Println("error verifying ownershipVoucher, couldn't compute bytes for OVDevCertChain. ")
-		return false, errors.New("error verifying ownershipVoucher, couldn't compute bytes for OVDevCertChain")
+		return errors.New("error verifying ownershipVoucher. Could not compute OVDevCertChain hash ")
 	}
 
-	verifiedHash, err := VerifyHash(OVDevCertChain_Certs.Hash, *OVHeaderInst.OVDevCertChainHash)
-	if err != nil || !verifiedHash {
-		log.Println("error verifying ownershipVoucher, couldn't verify hash for OVDevCertChain. ")
-		return false, errors.New("error verifying ownershipVoucher, couldn't verify hash for OVDevCertChain")
+	if !bytes.Equal(ovDevCertChainCert.Hash, ovHeader.OVDevCertChainHash.Hash) {
+		return errors.New("error verifying ownershipVoucher. Could not verify OVDevCertChain hash")
 	}
 
-	// Verify OVDevCertChain
-	// => The certificates and signature chain of OwnershipVoucher.OVDevCertChain are verified.
+	err = h.VerifyOVEntries()
+	if err != nil {
+		return errors.New("error verifying ownershipVoucher. " + err.Error())
+	}
 
-	// Verification of the Device Certificate Chain: The Device receiving the Ownership Voucher must verify it against
-	// the Device Credential and verify the HMAC in the Ownership Voucher using the secret stored in the device.
-
-	// Verify OVEntryArray
-
-	return true, nil
+	return nil
 }
 
 func (h OwnershipVoucher) GetOVHeader() (OwnershipVoucherHeader, error) {
@@ -194,40 +178,69 @@ func (h OwnershipVoucher) GetFinalOwnerPublicKey() (FdoPublicKey, error) {
 	return finalOVEntryPayload.OVEPubKey, nil
 }
 
-func (h OwnershipVoucher) VerifyOVEntries() error {
+func (h CoseSignature) GetOVEntryPubKey() (FdoPublicKey, error) {
+	var finalOVEntryPayload OVEntryPayload
+	err := cbor.Unmarshal(h.Payload, &finalOVEntryPayload)
+	if err != nil {
+		return FdoPublicKey{}, errors.New("Error decoding OVEntry payload!")
+	}
+
+	return finalOVEntryPayload.OVEPubKey, nil
+}
+
+type OVEntryArray []CoseSignature
+
+func (h OVEntryArray) VerifyEntries(ovHeaderTag []byte, ovHeaderHMac HashOrHmac) error {
 	var lastOVEntry CoseSignature
-	for i, OVEntry := range h.OVEntryArray {
+	var lastOVEntryPublicKey FdoPublicKey
+
+	var voucherHeader OwnershipVoucherHeader
+	err := cbor.Unmarshal(ovHeaderTag, &voucherHeader)
+	if err != nil {
+		return errors.New("Error decoding VoucherHeader: " + err.Error())
+	}
+
+	for i, OVEntry := range h {
 		var OVEntryPayload OVEntryPayload
 		err := cbor.Unmarshal(OVEntry.Payload, &OVEntryPayload)
 		if err != nil {
-			return errors.New("Error Verifying OVEntries" + err.Error())
+			return errors.New("Error decoding OVEntry payload: " + err.Error())
 		}
+
 		if i == 0 {
-			headerHmacBytes, _ := cbor.Marshal(h.OVHeaderHMac)
-			firstEntryHashContents := append(h.OVHeaderTag, headerHmacBytes...)
-			verifiedHash, err := VerifyHash(firstEntryHashContents, OVEntryPayload.OVEHashPrevEntry)
+			headerHmacBytes, _ := cbor.Marshal(ovHeaderHMac)
+			firstEntryHashContents := append(ovHeaderTag, headerHmacBytes...)
+			err := VerifyHash(firstEntryHashContents, OVEntryPayload.OVEHashPrevEntry)
 			if err != nil {
-				return errors.New("Internal Server Error" + err.Error())
+				return errors.New("Error verifying OVEntry Hash: " + err.Error())
 			}
-			if !verifiedHash {
-				return errors.New("Could not verify hash of entry 0" + err.Error())
+
+			err = VerifyCoseSignature(OVEntry, voucherHeader.OVPublicKey)
+			if err != nil {
+				return errors.New("Error verifying OVEntry Signature: " + err.Error())
 			}
 		} else {
-			lastOVEntryBytes, err := cbor.Marshal(lastOVEntry)
+			lastOVEntryBytes, _ := cbor.Marshal(lastOVEntry)
+
+			err := VerifyHash(lastOVEntryBytes, OVEntryPayload.OVEHashPrevEntry)
 			if err != nil {
-				return errors.New("Error Verifying OVEntries" + err.Error())
+				return errors.New("Error verifying OVEntry Hash: " + err.Error())
 			}
-			verifiedHash, err := VerifyHash(lastOVEntryBytes, OVEntryPayload.OVEHashPrevEntry)
+
+			err = VerifyCoseSignature(OVEntry, lastOVEntryPublicKey)
 			if err != nil {
-				return errors.New("Internal Server Error" + err.Error())
-			}
-			if !verifiedHash {
-				return errors.New("Could not verify hash (Entry)" + err.Error())
+				return errors.New("Error verifying OVEntry Signature: " + err.Error())
 			}
 		}
+
 		lastOVEntry = OVEntry
+		lastOVEntryPublicKey = OVEntryPayload.OVEPubKey
 	}
 	return nil
+}
+
+func (h OwnershipVoucher) VerifyOVEntries() error {
+	return h.OVEntryArray.VerifyEntries(h.OVHeaderTag, h.OVHeaderHMac)
 }
 
 func ValidateVoucherStructFromCert(voucherFileBytes []byte) (*OwnershipVoucher, error) {
