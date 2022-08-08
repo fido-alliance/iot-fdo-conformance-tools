@@ -1,9 +1,10 @@
-package main
+package fdodeviceimplementation
 
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
@@ -19,7 +20,7 @@ import (
 const DIS_LOCATION string = "./_dis/"
 const VOUCHERS_LOCATION string = "./_vouchers/"
 
-func GenerateVoucherKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdoshared.FdoPublicKey, error) {
+func GeneratePKIXECKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdoshared.FdoPublicKey, error) {
 	var curve elliptic.Curve
 	var pkType fdoshared.FdoPkType
 
@@ -50,10 +51,57 @@ func GenerateVoucherKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdosha
 	}, nil
 }
 
-func MarshalPrivateKey(privKey interface{}, sgType fdoshared.DeviceSgType) ([]byte, error) {
-	if sgType == fdoshared.StSECP256R1 || sgType == fdoshared.StSECP384R1 {
-		return x509.MarshalECPrivateKey(privKey.(*ecdsa.PrivateKey))
+func GeneratePKIXRSAKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdoshared.FdoPublicKey, error) {
+	var pkType fdoshared.FdoPkType = fdoshared.RSAPKCS
+	var rsaKeySize int
+
+	if sgType == fdoshared.StRSA2048 {
+		rsaKeySize = 2048
+	} else if sgType == fdoshared.StRSA3072 {
+		rsaKeySize = 3072
 	} else {
+		return nil, nil, fmt.Errorf("%d is an unsupported RSA SgType!", sgType)
+	}
+
+	privatekey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
+	if err != nil {
+		return nil, nil, errors.New("Error generating new RSA private key. " + err.Error())
+	}
+	publickey := &privatekey.PublicKey
+
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publickey)
+	if err != nil {
+		return nil, nil, errors.New("Error marshaling RSA public key. " + err.Error())
+	}
+
+	return privatekey, &fdoshared.FdoPublicKey{
+		PkType: pkType,
+		PkEnc:  fdoshared.X509,
+		PkBody: publicKeyBytes,
+	}, nil
+}
+
+func GenerateVoucherKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdoshared.FdoPublicKey, error) {
+	switch sgType {
+	case fdoshared.StSECP256R1, fdoshared.StSECP384R1:
+		return GeneratePKIXECKeypair(sgType)
+	case fdoshared.StRSA2048, fdoshared.StRSA3072:
+		return GeneratePKIXRSAKeypair(sgType)
+	default:
+		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
+	}
+
+}
+
+func MarshalPrivateKey(privKey interface{}, sgType fdoshared.DeviceSgType) ([]byte, error) {
+	switch sgType {
+	case fdoshared.StSECP256R1, fdoshared.StSECP384R1:
+		return x509.MarshalECPrivateKey(privKey.(*ecdsa.PrivateKey))
+
+	case fdoshared.StRSA2048, fdoshared.StRSA3072:
+		return x509.MarshalPKCS1PrivateKey(privKey.(*rsa.PrivateKey)), nil
+
+	default:
 		return []byte{}, fmt.Errorf("%d is an unsupported SgType!", sgType)
 	}
 }
@@ -81,7 +129,10 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 		Alg: int(sgType),
 	}
 
-	ovEntry, _ := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, sgType)
+	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, sgType)
+	if err != nil {
+		return []byte{}, nil, errors.New("Error generating OVEntry. " + err.Error())
+	}
 
 	marshaledPrivateKey, err := MarshalPrivateKey(newOVEPrivateKey, sgType)
 	if err != nil {
@@ -91,18 +142,26 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 	return marshaledPrivateKey, ovEntry, nil
 }
 
-func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
+type VDANDV struct {
+	VoucherDBEntry      fdoshared.VoucherDBEntry
+	WawDeviceCredential fdoshared.WawDeviceCredential
+}
+
+func NewVirtualDeviceAndVoucher(sgType fdoshared.DeviceSgType) (*VDANDV, error) {
 	getSgAlgInfo, err := fdoshared.GetAlgInfoFromSgType(sgType)
 	if err != nil {
-		return errors.New("Generating voucher! " + err.Error())
+		return nil, errors.New("Error generating voucher. " + err.Error())
 	}
 
 	newDi, err := fdoshared.NewWawDeviceCredential(getSgAlgInfo.HmacType, sgType)
+	if err != nil {
+		return nil, errors.New("Error generating new device credential. " + err.Error())
+	}
 
 	// Generate manufacturer private key.
 	mfgPrivateKey, mfgPublicKey, err := GenerateVoucherKeypair(sgType)
 	if err != nil {
-		return errors.New("Error generating new manufacturer private key. " + err.Error())
+		return nil, errors.New("Error generating new manufacturer private key. " + err.Error())
 	}
 
 	voucherHeader := fdoshared.OwnershipVoucherHeader{
@@ -122,12 +181,12 @@ func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
 
 	ovHeaderBytes, err := cbor.Marshal(voucherHeader)
 	if err != nil {
-		return errors.New("Error marhaling OVHeader! " + err.Error())
+		return nil, errors.New("Error marhaling OVHeader! " + err.Error())
 	}
 
 	ovHeaderHmac, err := newDi.UpdateWithManufacturerCred(ovHeaderBytes, *mfgPublicKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Generate new oventry
@@ -139,7 +198,10 @@ func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
 	prevEntryPayloadBytes := append(ovHeaderBytes, headerHmacBytes...)
 	prevEntryHash, _ := fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
 
-	ovEntryPrivateKeyBytes, firstOvEntry, _ := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, sgType)
+	ovEntryPrivateKeyBytes, firstOvEntry, err := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, sgType)
+	if err != nil {
+		return nil, err
+	}
 
 	// Voucher
 	voucherInst := fdoshared.OwnershipVoucher{
@@ -152,38 +214,59 @@ func GenerateVoucher(sgType fdoshared.DeviceSgType) error {
 		},
 	}
 
+	voucherDBEInst := fdoshared.VoucherDBEntry{
+		Voucher:        voucherInst,
+		PrivateKeyX509: ovEntryPrivateKeyBytes,
+	}
+
+	newWDC := VDANDV{
+		VoucherDBEntry:      voucherDBEInst,
+		WawDeviceCredential: *newDi,
+	}
+
+	return &newWDC, err
+}
+
+func GenerateAndSaveVDANDV(sgType fdoshared.DeviceSgType) error {
+	newVDANDV, err := NewVirtualDeviceAndVoucher(sgType)
+	if err != nil {
+		return err
+	}
+
+	vdandv := *newVDANDV
+
 	// Voucher to PEM
-	voucherBytes, err := cbor.Marshal(voucherInst)
+	voucherBytes, err := cbor.Marshal(vdandv.VoucherDBEntry.Voucher)
 	if err != nil {
 		return errors.New("Error marshaling voucher bytes. " + err.Error())
 	}
 	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: "OWNERSHIP VOUCHER", Bytes: voucherBytes})
 
 	// LastOVEntry private key to PEM
-	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: ovEntryPrivateKeyBytes})
+	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: vdandv.VoucherDBEntry.PrivateKeyX509})
 
 	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
 
-	voucherWriteLocation := fmt.Sprintf("%s%s.voucher.pem", VOUCHERS_LOCATION, hex.EncodeToString(newDi.DCGuid[:]))
+	voucherWriteLocation := fmt.Sprintf("%s%s.voucher.pem", VOUCHERS_LOCATION, hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:]))
 	err = os.WriteFile(voucherWriteLocation, voucherFileBytes, 0644)
 	if err != nil {
 		return fmt.Errorf("Error saving di \"%s\". %s", voucherWriteLocation, err.Error())
 	}
 
 	// Di bytes
-	diBytes, err := cbor.Marshal(newDi)
+	diBytes, err := cbor.Marshal(vdandv.WawDeviceCredential)
 	if err != nil {
 		return errors.New("Error marshaling voucher bytes. " + err.Error())
 	}
 
 	diBytesPem := pem.EncodeToMemory(&pem.Block{Type: "WAW FDO DEVICE CREDENTIAL", Bytes: diBytes})
-	disWriteLocation := fmt.Sprintf("%s%s.dis.pem", DIS_LOCATION, hex.EncodeToString(newDi.DCGuid[:]))
+	disWriteLocation := fmt.Sprintf("%s%s.dis.pem", DIS_LOCATION, hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:]))
 	err = os.WriteFile(disWriteLocation, diBytesPem, 0644)
 	if err != nil {
 		return fmt.Errorf("Error saving di \"%s\". %s", disWriteLocation, err.Error())
 	}
 
-	log.Println("Successfully generate voucher " + hex.EncodeToString(voucherHeader.OVGuid[:]))
+	log.Println("Successfully generate voucher " + hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:]))
 
 	return nil
 }

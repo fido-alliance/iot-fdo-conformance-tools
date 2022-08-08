@@ -1,4 +1,4 @@
-package main
+package fdodeviceimplementation
 
 import (
 	"bytes"
@@ -13,12 +13,6 @@ import (
 type SRVEntry struct {
 	SrvURL      string
 	AccessToken string // FUTURE
-}
-
-type VoucherDBEntry struct {
-	_              struct{} `cbor:",toarray"`
-	Voucher        fdoshared.OwnershipVoucher
-	PrivateKeyX509 []byte
 }
 
 func SendCborPost(rvEntry SRVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, error) {
