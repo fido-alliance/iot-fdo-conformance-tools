@@ -141,6 +141,15 @@ const (
 	StEPID11    DeviceSgType = 91
 )
 
+var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
+	StSECP256R1,
+	StSECP384R1,
+	StRSA2048,
+	StRSA3072,
+	StEPID10,
+	StEPID11,
+}
+
 type SigInfo struct {
 	_      struct{} `cbor:",toarray"`
 	SgType DeviceSgType

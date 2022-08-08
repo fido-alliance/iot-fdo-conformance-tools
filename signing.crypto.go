@@ -1,6 +1,7 @@
 package fdoshared
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/rsa"
@@ -112,7 +113,24 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 	case RSA2048RESTR:
 		return errors.New("RSA2048RESTR is not currently implemented!")
 	case RSAPKCS:
-		return errors.New("RSAPKCS is not currently implemented!")
+		rsaPubKey := publicKeyInst.(*rsa.PublicKey)
+
+		rsaPubKeyLen := len(rsaPubKey.N.Bytes())
+
+		var hashingAlg crypto.Hash
+		var payloadHash []byte
+		if rsaPubKeyLen == 2048 {
+			sPayloadHash := sha256.Sum256(payload)
+			payloadHash = sPayloadHash[:]
+		} else if rsaPubKeyLen == 3072 {
+			sPayloadHash := sha512.Sum384(payload)
+			payloadHash = sPayloadHash[:]
+		} else {
+			return fmt.Errorf("%d is an unsupported public key length for RSAPKCS", rsaPubKeyLen)
+		}
+
+		return rsa.VerifyPKCS1v15(rsaPubKey, hashingAlg, payloadHash, signature)
+
 	case RSAPSS:
 		return errors.New("RSAPSS is not currently implemented!")
 	default:
@@ -202,9 +220,23 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 
 		signature = append(r.Bytes(), s.Bytes()...)
 	case StRSA3072:
-		return nil, errors.New("StRSA3072 is not currently implemented!")
+		payloadHash := sha512.Sum384(coseSigPayloadBytes)
+
+		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privateKeyInterface.(*rsa.PrivateKey), crypto.SHA384, payloadHash[:])
+		if err != nil {
+			return nil, errors.New("Error generating RS2048 cose signature. " + err.Error())
+		}
+
+		signature = tSignature
 	case StRSA2048:
-		return nil, errors.New("StRSA2048 is not currently implemented!")
+		payloadHash := sha256.Sum256(coseSigPayloadBytes)
+
+		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privateKeyInterface.(*rsa.PrivateKey), crypto.SHA256, payloadHash[:])
+		if err != nil {
+			return nil, errors.New("Error generating RS2048 cose signature. " + err.Error())
+		}
+
+		signature = tSignature
 	case StEPID10:
 		return nil, errors.New("StEPID10 is not currently implemented!")
 	default:
