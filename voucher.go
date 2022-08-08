@@ -127,8 +127,6 @@ type OVEntryPayload struct {
 }
 
 func (h OwnershipVoucher) Validate() error {
-	// TODO
-
 	if h.OVProtVer != ProtVer101 {
 		return errors.New("error verifying ownershipVoucher. OVProtVer is not 101. ")
 	}
@@ -276,4 +274,10 @@ func ComputeOVDevCertChainHash(certs []X509CertificateBytes, hashType HashType) 
 	}
 
 	return GenerateFdoHash(totalBytes, hashType)
+}
+
+type VoucherDBEntry struct {
+	_              struct{} `cbor:",toarray"`
+	Voucher        OwnershipVoucher
+	PrivateKeyX509 []byte
 }
