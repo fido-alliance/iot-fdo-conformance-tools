@@ -123,6 +123,13 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = to0d.OwnershipVoucher.Validate()
+	if err != nil {
+		log.Println("OwnerSign22: Error verifying voucher. " + err.Error())
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to validate voucher!", http.StatusBadRequest)
+		return
+	}
+
 	ovHeader, err := to0d.OwnershipVoucher.GetOVHeader()
 	if err != nil {
 		log.Println("OwnerSign22: Error decoding header. " + err.Error())
