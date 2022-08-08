@@ -9,17 +9,11 @@ import (
 )
 
 func SetupServer(db *badger.DB) {
-	// voucher := Voucher{
-	// 	session: dbs.NewSessionDB(db),
-	// }
-
 	DoTo2 := to2.DoTo2{
 		Session: dbs.NewSessionDB(db),
 		Voucher: dbs.NewVoucherDB(db),
 	}
 
-	// http.HandleFunc("/fdo/voucher", voucher.voucherHandler)
-	// http.HandleFunc("/fdo/register-voucher-sender", voucher.register)
 	http.HandleFunc("/fdo/101/msg/60", DoTo2.HelloDevice60)
 	http.HandleFunc("/fdo/101/msg/62", DoTo2.GetOVNextEntry62)
 	http.HandleFunc("/fdo/101/msg/64", DoTo2.ProveDevice64)
