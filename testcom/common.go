@@ -8,9 +8,7 @@ import (
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
-func GenerateTestVoucherSet() ([]fdoshared.FdoGuid, error) {
-	var resultGuids []fdoshared.FdoGuid
-
+func GenerateTestVoucherSet() ([]fdodeviceimplementation.VDANDV, error) {
 	var resultVDANDV []fdodeviceimplementation.VDANDV
 	for _, sgType := range fdoshared.DeviceSgTypeList {
 		if sgType == fdoshared.StEPID10 || sgType == fdoshared.StEPID11 {
@@ -20,12 +18,11 @@ func GenerateTestVoucherSet() ([]fdoshared.FdoGuid, error) {
 
 		vdanv, err := fdodeviceimplementation.NewVirtualDeviceAndVoucher(sgType)
 		if err != nil {
-			return resultGuids, errors.New("Error generating test VDANDV. " + err.Error())
+			return resultVDANDV, errors.New("Error generating test VDANDV. " + err.Error())
 		}
 
 		resultVDANDV = append(resultVDANDV, *vdanv)
-		resultGuids = append(resultGuids, vdanv.WawDeviceCredential.DCGuid)
 	}
 
-	return resultGuids, nil
+	return resultVDANDV, nil
 }
