@@ -3,6 +3,7 @@ package dbs
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
@@ -28,12 +29,14 @@ func NewUserTestDB(db *badger.DB) UserTestDB {
 }
 
 func (h *UserTestDB) Save(username string, usere UserTestDBEntry) error {
+	username = strings.ToLower(username)
+
 	usereBytes, err := cbor.Marshal(usere)
 	if err != nil {
 		return errors.New("Failed to marshal User entry. The error is: " + err.Error())
 	}
 
-	userEStorageId := append(rvtdbpref, []byte(username)...)
+	userEStorageId := append(userdbpref, []byte(username)...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -44,7 +47,7 @@ func (h *UserTestDB) Save(username string, usere UserTestDBEntry) error {
 		return errors.New("Failed creating User db entry instance. The error is: " + err.Error())
 	}
 
-	dbtxn.Commit()
+	err = dbtxn.Commit()
 	if err != nil {
 		return errors.New("Failed saving User entry. The error is: " + err.Error())
 	}
@@ -53,6 +56,8 @@ func (h *UserTestDB) Save(username string, usere UserTestDBEntry) error {
 }
 
 func (h *UserTestDB) Get(username string) (*UserTestDBEntry, error) {
+	username = strings.ToLower(username)
+
 	userEStorageId := append(userdbpref, []byte(username)...)
 
 	dbtxn := h.db.NewTransaction(true)

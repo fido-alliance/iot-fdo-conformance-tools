@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtests"
@@ -42,7 +43,7 @@ func (h *RendezvousServerTestDB) Save(rvte rvtests.RendezvousServerTestDBEntry) 
 		return errors.New("Failed creating rvte db entry instance. The error is: " + err.Error())
 	}
 
-	dbtxn.Commit()
+	err = dbtxn.Commit()
 	if err != nil {
 		return errors.New("Failed saving rvte entry. The error is: " + err.Error())
 	}
@@ -67,7 +68,7 @@ func (h *RendezvousServerTestDB) Update(rvtId []byte, rvte rvtests.RendezvousSer
 		return errors.New("Failed creating rvte db entry instance. The error is: " + err.Error())
 	}
 
-	dbtxn.Commit()
+	err = dbtxn.Commit()
 	if err != nil {
 		return errors.New("Failed saving rvte entry. The error is: " + err.Error())
 	}
@@ -83,7 +84,7 @@ func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtests.RendezvousServerTes
 
 	item, err := dbtxn.Get(rvteStorageId)
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, fmt.Errorf("The rvte entry with id %s does not exist", hex.EncodeToString(rvteStorageId))
+		return nil, fmt.Errorf("The rvte entry with id %s does not exist", hex.EncodeToString(rvtId))
 	} else if err != nil {
 		return nil, errors.New("Failed locating rvte entry. The error is: " + err.Error())
 	}
@@ -100,4 +101,53 @@ func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtests.RendezvousServerTes
 	}
 
 	return &rvteInst, nil
+}
+
+func (h *RendezvousServerTestDB) GetMany(rvtids [][]byte) (*[]rvtests.RendezvousServerTestDBEntry, error) {
+	var rvts []rvtests.RendezvousServerTestDBEntry
+
+	for _, rvtid := range rvtids {
+		rvt, err := h.Get(rvtid)
+		if err != nil {
+			return nil, fmt.Errorf("Error obtaining rvt for id %s. %s \n", hex.EncodeToString(rvtid), err.Error())
+		}
+
+		rvts = append(rvts, *rvt)
+	}
+
+	return &rvts, nil
+}
+
+func (h *RendezvousServerTestDB) ReportSuccess(rvid []byte, testID rvtests.RVTestID) {
+	rvte, err := h.Get(rvid)
+	if err != nil {
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
+	}
+
+	rvte.TestsPassed[testID] = rvtests.RVTestState{
+		Passed: true,
+		Error:  "",
+	}
+
+	err = h.Save(*rvte)
+	if err != nil {
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
+	}
+}
+
+func (h *RendezvousServerTestDB) ReportFail(rvid []byte, testID rvtests.RVTestID, errorMsg string) {
+	rvte, err := h.Get(rvid)
+	if err != nil {
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
+	}
+
+	rvte.TestsPassed[testID] = rvtests.RVTestState{
+		Passed: false,
+		Error:  errorMsg,
+	}
+
+	err = h.Save(*rvte)
+	if err != nil {
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
+	}
 }
