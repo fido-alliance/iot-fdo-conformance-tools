@@ -10,7 +10,7 @@ const CONTENT_TYPE_JSON string = "application/json"
 
 func GenerateCookie(token []byte) *http.Cookie {
 	expires := time.Now().Add(14 * 24 * time.Hour)
-	cookie := http.Cookie{Name: "session", Value: string(token), Expires: expires, HttpOnly: true}
+	cookie := http.Cookie{Name: "session", Value: string(token), Expires: expires, HttpOnly: true, Path: "/api/"}
 
 	return &cookie
 }
