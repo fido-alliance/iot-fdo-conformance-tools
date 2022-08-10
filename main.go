@@ -9,6 +9,9 @@ import (
 
 	fdodo "github.com/WebauthnWorks/fdo-do"
 	fdodbs "github.com/WebauthnWorks/fdo-do/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtests"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdorv "github.com/WebauthnWorks/fdo-rv"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
@@ -37,6 +40,7 @@ func main() {
 					// Setup FDO listeners
 					fdodo.SetupServer(db)
 					fdorv.SetupServer(db)
+					externalapi.SetupServer(db)
 
 					log.Printf("Starting server at port %d... \n", PORT)
 
@@ -97,7 +101,26 @@ func main() {
 				Usage: "",
 				Action: func(c *cli.Context) error {
 
-					_, err := testcom.GenerateTestVoucherSet()
+					vdavs, err := testcom.GenerateTestVoucherSet()
+
+					vdb := dbs.NewVDandVDB(db)
+					rvtdb := dbs.NewRendezvousServerTestDB(db)
+
+					var guids []fdoshared.FdoGuid
+					for _, vdav := range vdavs {
+						err := vdb.Save(vdav)
+						if err != nil {
+							return err
+						}
+
+						guids = append(guids, vdav.WawDeviceCredential.DCGuid)
+					}
+
+					newrvte := rvtests.NewRVDBTestEntry("http://localhost:8000")
+					newrvte.VouchersIds = guids
+
+					rvtdb.Save(newrvte)
+
 					return err
 				},
 			},
