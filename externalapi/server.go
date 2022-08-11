@@ -25,6 +25,7 @@ func SetupServer(db *badger.DB) {
 
 	http.HandleFunc("/api/rvt/create", rvtApiHandler.Generate)
 	http.HandleFunc("/api/rvt/list", rvtApiHandler.List)
+	http.HandleFunc("/api/rvt/execute", rvtApiHandler.Execute)
 
 	http.HandleFunc("/api/user/register", userApiHandler.Register)
 	http.HandleFunc("/api/user/login", userApiHandler.Login)

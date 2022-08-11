@@ -10,8 +10,9 @@ import (
 	"net/url"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtests"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtdeps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 )
 
 type RVTestMgmtAPI struct {
@@ -91,7 +92,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newRVTest := rvtests.NewRVDBTestEntry(parsedUrl.Scheme + "://" + parsedUrl.Hostname())
+	newRVTest := rvtdeps.NewRVDBTestEntry(parsedUrl.Scheme + "://" + parsedUrl.Host)
 	newRVTest.VDIs = vdis
 
 	err = h.RvtDB.Save(newRVTest)
@@ -143,6 +144,11 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	}
 	rvtsList.Status = FdoApiStatus_OK
 
+	if len(*rvts) > 0 {
+		tempRvte := *rvts
+		rvtsList.TEMPREsults = tempRvte[0].TestsHistory
+	}
+
 	RespondSuccessStruct(w, rvtsList)
 }
 
@@ -183,6 +189,20 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 	if !userInst.ContainsRVT(rvtId) {
 		log.Println("Id does not belong to user")
 		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		return
+	}
+
+	rvte, err := h.RvtDB.Get(rvtId)
+	if err != nil {
+		log.Println("Can get RVT entry. " + err.Error())
+		RespondError(w, "Internal server error!", http.StatusBadRequest)
+		return
+	}
+
+	err = testexec.ExecuteRVTests(*rvte, h.RvtDB)
+	if err != nil {
+		log.Println("Can get RVT entry. " + err.Error())
+		RespondError(w, "Internal server error!", http.StatusBadRequest)
 		return
 	}
 

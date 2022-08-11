@@ -1,5 +1,9 @@
 package externalapi
 
+import (
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtdeps"
+)
+
 type RVT_CreateTestCase struct {
 	Url string `json:"url"`
 }
@@ -10,8 +14,9 @@ type RVT_Inst struct {
 }
 
 type RVT_ListRvts struct {
-	Rvts   []RVT_Inst       `json:"rvts"`
-	Status FdoConfApiStatus `json:"status"`
+	Rvts        []RVT_Inst `json:"rvts"`
+	TEMPREsults []rvtdeps.RVTestRun
+	Status      FdoConfApiStatus `json:"status"`
 }
 
 type RVT_ExecureReq struct {

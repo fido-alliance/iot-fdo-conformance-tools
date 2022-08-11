@@ -1,4 +1,4 @@
-package rvtests
+package rvtdeps
 
 import (
 	"time"

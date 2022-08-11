@@ -1,4 +1,4 @@
-package rvtests
+package rvtdeps
 
 import (
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"

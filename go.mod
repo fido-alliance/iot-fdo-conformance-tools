@@ -11,6 +11,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/google/uuid v1.3.0
 	github.com/urfave/cli/v2 v2.11.1
+	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 )
 
 require (
@@ -31,7 +32,6 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.22.5 // indirect
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 )

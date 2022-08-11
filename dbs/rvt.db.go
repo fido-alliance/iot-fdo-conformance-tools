@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtests"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtdeps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
@@ -27,7 +27,7 @@ func NewRendezvousServerTestDB(db *badger.DB) RendezvousServerTestDB {
 	}
 }
 
-func (h *RendezvousServerTestDB) Save(rvte rvtests.RendezvousServerTestDBEntry) error {
+func (h *RendezvousServerTestDB) Save(rvte rvtdeps.RendezvousServerTestDBEntry) error {
 	rvteBytes, err := cbor.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
@@ -52,7 +52,7 @@ func (h *RendezvousServerTestDB) Save(rvte rvtests.RendezvousServerTestDBEntry) 
 	return nil
 }
 
-func (h *RendezvousServerTestDB) Update(rvtId []byte, rvte rvtests.RendezvousServerTestDBEntry) error {
+func (h *RendezvousServerTestDB) Update(rvtId []byte, rvte rvtdeps.RendezvousServerTestDBEntry) error {
 	rvteBytes, err := cbor.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
@@ -77,7 +77,7 @@ func (h *RendezvousServerTestDB) Update(rvtId []byte, rvte rvtests.RendezvousSer
 	return nil
 }
 
-func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtests.RendezvousServerTestDBEntry, error) {
+func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtdeps.RendezvousServerTestDBEntry, error) {
 	rvteStorageId := append(rvtdbpref, rvtId...)
 
 	dbtxn := h.db.NewTransaction(true)
@@ -95,7 +95,7 @@ func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtests.RendezvousServerTes
 		return nil, errors.New("Failed reading rvte entry value. The error is: " + err.Error())
 	}
 
-	var rvteInst rvtests.RendezvousServerTestDBEntry
+	var rvteInst rvtdeps.RendezvousServerTestDBEntry
 	err = cbor.Unmarshal(itemBytes, &rvteInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding rvte entry value. The error is: " + err.Error())
@@ -104,8 +104,8 @@ func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtests.RendezvousServerTes
 	return &rvteInst, nil
 }
 
-func (h *RendezvousServerTestDB) GetMany(rvtids [][]byte) (*[]rvtests.RendezvousServerTestDBEntry, error) {
-	var rvts []rvtests.RendezvousServerTestDBEntry
+func (h *RendezvousServerTestDB) GetMany(rvtids [][]byte) (*[]rvtdeps.RendezvousServerTestDBEntry, error) {
+	var rvts []rvtdeps.RendezvousServerTestDBEntry
 
 	for _, rvtid := range rvtids {
 		rvt, err := h.Get(rvtid)
@@ -125,11 +125,11 @@ func (h *RendezvousServerTestDB) StartNewRun(rvid []byte) {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	newRVTestRun := rvtests.NewRVTestRun()
+	newRVTestRun := rvtdeps.NewRVTestRun()
 
 	rvte.InProgress = true
 	rvte.CurrentTestRun = newRVTestRun
-	rvte.TestsHistory = append([]rvtests.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
+	rvte.TestsHistory = append([]rvtdeps.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
 
 	err = h.Save(*rvte)
 	if err != nil {
@@ -143,11 +143,11 @@ func (h *RendezvousServerTestDB) FinishRun(rvid []byte) {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	newRVTestRun := rvtests.NewRVTestRun()
+	newRVTestRun := rvtdeps.NewRVTestRun()
 
 	rvte.InProgress = false
 	rvte.CurrentTestRun = newRVTestRun
-	rvte.TestsHistory = append([]rvtests.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
+	rvte.TestsHistory = append([]rvtdeps.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
 
 	err = h.Save(*rvte)
 	if err != nil {
@@ -155,34 +155,13 @@ func (h *RendezvousServerTestDB) FinishRun(rvid []byte) {
 	}
 }
 
-func (h *RendezvousServerTestDB) ReportSuccess(rvid []byte, testID testcom.FDOTestID) {
+func (h *RendezvousServerTestDB) ReportTest(rvid []byte, testID testcom.FDOTestID, testResult testcom.FDOTestState) {
 	rvte, err := h.Get(rvid)
 	if err != nil {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	rvte.CurrentTestRun.Tests[testID] = testcom.FDOTestState{
-		Passed: true,
-		Error:  "",
-	}
-	rvte.TestsHistory[0] = rvte.CurrentTestRun
-
-	err = h.Save(*rvte)
-	if err != nil {
-		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
-	}
-}
-
-func (h *RendezvousServerTestDB) ReportFail(rvid []byte, testID testcom.FDOTestID, errorMsg string) {
-	rvte, err := h.Get(rvid)
-	if err != nil {
-		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
-	}
-
-	rvte.CurrentTestRun.Tests[testID] = testcom.FDOTestState{
-		Passed: false,
-		Error:  errorMsg,
-	}
+	rvte.CurrentTestRun.Tests[testID] = testResult
 	rvte.TestsHistory[0] = rvte.CurrentTestRun
 
 	err = h.Save(*rvte)
