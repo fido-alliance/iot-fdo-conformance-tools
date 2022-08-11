@@ -192,7 +192,7 @@ func ExtractPrivateKey(privateKeyDer []byte) (interface{}, error) {
 }
 
 func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType DeviceSgType) (*CoseSignature, error) {
-	protectedBytes, _ := cbor.Marshal(protected) // TODO maybe?
+	protectedBytes, _ := cbor.Marshal(protected)
 	coseSigPayloadBytes, err := NewSig1Payload(protectedBytes, payload)
 	if err != nil {
 		return nil, err
