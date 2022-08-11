@@ -1,85 +1,11 @@
-package fdodo
+package to0
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
-
-const ServerWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
-
-type RVEntry struct {
-	RVURL       string
-	AccessToken string
-}
-
-type To0Requestor struct {
-	rvEntry        RVEntry
-	voucherDBEntry fdoshared.VoucherDBEntry
-	authzHeader    string
-}
-
-func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry fdoshared.VoucherDBEntry) To0Requestor {
-	return To0Requestor{
-		rvEntry:        rvEntry,
-		voucherDBEntry: voucherDBEntry,
-	}
-}
-
-func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, error) {
-	url := rvEntry.RVURL + fdoshared.FDO_101_URL_BASE + cmd.ToString()
-
-	httpClient := &http.Client{}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	if err != nil {
-		return nil, "", errors.New("Error creating new request. " + err.Error())
-	}
-
-	if authzHeader != nil {
-		req.Header.Set("Authorization", *authzHeader)
-	}
-
-	req.Header.Set("Content-Type", "application/cbor")
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, "", fmt.Errorf("Error sending post request to %s url. %s", url, err.Error())
-	}
-
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, "", fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
-	}
-
-	return bodyBytes, resp.Header.Get("Authorization"), nil
-}
-
-func (h *To0Requestor) Hello20() (*fdoshared.HelloAck21, error) {
-	hello20Bytes, err := cbor.Marshal(fdoshared.Hello20{})
-	if err != nil {
-		return nil, errors.New("Hell20: Error marshaling Hello20. " + err.Error())
-	}
-
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO0_20_HELLO, hello20Bytes, &h.rvEntry.AccessToken)
-	if err != nil {
-		return nil, errors.New("Hell20: " + err.Error())
-	}
-
-	h.authzHeader = authzHeader
-
-	var helloAck21 fdoshared.HelloAck21
-	err = cbor.Unmarshal(resultBytes, &helloAck21)
-	if err != nil {
-		return nil, errors.New("Hell20: Failed to unmarshal HelloAck21. " + err.Error())
-	}
-
-	return &helloAck21, nil
-}
 
 func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce) (*fdoshared.AcceptOwner23, error) {
 	// TO0D
@@ -164,7 +90,3 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce) (*fdoshared.
 
 	return &acceptOwner23, nil
 }
-
-// func SubmitOwnershipVoucherToRv(voucherDbEntry VoucherDBEntry, rvEntry RVEntry) error {
-
-// }
