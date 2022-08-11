@@ -75,7 +75,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce) (*fdoshared.
 		return nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
 	}
 
-	resultBytes, authzHeader, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
+	resultBytes, authzHeader, _, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
 	if err != nil {
 		return nil, errors.New("OwnerSign22: " + err.Error())
 	}

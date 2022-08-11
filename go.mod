@@ -34,5 +34,4 @@ require (
 )
 
 replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
-
 replace github.com/WebauthnWorks/fdo-fido-conformance-server v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-fido-conformance-server
