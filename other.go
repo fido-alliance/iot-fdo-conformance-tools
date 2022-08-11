@@ -1,6 +1,9 @@
 package fdoshared
 
 import (
+	"errors"
+
+	"github.com/fxamacker/cbor/v2"
 	"github.com/google/uuid"
 )
 
@@ -62,4 +65,14 @@ type RVTO2AddrEntry struct {
 	RVDNS      *string
 	RVPort     uint16
 	RVProtocol TransportProtocol
+}
+
+func DecodeErrorResponse(bodyBytes []byte) (*FdoError, error) {
+	var errInst FdoError
+	err := cbor.Unmarshal(bodyBytes, &errInst)
+	if err != nil {
+		return nil, errors.New("Error decoding FdoError " + err.Error())
+	}
+
+	return &errInst, nil
 }
