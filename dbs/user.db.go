@@ -1,6 +1,7 @@
 package dbs
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -18,6 +19,16 @@ type UserTestDBEntry struct {
 	Username     string
 	PasswordHash []byte
 	RVTInsts     [][]byte
+}
+
+func (h *UserTestDBEntry) ContainsRVT(item []byte) bool {
+	for _, arrItem := range h.RVTInsts {
+		if bytes.Equal(arrItem, item) {
+			return true
+		}
+	}
+
+	return false
 }
 
 var userdbpref []byte = []byte("usere-")
