@@ -8,6 +8,12 @@ import (
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
+type FDOTestState struct {
+	_      struct{} `cbor:",toarray"`
+	Passed bool
+	Error  string
+}
+
 func GenerateTestVoucherSet() ([]fdodeviceimplementation.VDANDV, error) {
 	var resultVDANDV []fdodeviceimplementation.VDANDV
 	for _, sgType := range fdoshared.DeviceSgTypeList {
