@@ -9,13 +9,11 @@ import (
 
 func SetupServer(db *badger.DB) {
 	userDb := dbs.NewUserTestDB(db)
-	vdiDb := dbs.NewVDandVDB(db)
 	rvtDb := dbs.NewRendezvousServerTestDB(db)
 	sessionDb := dbs.NewSessionDB(db)
 
 	rvtApiHandler := RVTestMgmtAPI{
 		UserDB:    &userDb,
-		VdiDB:     &vdiDb,
 		RvtDB:     &rvtDb,
 		SessionDB: &sessionDb,
 	}

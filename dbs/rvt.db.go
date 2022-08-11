@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtests"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -118,16 +119,17 @@ func (h *RendezvousServerTestDB) GetMany(rvtids [][]byte) (*[]rvtests.Rendezvous
 	return &rvts, nil
 }
 
-func (h *RendezvousServerTestDB) ReportSuccess(rvid []byte, testID rvtests.RVTestID) {
+func (h *RendezvousServerTestDB) StartNewRun(rvid []byte) {
 	rvte, err := h.Get(rvid)
 	if err != nil {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	rvte.TestsPassed[testID] = rvtests.RVTestState{
-		Passed: true,
-		Error:  "",
-	}
+	newRVTestRun := rvtests.NewRVTestRun()
+
+	rvte.InProgress = true
+	rvte.CurrentTestRun = newRVTestRun
+	rvte.TestsHistory = append([]rvtests.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
 
 	err = h.Save(*rvte)
 	if err != nil {
@@ -135,16 +137,53 @@ func (h *RendezvousServerTestDB) ReportSuccess(rvid []byte, testID rvtests.RVTes
 	}
 }
 
-func (h *RendezvousServerTestDB) ReportFail(rvid []byte, testID rvtests.RVTestID, errorMsg string) {
+func (h *RendezvousServerTestDB) FinishRun(rvid []byte) {
 	rvte, err := h.Get(rvid)
 	if err != nil {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	rvte.TestsPassed[testID] = rvtests.RVTestState{
+	newRVTestRun := rvtests.NewRVTestRun()
+
+	rvte.InProgress = false
+	rvte.CurrentTestRun = newRVTestRun
+	rvte.TestsHistory = append([]rvtests.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
+
+	err = h.Save(*rvte)
+	if err != nil {
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
+	}
+}
+
+func (h *RendezvousServerTestDB) ReportSuccess(rvid []byte, testID testcom.FDOTestID) {
+	rvte, err := h.Get(rvid)
+	if err != nil {
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
+	}
+
+	rvte.CurrentTestRun.Tests[testID] = testcom.FDOTestState{
+		Passed: true,
+		Error:  "",
+	}
+	rvte.TestsHistory[0] = rvte.CurrentTestRun
+
+	err = h.Save(*rvte)
+	if err != nil {
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
+	}
+}
+
+func (h *RendezvousServerTestDB) ReportFail(rvid []byte, testID testcom.FDOTestID, errorMsg string) {
+	rvte, err := h.Get(rvid)
+	if err != nil {
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
+	}
+
+	rvte.CurrentTestRun.Tests[testID] = testcom.FDOTestState{
 		Passed: false,
 		Error:  errorMsg,
 	}
+	rvte.TestsHistory[0] = rvte.CurrentTestRun
 
 	err = h.Save(*rvte)
 	if err != nil {

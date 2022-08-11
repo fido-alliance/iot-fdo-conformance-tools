@@ -12,12 +12,10 @@ import (
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtests"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
 type RVTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB
-	VdiDB     *dbs.VirtualDeviceTestDB
 	RvtDB     *dbs.RendezvousServerTestDB
 	SessionDB *dbs.SessionDB
 }
@@ -46,26 +44,6 @@ func (h *RVTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEnt
 	return userInst, nil
 }
 
-func (h *RVTestMgmtAPI) generateRVTestStuff() ([]fdoshared.FdoGuid, error) {
-	var guids []fdoshared.FdoGuid
-
-	vdavs, err := testcom.GenerateTestVoucherSet()
-	if err != nil {
-		return guids, errors.New("Error generating VDANDVs. " + err.Error())
-	}
-
-	for _, vdav := range vdavs {
-		err := h.VdiDB.Save(vdav)
-		if err != nil {
-			return guids, errors.New("Error saving VDANDV. " + err.Error())
-		}
-
-		guids = append(guids, vdav.WawDeviceCredential.DCGuid)
-	}
-
-	return guids, nil
-
-}
 func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	if !CheckHeaders(w, r) {
 		return
@@ -106,15 +84,15 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guids, err := h.generateRVTestStuff()
+	vdis, err := testcom.GenerateTestVoucherSet()
 	if err != nil {
-		log.Println("Failed to generate RVT test" + err.Error())
+		log.Println("Failed to generate VDIs. " + err.Error())
 		RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	newRVTest := rvtests.NewRVDBTestEntry(parsedUrl.Scheme + "://" + parsedUrl.Hostname())
-	newRVTest.VouchersIds = guids
+	newRVTest.VDIs = vdis
 
 	err = h.RvtDB.Save(newRVTest)
 	if err != nil {
@@ -166,4 +144,47 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	rvtsList.Status = FdoApiStatus_OK
 
 	RespondSuccessStruct(w, rvtsList)
+}
+
+func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
+	if !CheckHeaders(w, r) {
+		return
+	}
+
+	userInst, err := h.checkAutzAndGetUser(r)
+	if err != nil {
+		log.Println("Failed to read cookie. " + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Failed to read body. " + err.Error())
+		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		return
+	}
+
+	var execReq RVT_ExecureReq
+	err = json.Unmarshal(bodyBytes, &execReq)
+	if err != nil {
+		log.Println("Failed to decode body. " + err.Error())
+		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		return
+	}
+
+	rvtId, err := hex.DecodeString(execReq.Id)
+	if err != nil {
+		log.Println("Can not decode hex rvtid " + err.Error())
+		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		return
+	}
+
+	if !userInst.ContainsRVT(rvtId) {
+		log.Println("Id does not belong to user")
+		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		return
+	}
+
+	RespondSuccess(w)
 }

@@ -1,15 +1,24 @@
 package rvtests
 
-type RVTestID string
+import (
+	"time"
 
-const (
-	FIDO_RVT_20_BAD_ENCODING RVTestID = "FIDO_RVT_20_BAD_ENCODING"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 )
 
-type RVTestState struct {
-	_      struct{} `cbor:",toarray"`
-	Passed bool
-	Error  string
+type RVTestMap map[testcom.FDOTestID]testcom.FDOTestState
+
+type RVTestRun struct {
+	_         struct{} `cbor:",toarray"`
+	Timestamp int64
+	Tests     RVTestMap
 }
 
-type RVTestMap map[RVTestID]RVTestState
+func NewRVTestRun() RVTestRun {
+	newRVTestRun := RVTestRun{
+		Timestamp: time.Now().Unix(),
+		Tests:     RVTestMap{},
+	}
+
+	return newRVTestRun
+}

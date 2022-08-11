@@ -13,3 +13,7 @@ type RVT_ListRvts struct {
 	Rvts   []RVT_Inst       `json:"rvts"`
 	Status FdoConfApiStatus `json:"status"`
 }
+
+type RVT_ExecureReq struct {
+	Id string `json:"id"`
+}

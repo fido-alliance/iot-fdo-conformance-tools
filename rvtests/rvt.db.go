@@ -1,16 +1,18 @@
 package rvtests
 
 import (
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/google/uuid"
 )
 
 type RendezvousServerTestDBEntry struct {
-	_           struct{} `cbor:",toarray"`
-	ID          []byte
-	URL         string
-	VouchersIds []fdoshared.FdoGuid
-	TestsPassed RVTestMap
+	_              struct{} `cbor:",toarray"`
+	ID             []byte
+	URL            string
+	VDIs           []fdodeviceimplementation.VDANDV
+	InProgress     bool
+	CurrentTestRun RVTestRun
+	TestsHistory   []RVTestRun
 }
 
 func NewRVDBTestEntry(url string) RendezvousServerTestDBEntry {
