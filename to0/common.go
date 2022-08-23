@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
@@ -34,7 +35,9 @@ type RVEntry struct {
 func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, int, error) {
 	url := rvEntry.RVURL + fdoshared.FDO_101_URL_BASE + cmd.ToString()
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, "", 0, errors.New("Error creating new request. " + err.Error())
