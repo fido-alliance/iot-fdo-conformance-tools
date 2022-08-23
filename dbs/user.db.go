@@ -18,6 +18,9 @@ type UserTestDBEntry struct {
 	_            struct{} `cbor:",toarray"`
 	Username     string
 	PasswordHash []byte
+	Name         string
+	Company      string
+	Phone        string
 	RVTInsts     [][]byte
 }
 

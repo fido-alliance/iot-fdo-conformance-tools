@@ -9,14 +9,15 @@ type RVT_CreateTestCase struct {
 }
 
 type RVT_Inst struct {
-	Id  string `json:"id"`
-	Url string `json:"url"`
+	Id         string              `json:"id"`
+	Url        string              `json:"url"`
+	TestRuns   []rvtdeps.RVTestRun `json:"runs"`
+	InProgress bool                `json:"inprogress"`
 }
 
 type RVT_ListRvts struct {
-	Rvts        []RVT_Inst `json:"rvts"`
-	TEMPREsults []rvtdeps.RVTestRun
-	Status      FdoConfApiStatus `json:"status"`
+	Rvts   []RVT_Inst       `json:"rvts"`
+	Status FdoConfApiStatus `json:"status"`
 }
 
 type RVT_ExecureReq struct {

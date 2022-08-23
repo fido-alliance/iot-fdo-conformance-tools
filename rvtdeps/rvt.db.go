@@ -7,7 +7,7 @@ import (
 
 type RendezvousServerTestDBEntry struct {
 	_              struct{} `cbor:",toarray"`
-	ID             []byte
+	Uuid           []byte
 	URL            string
 	VDIs           []fdodeviceimplementation.VDANDV
 	InProgress     bool
@@ -20,7 +20,8 @@ func NewRVDBTestEntry(url string) RendezvousServerTestDBEntry {
 	uuidBytes, _ := newUuid.MarshalBinary()
 
 	return RendezvousServerTestDBEntry{
-		ID:  uuidBytes,
-		URL: url,
+		Uuid:         uuidBytes,
+		URL:          url,
+		TestsHistory: make([]RVTestRun, 0),
 	}
 }

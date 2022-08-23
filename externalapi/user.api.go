@@ -20,6 +20,11 @@ type UserAPI struct {
 	SessionDB *dbs.SessionDB
 }
 
+func isEmailValid(e string) bool {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return emailRegex.MatchString(e)
+}
+
 func (h *UserAPI) generatePasswordHash(password string) ([]byte, error) {
 	salt := make([]byte, 8)
 	rand.Read(salt)
@@ -63,11 +68,27 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	re := regexp.MustCompile("^[\\w\\.]{2,}@[\\w\\.]{2,}\\.\\w{2,}$")
-
-	if !re.MatchString(createUser.Email) {
+	if !isEmailValid(createUser.Email) {
 		log.Println("Invalid email!")
 		RespondError(w, "Invalid email!", http.StatusBadRequest)
+		return
+	}
+
+	if len(createUser.Name) == 0 {
+		log.Println("Missing name!")
+		RespondError(w, "Missing name!", http.StatusBadRequest)
+		return
+	}
+
+	if len(createUser.Company) == 0 {
+		log.Println("Missing company name!")
+		RespondError(w, "Missing company name!", http.StatusBadRequest)
+		return
+	}
+
+	if len(createUser.Phone) == 0 {
+		log.Println("Missing phone number!")
+		RespondError(w, "Missing phone number!", http.StatusBadRequest)
 		return
 	}
 
@@ -94,6 +115,9 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 	newUserInst := dbs.UserTestDBEntry{
 		Username:     strings.ToLower(createUser.Email),
 		PasswordHash: passwordHash,
+		Name:         createUser.Name,
+		Company:      createUser.Company,
+		Phone:        createUser.Phone,
 	}
 
 	err = h.UserDB.Save(createUser.Email, newUserInst)
@@ -134,10 +158,8 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	re := regexp.MustCompile("^[\\w\\.]{2,}@[\\w\\.]{2,}\\.\\w{2,}$")
-
-	if !re.MatchString(loginUser.Email) {
-		log.Println("Invalid email!" + err.Error())
+	if !isEmailValid(loginUser.Email) {
+		log.Println("Invalid email!")
 		RespondError(w, "Invalid email!", http.StatusBadRequest)
 		return
 	}
@@ -205,6 +227,44 @@ func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
 		RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	RespondSuccess(w)
+}
+
+func (h *UserAPI) Logout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	sessionCookie, err := r.Cookie("session")
+	if err != nil {
+		log.Println("Failed to read cookie. " + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if sessionCookie == nil {
+		log.Println("Request missing session cookie!")
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
+	if err != nil {
+		log.Println("Error reading session db!" + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	err = h.SessionDB.DeleteSessionEntry([]byte(sessionCookie.Value))
+	if err != nil {
+		log.Println("Session does not exists.")
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	http.SetCookie(w, GenerateCookie([]byte{}))
 
 	RespondSuccess(w)
 }

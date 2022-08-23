@@ -102,7 +102,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInst.RVTInsts = append(userInst.RVTInsts, newRVTest.ID)
+	userInst.RVTInsts = append(userInst.RVTInsts, newRVTest.Uuid)
 
 	err = h.UserDB.Save(userInst.Username, *userInst)
 	if err != nil {
@@ -138,18 +138,19 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	rvtsList.Rvts = make([]RVT_Inst, 0)
 	for _, rvt := range *rvts {
 		rvtsList.Rvts = append(rvtsList.Rvts, RVT_Inst{
-			Id:  hex.EncodeToString(rvt.ID),
-			Url: rvt.URL,
+			Id:         hex.EncodeToString(rvt.Uuid),
+			Url:        rvt.URL,
+			TestRuns:   rvt.TestsHistory,
+			InProgress: rvt.InProgress,
 		})
 	}
 	rvtsList.Status = FdoApiStatus_OK
 
-	if len(*rvts) > 0 {
-		tempRvte := *rvts
-		rvtsList.TEMPREsults = tempRvte[0].TestsHistory
-	}
-
 	RespondSuccessStruct(w, rvtsList)
+}
+
+func (h *RVTestMgmtAPI) Delete(w http.ResponseWriter, r *http.Request) {
+	//TODO
 }
 
 func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
@@ -199,12 +200,7 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = testexec.ExecuteRVTests(*rvte, h.RvtDB)
-	if err != nil {
-		log.Println("Can get RVT entry. " + err.Error())
-		RespondError(w, "Internal server error!", http.StatusBadRequest)
-		return
-	}
+	testexec.ExecuteRVTests(*rvte, h.RvtDB)
 
 	RespondSuccess(w)
 }

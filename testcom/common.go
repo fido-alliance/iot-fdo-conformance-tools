@@ -10,8 +10,8 @@ import (
 
 type FDOTestState struct {
 	_      struct{} `cbor:",toarray"`
-	Passed bool
-	Error  string
+	Passed bool     `json:"passed"`
+	Error  string   `json:"error"`
 }
 
 func GenerateTestVoucherSet() ([]fdodeviceimplementation.VDANDV, error) {

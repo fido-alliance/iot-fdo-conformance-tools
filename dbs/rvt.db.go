@@ -33,7 +33,7 @@ func (h *RendezvousServerTestDB) Save(rvte rvtdeps.RendezvousServerTestDBEntry) 
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
 	}
 
-	rvteStorageId := append(rvtdbpref, rvte.ID...)
+	rvteStorageId := append(rvtdbpref, rvte.Uuid...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -143,11 +143,7 @@ func (h *RendezvousServerTestDB) FinishRun(rvid []byte) {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	newRVTestRun := rvtdeps.NewRVTestRun()
-
 	rvte.InProgress = false
-	rvte.CurrentTestRun = newRVTestRun
-	rvte.TestsHistory = append([]rvtdeps.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
 
 	err = h.Save(*rvte)
 	if err != nil {

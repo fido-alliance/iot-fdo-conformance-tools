@@ -30,6 +30,9 @@ func SetupServer(db *badger.DB) {
 	http.HandleFunc("/api/user/register", userApiHandler.Register)
 	http.HandleFunc("/api/user/login", userApiHandler.Login)
 	http.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
+	http.HandleFunc("/api/user/logout", userApiHandler.Logout)
 
-	http.Handle("/", http.FileServer(http.Dir("./_static")))
+	// http.Handle("/", http.FileServer(http.Dir("./_static")))
+	http.HandleFunc("/", ProxyDevUI)
+
 }

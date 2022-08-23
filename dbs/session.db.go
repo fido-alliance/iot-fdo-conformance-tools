@@ -104,3 +104,22 @@ func (h *SessionDB) GetSessionEntry(entryId []byte) (*SessionEntry, error) {
 
 	return &sessionEntryInst, nil
 }
+
+func (h *SessionDB) DeleteSessionEntry(entryId []byte) error {
+	sessionEntryId := append([]byte("session-"), entryId...)
+
+	dbtxn := h.db.NewTransaction(true)
+	defer dbtxn.Discard()
+
+	err := dbtxn.Delete(sessionEntryId)
+	if err != nil {
+		return errors.New("Failed initialise delete entry. The error is: " + err.Error())
+	}
+
+	err = dbtxn.Commit()
+	if err != nil {
+		return errors.New("Failed to delete session. The error is: " + err.Error())
+	}
+
+	return nil
+}
