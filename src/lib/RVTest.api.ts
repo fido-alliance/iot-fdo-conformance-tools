@@ -1,6 +1,6 @@
 
 export const getRVTsList = async (): Promise<Array<any>> => {
-    let result = await fetch("http://localhost:8080/api/rvt/list", {
+    let result = await fetch("/api/rvt/list", {
         method: "GET",
         headers: {
         "Content-Type": "application/json",
@@ -23,7 +23,7 @@ export const getRVTsList = async (): Promise<Array<any>> => {
 }
 
 export const addNewRv = async (url): Promise<Array<any>> => {
-    let result = await fetch("http://localhost:8080/api/rvt/create", {
+    let result = await fetch("/api/rvt/create", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -49,7 +49,7 @@ export const addNewRv = async (url): Promise<Array<any>> => {
 
 
 export const executeRvTests = async (id): Promise<Array<any>> => {
-    let result = await fetch("http://localhost:8080/api/rvt/execute", {
+    let result = await fetch("/api/rvt/execute", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

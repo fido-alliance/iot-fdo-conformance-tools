@@ -5,7 +5,7 @@ export const login = async (email:string, password:string): Promise<any> => {
         return Promise.reject("Missing email and/or password!")
     }
 
-    let result = await fetch("http://localhost:8080/api/user/login", {
+    let result = await fetch("/api/user/login", {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
@@ -27,7 +27,7 @@ export const login = async (email:string, password:string): Promise<any> => {
 }
 
 export const isLoggedIn = async(): Promise<Boolean> => {
-    let result = await fetch("http://localhost:8080/api/user/loggedin", {
+    let result = await fetch("/api/user/loggedin", {
         method: "GET",
         headers: {
         "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export const ensureUserIsLoggedIn = async(): Promise<any> => {
 }
 
 export const logout = async(): Promise<Boolean> => {
-    let result = await fetch("http://localhost:8080/api/user/logout", {
+    let result = await fetch("/api/user/logout", {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
@@ -91,7 +91,7 @@ export const register = async (password: String, passwordRepeat:string, email: s
         throw new Error("Passwords do not match!");
     }
 
-    let result = await fetch("http://localhost:8080/api/user/register", {
+    let result = await fetch("/api/user/register", {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
