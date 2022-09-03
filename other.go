@@ -2,6 +2,7 @@ package fdoshared
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/fxamacker/cbor/v2"
 	"github.com/google/uuid"
@@ -21,6 +22,36 @@ func (h *FdoGuid) GetFormatted() string {
 	uuidInst, _ := uuid.ParseBytes(uuidBytes)
 
 	return uuidInst.String()
+}
+
+func (h *FdoGuid) GetFormattedHex() string {
+	uuidBytes := h[:]
+	uuidInst, _ := uuid.ParseBytes(uuidBytes)
+
+	return strings.ReplaceAll(uuidInst.String(), "-", "")
+}
+
+func NewFdoGuid() FdoGuid {
+	newUuid, _ := uuid.NewRandom()
+	uuidBytes, _ := newUuid.MarshalBinary()
+	var newFdoGuid FdoGuid
+	copy(newFdoGuid[:], uuidBytes)
+
+	return newFdoGuid
+}
+
+func NewFdoGuid_FIDO() FdoGuid {
+	newUuid, _ := uuid.NewRandom()
+	uuidBytes, _ := newUuid.MarshalBinary()
+	var newFdoGuid FdoGuid
+	copy(newFdoGuid[:], uuidBytes)
+
+	newFdoGuid[0] = 0xF1
+	newFdoGuid[1] = 0xD0
+	newFdoGuid[2] = 0xFD
+	newFdoGuid[3] = 0x00
+
+	return newFdoGuid
 }
 
 // timestamp = null / UTCStr / UTCInt / TIME_T
