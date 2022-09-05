@@ -1,5 +1,5 @@
 <script>
-    import {getRVTsList, addNewRv, executeRvTests} from '../lib/RVTest.api'
+    import {getRVTsListTo0, getRVTsListTo1, addNewRv, executeRvTests} from '../lib/RVTest.api'
     import {ensureUserIsLoggedIn} from '../lib/User.api'
 
     ensureUserIsLoggedIn()
@@ -7,31 +7,46 @@
     let rvtListDir = {}
     let selectedRVT = ""
 
-    let rvtTestRunDir = {}
+    let rvtTestRunDirTo0 = {}
     let selectedTestRunUuid = ""
+
+    let rvtTestRunDirTo1 = {}
+
 
     let errorMsg = ""
     const refreshRvtList = async() => {
         try {
-            let rvtList = await getRVTsList()
+            let rvtListTo0 = await getRVTsListTo0()
+            let rvtListTo1 = await getRVTsListTo1()
 
             rvtListDir = {}
-            rvtTestRunDir = {}
-            for(let rvt of rvtList) {
+            rvtTestRunDirTo0 = {}
+            for(let rvt of rvtListTo0) {
                 rvtListDir[rvt.id] = rvt
                 
                 for(let trun of rvt.runs) {
-                    rvtTestRunDir[trun.uuid] = trun
+                    rvtTestRunDirTo0[trun.uuid] = trun
+                }
+            }
+            
+            rvtListDir = {}
+            rvtTestRunDirTo1 = {}
+            for(let rvt of rvtListTo1) {
+                rvtListDir[rvt.id] = rvt
+                
+                for(let trun of rvt.runs) {
+                    rvtTestRunDirTo1[trun.uuid] = trun
                 }
             }
         } catch(err) {
             errorMsg = err; // TypeError: failed to fetch
         }
+
     }
 
     const handleSelect = async(e) => {
         
-        
+
     }
 
     let rvTestExecuteErrorMessage = ""
@@ -181,9 +196,9 @@
         </div>
         <div class="col-8 col-12-xsmall">
             {#if selectedTestRunUuid !== ""}
-                <h2>Tests info for {rvtListDir[selectedRVT].url} at {(new Date(rvtTestRunDir[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h2>
+                <h2>Tests info for {rvtListDir[selectedRVT].url} at {(new Date(rvtTestRunDirTo0[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h2>
 
-                {#each Object.keys(rvtTestRunDir[selectedTestRunUuid].tests) as rvtest}
+                {#each Object.keys(rvtTestRunDirTo0[selectedTestRunUuid].tests) as rvtest}
                 
                 <div class="row rvt-test-case">
         
@@ -191,14 +206,14 @@
                         <p>{rvtest}</p>
                     </div>
                     <div class="col-3 col-12-xsmall">
-                        {#if rvtTestRunDir[selectedTestRunUuid].tests[rvtest].passed}
+                        {#if rvtTestRunDirTo0[selectedTestRunUuid].tests[rvtest].passed}
                             <p class="success">Passed</p>
                         {:else}
                             <p class="failed">Failed</p>
                         {/if}
                     </div>
                     <div class="col-12 col-12-xsmall">
-                        <p><b>{rvtTestRunDir[selectedTestRunUuid].tests[rvtest].error}</b></p>
+                        <p><b>{rvtTestRunDirTo0[selectedTestRunUuid].tests[rvtest].error}</b></p>
                     </div>
                 </div>
                 {/each}
