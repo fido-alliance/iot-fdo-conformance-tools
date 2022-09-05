@@ -3,7 +3,7 @@ package testexec
 import (
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtdeps"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 )
 
@@ -19,14 +19,27 @@ var rv22Tests []testcom.FDOTestID = []testcom.FDOTestID{
 	testcom.FIDO_RVT_23_POSITIVE,
 }
 
-func ExecuteRVTests(rvte rvtdeps.RendezvousServerTestDBEntry, rvtDB *dbs.RendezvousServerTestDB) {
-	rvtDB.StartNewRun(rvte.Uuid)
-
-	to0inst := to0.NewTo0Requestor(to0.RVEntry{
-		RVURL: rvte.URL,
-	}, rvte.VDIs[0].VoucherDBEntry)
+func ExecuteRVTests(reqte req_tests_deps.RequestTestInstDBEntry, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
+	reqtDB.StartNewRun(reqte.Uuid)
 
 	for _, rv20test := range rv20Tests {
+		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
+		testCredV, err := devDB.GetVANDV(randomGuid, rv20test)
+
+		if err != nil {
+			errTestState := testcom.FDOTestState{
+				Passed: false,
+				Error:  err.Error(),
+			}
+
+			reqtDB.ReportTest(reqte.Uuid, rv20test, errTestState)
+			continue
+		}
+
+		to0inst := to0.NewTo0Requestor(to0.RVEntry{
+			RVURL: reqte.URL,
+		}, testCredV.VoucherDBEntry)
+
 		switch rv20test {
 		case testcom.FIDO_RVT_20_BAD_ENCODING, testcom.FIDO_RVT_21_CHECK_RESP:
 			_, rvtTestState, err := to0inst.Hello20(rv20test)
@@ -40,7 +53,7 @@ func ExecuteRVTests(rvte rvtdeps.RendezvousServerTestDBEntry, rvtDB *dbs.Rendezv
 				rvtTestState = &errTestState
 			}
 
-			rvtDB.ReportTest(rvte.Uuid, rv20test, *rvtTestState)
+			reqtDB.ReportTest(reqte.Uuid, rv20test, *rvtTestState)
 
 		case testcom.FIDO_RVT_20_POSITIVE:
 			var errTestState testcom.FDOTestState
@@ -50,19 +63,36 @@ func ExecuteRVTests(rvte rvtdeps.RendezvousServerTestDBEntry, rvtDB *dbs.Rendezv
 					Passed: false,
 					Error:  err.Error(),
 				}
-				rvtDB.ReportTest(rvte.Uuid, rv20test, errTestState)
+				reqtDB.ReportTest(reqte.Uuid, rv20test, errTestState)
 				return
 			} else {
 				errTestState = testcom.FDOTestState{
 					Passed: true,
 				}
-				rvtDB.ReportTest(rvte.Uuid, rv20test, errTestState)
+				reqtDB.ReportTest(reqte.Uuid, rv20test, errTestState)
 			}
 
 		}
 	}
 
 	for _, rv22test := range rv22Tests {
+		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
+		testCredV, err := devDB.GetVANDV(randomGuid, rv22test)
+
+		if err != nil {
+			errTestState := testcom.FDOTestState{
+				Passed: false,
+				Error:  err.Error(),
+			}
+
+			reqtDB.ReportTest(reqte.Uuid, rv22test, errTestState)
+			continue
+		}
+
+		to0inst := to0.NewTo0Requestor(to0.RVEntry{
+			RVURL: reqte.URL,
+		}, testCredV.VoucherDBEntry)
+
 		switch rv22test {
 		case testcom.FIDO_RVT_22_BAD_ENCODING, testcom.FIDO_RVT_23_CHECK_RESP:
 			var errTestState testcom.FDOTestState
@@ -72,7 +102,7 @@ func ExecuteRVTests(rvte rvtdeps.RendezvousServerTestDBEntry, rvtDB *dbs.Rendezv
 					Passed: false,
 					Error:  err.Error(),
 				}
-				rvtDB.ReportTest(rvte.Uuid, rv22test, errTestState)
+				reqtDB.ReportTest(reqte.Uuid, rv22test, errTestState)
 				continue
 			}
 
@@ -86,7 +116,7 @@ func ExecuteRVTests(rvte rvtdeps.RendezvousServerTestDBEntry, rvtDB *dbs.Rendezv
 				rvtTestState = &errTestState
 			}
 
-			rvtDB.ReportTest(rvte.Uuid, rv22test, *rvtTestState)
+			reqtDB.ReportTest(reqte.Uuid, rv22test, *rvtTestState)
 
 		case testcom.FIDO_RVT_23_POSITIVE:
 			var errTestState testcom.FDOTestState
@@ -96,7 +126,7 @@ func ExecuteRVTests(rvte rvtdeps.RendezvousServerTestDBEntry, rvtDB *dbs.Rendezv
 					Passed: false,
 					Error:  err.Error(),
 				}
-				rvtDB.ReportTest(rvte.Uuid, rv22test, errTestState)
+				reqtDB.ReportTest(reqte.Uuid, rv22test, errTestState)
 				continue
 			}
 
@@ -106,16 +136,16 @@ func ExecuteRVTests(rvte rvtdeps.RendezvousServerTestDBEntry, rvtDB *dbs.Rendezv
 					Passed: false,
 					Error:  err.Error(),
 				}
-				rvtDB.ReportTest(rvte.Uuid, rv22test, errTestState)
+				reqtDB.ReportTest(reqte.Uuid, rv22test, errTestState)
 				return
 			} else {
 				errTestState = testcom.FDOTestState{
 					Passed: true,
 				}
-				rvtDB.ReportTest(rvte.Uuid, rv22test, errTestState)
+				reqtDB.ReportTest(reqte.Uuid, rv22test, errTestState)
 			}
 		}
 	}
 
-	rvtDB.FinishRun(rvte.Uuid)
+	reqtDB.FinishRun(reqte.Uuid)
 }
