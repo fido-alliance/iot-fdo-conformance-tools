@@ -142,24 +142,19 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 	return marshaledPrivateKey, ovEntry, nil
 }
 
-type VDANDV struct {
+type DeviceCredAndVoucher struct {
 	VoucherDBEntry      fdoshared.VoucherDBEntry
 	WawDeviceCredential fdoshared.WawDeviceCredential
 }
 
-func NewVirtualDeviceAndVoucher(sgType fdoshared.DeviceSgType) (*VDANDV, error) {
-	getSgAlgInfo, err := fdoshared.GetAlgInfoFromSgType(sgType)
-	if err != nil {
-		return nil, errors.New("Error generating voucher. " + err.Error())
-	}
-
-	newDi, err := fdoshared.NewWawDeviceCredential(getSgAlgInfo.HmacType, sgType)
+func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) (*DeviceCredAndVoucher, error) {
+	newDi, err := fdoshared.NewWawDeviceCredential(deviceCredBase)
 	if err != nil {
 		return nil, errors.New("Error generating new device credential. " + err.Error())
 	}
 
 	// Generate manufacturer private key.
-	mfgPrivateKey, mfgPublicKey, err := GenerateVoucherKeypair(sgType)
+	mfgPrivateKey, mfgPublicKey, err := GenerateVoucherKeypair(deviceCredBase.DCSgType)
 	if err != nil {
 		return nil, errors.New("Error generating new manufacturer private key. " + err.Error())
 	}
@@ -198,7 +193,7 @@ func NewVirtualDeviceAndVoucher(sgType fdoshared.DeviceSgType) (*VDANDV, error) 
 	prevEntryPayloadBytes := append(ovHeaderBytes, headerHmacBytes...)
 	prevEntryHash, _ := fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
 
-	ovEntryPrivateKeyBytes, firstOvEntry, err := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, sgType)
+	ovEntryPrivateKeyBytes, firstOvEntry, err := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, deviceCredBase.DCSgType)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +214,7 @@ func NewVirtualDeviceAndVoucher(sgType fdoshared.DeviceSgType) (*VDANDV, error) 
 		PrivateKeyX509: ovEntryPrivateKeyBytes,
 	}
 
-	newWDC := VDANDV{
+	newWDC := DeviceCredAndVoucher{
 		VoucherDBEntry:      voucherDBEInst,
 		WawDeviceCredential: *newDi,
 	}
@@ -227,13 +222,13 @@ func NewVirtualDeviceAndVoucher(sgType fdoshared.DeviceSgType) (*VDANDV, error) 
 	return &newWDC, err
 }
 
-func GenerateAndSaveVDANDV(sgType fdoshared.DeviceSgType) error {
-	newVDANDV, err := NewVirtualDeviceAndVoucher(sgType)
+func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) error {
+	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase)
 	if err != nil {
 		return err
 	}
 
-	vdandv := *newVDANDV
+	vdandv := *newdav
 
 	// Voucher to PEM
 	voucherBytes, err := cbor.Marshal(vdandv.VoucherDBEntry.Voucher)
