@@ -10,26 +10,27 @@ import (
 )
 
 type UserTestDB struct {
-	db *badger.DB
+	db     *badger.DB
+	prefix []byte
 }
 
 type UserTestDBEntry struct {
-	_                 struct{} `cbor:",toarray"`
-	Username          string
-	PasswordHash      []byte
-	Name              string
-	Company           string
-	Phone             string
+	_            struct{} `cbor:",toarray"`
+	Username     string
+	PasswordHash []byte
+	Name         string
+	Company      string
+	Phone        string
+
 	RVT_TO0_Req_Insts [][]byte
 	RVT_TO1_Req_Insts [][]byte
 	DOT_TO2_Req_Insts [][]byte
 }
 
-var userdbpref []byte = []byte("usere-")
-
 func NewUserTestDB(db *badger.DB) UserTestDB {
 	return UserTestDB{
-		db: db,
+		db:     db,
+		prefix: []byte("usere-"),
 	}
 }
 
@@ -41,7 +42,7 @@ func (h *UserTestDB) Save(username string, usere UserTestDBEntry) error {
 		return errors.New("Failed to marshal User entry. The error is: " + err.Error())
 	}
 
-	userEStorageId := append(userdbpref, []byte(username)...)
+	userEStorageId := append(h.prefix, []byte(username)...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -63,7 +64,7 @@ func (h *UserTestDB) Save(username string, usere UserTestDBEntry) error {
 func (h *UserTestDB) Get(username string) (*UserTestDBEntry, error) {
 	username = strings.ToLower(username)
 
-	userEStorageId := append(userdbpref, []byte(username)...)
+	userEStorageId := append(h.prefix, []byte(username)...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()

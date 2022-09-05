@@ -12,12 +12,14 @@ import (
 )
 
 type SessionDB struct {
-	db *badger.DB
+	db     *badger.DB
+	prefix []byte
 }
 
 func NewSessionDB(db *badger.DB) SessionDB {
 	return SessionDB{
-		db: db,
+		db:     db,
+		prefix: []byte("session-"),
 	}
 }
 
@@ -35,7 +37,8 @@ func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
 	}
 
 	randomEntryId, _ := uuid.NewRandom()
-	sessionEntryId := []byte("session-" + randomEntryId.String())
+	randomEntryIdString := randomEntryId.String()
+	sessionEntryId := append(h.prefix, []byte(randomEntryIdString)...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -55,7 +58,7 @@ func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
 }
 
 func (h *SessionDB) UpdateSessionEntry(entryId []byte, sessionInst SessionEntry) error {
-	sessionEntryId := append([]byte("session-"), entryId...)
+	sessionEntryId := append(h.prefix, entryId...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -79,7 +82,7 @@ func (h *SessionDB) UpdateSessionEntry(entryId []byte, sessionInst SessionEntry)
 }
 
 func (h *SessionDB) GetSessionEntry(entryId []byte) (*SessionEntry, error) {
-	sessionEntryId := append([]byte("session-"), entryId...)
+	sessionEntryId := append(h.prefix, entryId...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -106,7 +109,7 @@ func (h *SessionDB) GetSessionEntry(entryId []byte) (*SessionEntry, error) {
 }
 
 func (h *SessionDB) DeleteSessionEntry(entryId []byte) error {
-	sessionEntryId := append([]byte("session-"), entryId...)
+	sessionEntryId := append(h.prefix, entryId...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
