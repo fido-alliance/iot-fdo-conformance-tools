@@ -4,19 +4,15 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/sha256"
-	"crypto/sha512"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"math/big"
-	"strings"
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
-	"github.com/google/uuid"
 )
 
 type WawDeviceCredential struct {
@@ -154,28 +150,18 @@ AwEHoUQDQgAEEHbg0OZ9vOAP0LpyAvBzokps4frssgppoqrZsyA8tQOtHSSEHE+F
 1j2Ja0MQTl3TwCO3n4Dg1sYL1yWt5A+uMA==
 -----END EC PRIVATE KEY-----`
 
-func NewWawDeviceCredential(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDeviceCredential, error) {
-	// Generate UUID
-	newUuid, _ := uuid.NewRandom()
-	uuidBytes, _ := newUuid.MarshalBinary()
-	var dcGuid [16]byte
-	copy(dcGuid[:], uuidBytes)
+type WawDeviceCredBase struct {
+	_                      struct{} `cbor:",toarray"`
+	DCCertificateChain     []X509CertificateBytes
+	DCPrivateKeyDer        []byte
+	DCHmacAlg              HashType
+	DCSgType               DeviceSgType
+	DCCertificateChainHash HashOrHmac
+	FdoGuid                FdoGuid
+}
 
-	// Generate HmacSecret
-	var hmacSecret []byte
-	var dcHashAlg HashType
-
-	if hmacAlgorithm == HASH_HMAC_SHA256 {
-		hmacSecret = make([]byte, sha256.Size)
-		dcHashAlg = HASH_SHA256
-
-	} else if hmacAlgorithm == HASH_HMAC_SHA384 {
-		hmacSecret = make([]byte, sha512.Size384)
-		dcHashAlg = HASH_SHA384
-	} else {
-		return nil, fmt.Errorf("%d is unsupported HMAC algorithm", hmacAlgorithm)
-	}
-	rand.Read(hmacSecret)
+func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDeviceCredBase, error) {
+	newGuid := NewFdoGuid_FIDO()
 
 	// Generate certificate chain
 	rootCert, _ := pem.Decode([]byte(TestRootCert))
@@ -192,30 +178,30 @@ func NewWawDeviceCredential(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDe
 		return nil, errors.New("Error decoding intermediate key. " + err.Error())
 	}
 
-	guidStringRepl := strings.ReplaceAll(newUuid.String(), "-", "")
 	serialNumber := new(big.Int)
-	serialNumber.SetString(guidStringRepl, 16)
+	serialNumber.SetString(newGuid.GetFormattedHex(), 16)
 	newCertificate := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName:   fmt.Sprintf("WAW FDO VIRTUAL TEST %X WAW", newUuid.String()),
-			Organization: []string{"Webauthn Works"},
-			Country:      []string{"NZ"},
-			Locality:     []string{"Tauranga"},
+			CommonName:   fmt.Sprintf("WAW FDO VIRTUAL TEST %X WAW", newGuid.GetFormatted()),
+			Organization: []string{"FIDO Alliance"},
+			Country:      []string{"US"},
+			Locality:     []string{"San Francisco"},
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(5, 0, 0),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		BasicConstraintsValid: false,
 	}
 
 	var certPrivKey *ecdsa.PrivateKey
-	if dcHashAlg == HASH_SHA256 {
+	deviceHashAlg := HmacToHashAlg[hmacAlgorithm]
+	if deviceHashAlg == HASH_SHA256 {
 		certPrivKey, _ = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	} else if dcHashAlg == HASH_SHA384 {
+	} else if deviceHashAlg == HASH_SHA384 {
 		certPrivKey, _ = ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	} else {
-		return nil, fmt.Errorf("%d is unsupported hashing algorithm", dcHashAlg)
+		return nil, fmt.Errorf("%d is unsupported hashing algorithm", deviceHashAlg)
 	}
 
 	newCertBytes, err := x509.CreateCertificate(rand.Reader, newCertificate, intermCertInst, &certPrivKey.PublicKey, intermPrivKey)
@@ -232,20 +218,37 @@ func NewWawDeviceCredential(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDe
 		newCertBytes, intermCert.Bytes, rootCert.Bytes,
 	}
 
-	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, dcHashAlg)
+	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, deviceHashAlg)
+
+	return &WawDeviceCredBase{
+		DCCertificateChain:     dcCertificateChain,
+		DCPrivateKeyDer:        privateKeyDerBytes,
+		DCHmacAlg:              hmacAlgorithm,
+		DCSgType:               sgType,
+		DCCertificateChainHash: dcCertificateChainHash,
+		FdoGuid:                newGuid,
+	}, nil
+}
+
+func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredential, error) {
+
+	// Generate HmacSecret
+	var hmacSecret []byte
+	var dcHashAlg HashType
+	rand.Read(hmacSecret)
 
 	dcSigInfo := SigInfo{
-		SgType: sgType,
+		SgType: deviceCredBase.DCSgType,
 		Info:   "random-info",
 	}
 
 	return &WawDeviceCredential{
 		DCProtVer:    ProtVer101,
 		DCHmacSecret: hmacSecret,
-		DCHmacAlg:    hmacAlgorithm,
+		DCHmacAlg:    deviceCredBase.DCHmacAlg,
 		DCHashAlg:    dcHashAlg,
-		DCDeviceInfo: "I am a virtual Webauthn Works device!",
-		DCGuid:       dcGuid,
+		DCDeviceInfo: "I am a virtual FIDO Alliance device!",
+		DCGuid:       deviceCredBase.FdoGuid,
 		DCSigInfo:    dcSigInfo,
 		DCRVInfo: []RendezvousInstrList{
 			{
@@ -257,9 +260,9 @@ func NewWawDeviceCredential(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDe
 		},
 		// DCPubKeyHash - come later via UpdateWithManufacturerCred
 
-		DCPrivateKeyDer:        privateKeyDerBytes,
-		DCCertificateChain:     dcCertificateChain,
-		DCCertificateChainHash: dcCertificateChainHash,
+		DCPrivateKeyDer:        deviceCredBase.DCPrivateKeyDer,
+		DCCertificateChain:     deviceCredBase.DCCertificateChain,
+		DCCertificateChainHash: deviceCredBase.DCCertificateChainHash,
 	}, nil
 }
 

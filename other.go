@@ -1,7 +1,10 @@
 package fdoshared
 
 import (
+	"bytes"
+	"crypto/rand"
 	"errors"
+	"math/big"
 	"strings"
 
 	"github.com/fxamacker/cbor/v2"
@@ -17,16 +20,16 @@ const (
 
 type FdoGuid [16]byte
 
-func (h *FdoGuid) GetFormatted() string {
+func (h FdoGuid) GetFormatted() string {
 	uuidBytes := h[:]
-	uuidInst, _ := uuid.ParseBytes(uuidBytes)
+	uuidInst, _ := uuid.FromBytes(uuidBytes)
 
 	return uuidInst.String()
 }
 
-func (h *FdoGuid) GetFormattedHex() string {
+func (h FdoGuid) GetFormattedHex() string {
 	uuidBytes := h[:]
-	uuidInst, _ := uuid.ParseBytes(uuidBytes)
+	uuidInst, _ := uuid.FromBytes(uuidBytes)
 
 	return strings.ReplaceAll(uuidInst.String(), "-", "")
 }
@@ -52,6 +55,56 @@ func NewFdoGuid_FIDO() FdoGuid {
 	newFdoGuid[3] = 0x00
 
 	return newFdoGuid
+}
+
+type FdoGuidList []FdoGuid
+
+func (h FdoGuidList) GetRandomBatch(size int64) FdoGuidList {
+	listLen := int64(len(h))
+
+	if listLen == 0 {
+		return FdoGuidList{}
+	}
+
+	randomLoc := NewRandomInt(0, listLen-1)
+
+	if randomLoc+size > listLen {
+		l1len := listLen - randomLoc
+		l1 := h[randomLoc : randomLoc+l1len-1]
+		l2 := h[0 : size-int64(len(l1))]
+
+		return append(l1, l2...)
+	}
+
+	return h[randomLoc : randomLoc+size]
+}
+
+type FdoSeedIDs map[DeviceSgType]FdoGuidList
+
+func (h *FdoSeedIDs) GetTestBatch(size int64) FdoSeedIDs {
+	var newTestBatch FdoSeedIDs = FdoSeedIDs{}
+
+	for k, v := range *h {
+		newTestBatch[k] = v.GetRandomBatch(size)
+	}
+
+	return newTestBatch
+}
+
+func (h *FdoSeedIDs) GetRandomTestGuid() FdoGuid {
+	var randomGuids []FdoGuid = []FdoGuid{}
+
+	for _, v := range *h {
+		if len(v) == 0 {
+			continue
+		}
+
+		randLoc := NewRandomInt(0, int64(len(v))-1)
+		randomGuids = append(randomGuids, v[randLoc])
+	}
+
+	randLoc := NewRandomInt(0, int64(len(randomGuids))-1)
+	return randomGuids[randLoc]
 }
 
 // timestamp = null / UTCStr / UTCInt / TIME_T
@@ -106,4 +159,24 @@ func DecodeErrorResponse(bodyBytes []byte) (*FdoError, error) {
 	}
 
 	return &errInst, nil
+}
+
+func NewRandomInt(min int64, max int64) int64 {
+	if min == 0 || max == 0 {
+		return 0
+	}
+
+	maxBint := new(big.Int).SetInt64(max - min)
+	newRandBint, _ := rand.Int(rand.Reader, maxBint)
+	return min + newRandBint.Int64()
+}
+
+func ByteIdsContain(byteIds [][]byte, byteId []byte) bool {
+	for _, arrItem := range byteIds {
+		if bytes.Equal(arrItem, byteId) {
+			return true
+		}
+	}
+
+	return false
 }
