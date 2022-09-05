@@ -1,7 +1,6 @@
 package dbs
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,23 +14,15 @@ type UserTestDB struct {
 }
 
 type UserTestDBEntry struct {
-	_            struct{} `cbor:",toarray"`
-	Username     string
-	PasswordHash []byte
-	Name         string
-	Company      string
-	Phone        string
-	RVTInsts     [][]byte
-}
-
-func (h *UserTestDBEntry) ContainsRVT(item []byte) bool {
-	for _, arrItem := range h.RVTInsts {
-		if bytes.Equal(arrItem, item) {
-			return true
-		}
-	}
-
-	return false
+	_                 struct{} `cbor:",toarray"`
+	Username          string
+	PasswordHash      []byte
+	Name              string
+	Company           string
+	Phone             string
+	RVT_TO0_Req_Insts [][]byte
+	RVT_TO1_Req_Insts [][]byte
+	DOT_TO2_Req_Insts [][]byte
 }
 
 var userdbpref []byte = []byte("usere-")

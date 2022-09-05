@@ -7,38 +7,38 @@ import (
 	"log"
 	"time"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtdeps"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 )
 
-type RendezvousServerTestDB struct {
-	db *badger.DB
+type RequestTestDB struct {
+	db     *badger.DB
+	prefix []byte
+	ttl    int
 }
 
-var RVT_TTLS int = 60 * 60 * 24 * 183 //6months storage
-
-var rvtdbpref []byte = []byte("rvte-")
-
-func NewRendezvousServerTestDB(db *badger.DB) RendezvousServerTestDB {
-	return RendezvousServerTestDB{
-		db: db,
+func NewRequestTestDB(db *badger.DB) RequestTestDB {
+	return RequestTestDB{
+		db:     db,
+		prefix: []byte("rvte-"),
+		ttl:    60 * 60 * 24 * 183, //6months storage
 	}
 }
 
-func (h *RendezvousServerTestDB) Save(rvte rvtdeps.RendezvousServerTestDBEntry) error {
+func (h *RequestTestDB) Save(rvte req_tests_deps.RequestTestInstDBEntry) error {
 	rvteBytes, err := cbor.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
 	}
 
-	rvteStorageId := append(rvtdbpref, rvte.Uuid...)
+	rvteStorageId := append(h.prefix, rvte.Uuid...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
-	entry := badger.NewEntry(rvteStorageId, rvteBytes).WithTTL(time.Second * time.Duration(RVT_TTLS)) // Session entry will only exist for 10 minutes
+	entry := badger.NewEntry(rvteStorageId, rvteBytes).WithTTL(time.Second * time.Duration(h.ttl)) // Session entry will only exist for 10 minutes
 	err = dbtxn.SetEntry(entry)
 	if err != nil {
 		return errors.New("Failed creating rvte db entry instance. The error is: " + err.Error())
@@ -52,18 +52,18 @@ func (h *RendezvousServerTestDB) Save(rvte rvtdeps.RendezvousServerTestDBEntry) 
 	return nil
 }
 
-func (h *RendezvousServerTestDB) Update(rvtId []byte, rvte rvtdeps.RendezvousServerTestDBEntry) error {
+func (h *RequestTestDB) Update(rvtId []byte, rvte req_tests_deps.RequestTestInstDBEntry) error {
 	rvteBytes, err := cbor.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
 	}
 
-	rvteStorageId := append(rvtdbpref, rvtId...)
+	rvteStorageId := append(h.prefix, rvtId...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
-	entry := badger.NewEntry(rvteStorageId, rvteBytes).WithTTL(time.Second * time.Duration(RVT_TTLS)) // Session entry will only exist for 10 minutes
+	entry := badger.NewEntry(rvteStorageId, rvteBytes).WithTTL(time.Second * time.Duration(h.ttl)) // Session entry will only exist for 10 minutes
 	err = dbtxn.SetEntry(entry)
 	if err != nil {
 		return errors.New("Failed creating rvte db entry instance. The error is: " + err.Error())
@@ -77,8 +77,8 @@ func (h *RendezvousServerTestDB) Update(rvtId []byte, rvte rvtdeps.RendezvousSer
 	return nil
 }
 
-func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtdeps.RendezvousServerTestDBEntry, error) {
-	rvteStorageId := append(rvtdbpref, rvtId...)
+func (h *RequestTestDB) Get(rvtId []byte) (*req_tests_deps.RequestTestInstDBEntry, error) {
+	rvteStorageId := append(h.prefix, rvtId...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -95,7 +95,7 @@ func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtdeps.RendezvousServerTes
 		return nil, errors.New("Failed reading rvte entry value. The error is: " + err.Error())
 	}
 
-	var rvteInst rvtdeps.RendezvousServerTestDBEntry
+	var rvteInst req_tests_deps.RequestTestInstDBEntry
 	err = cbor.Unmarshal(itemBytes, &rvteInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding rvte entry value. The error is: " + err.Error())
@@ -104,8 +104,8 @@ func (h *RendezvousServerTestDB) Get(rvtId []byte) (*rvtdeps.RendezvousServerTes
 	return &rvteInst, nil
 }
 
-func (h *RendezvousServerTestDB) GetMany(rvtids [][]byte) (*[]rvtdeps.RendezvousServerTestDBEntry, error) {
-	var rvts []rvtdeps.RendezvousServerTestDBEntry
+func (h *RequestTestDB) GetMany(rvtids [][]byte) (*[]req_tests_deps.RequestTestInstDBEntry, error) {
+	var rvts []req_tests_deps.RequestTestInstDBEntry
 
 	for _, rvtid := range rvtids {
 		rvt, err := h.Get(rvtid)
@@ -119,17 +119,17 @@ func (h *RendezvousServerTestDB) GetMany(rvtids [][]byte) (*[]rvtdeps.Rendezvous
 	return &rvts, nil
 }
 
-func (h *RendezvousServerTestDB) StartNewRun(rvid []byte) {
+func (h *RequestTestDB) StartNewRun(rvid []byte) {
 	rvte, err := h.Get(rvid)
 	if err != nil {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	newRVTestRun := rvtdeps.NewRVTestRun()
+	newRVTestRun := req_tests_deps.NewRVTestRun()
 
 	rvte.InProgress = true
 	rvte.CurrentTestRun = newRVTestRun
-	rvte.TestsHistory = append([]rvtdeps.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
+	rvte.TestsHistory = append([]req_tests_deps.RVTestRun{newRVTestRun}, rvte.TestsHistory...)
 
 	err = h.Save(*rvte)
 	if err != nil {
@@ -137,7 +137,7 @@ func (h *RendezvousServerTestDB) StartNewRun(rvid []byte) {
 	}
 }
 
-func (h *RendezvousServerTestDB) FinishRun(rvid []byte) {
+func (h *RequestTestDB) FinishRun(rvid []byte) {
 	rvte, err := h.Get(rvid)
 	if err != nil {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
@@ -151,7 +151,7 @@ func (h *RendezvousServerTestDB) FinishRun(rvid []byte) {
 	}
 }
 
-func (h *RendezvousServerTestDB) ReportTest(rvid []byte, testID testcom.FDOTestID, testResult testcom.FDOTestState) {
+func (h *RequestTestDB) ReportTest(rvid []byte, testID testcom.FDOTestID, testResult testcom.FDOTestState) {
 	rvte, err := h.Get(rvid)
 	if err != nil {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
