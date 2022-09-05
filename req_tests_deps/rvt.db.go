@@ -1,25 +1,25 @@
-package rvtdeps
+package req_tests_deps
 
 import (
-	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/google/uuid"
 )
 
-type RendezvousServerTestDBEntry struct {
+type RequestTestInstDBEntry struct {
 	_              struct{} `cbor:",toarray"`
 	Uuid           []byte
 	URL            string
-	VDIs           []fdodeviceimplementation.VDANDV
+	FdoSeedIDs     fdoshared.FdoSeedIDs
 	InProgress     bool
 	CurrentTestRun RVTestRun
 	TestsHistory   []RVTestRun
 }
 
-func NewRVDBTestEntry(url string) RendezvousServerTestDBEntry {
+func NewServerTestEntry(url string) RequestTestInstDBEntry {
 	newUuid, _ := uuid.NewRandom()
 	uuidBytes, _ := newUuid.MarshalBinary()
 
-	return RendezvousServerTestDBEntry{
+	return RequestTestInstDBEntry{
 		Uuid:         uuidBytes,
 		URL:          url,
 		TestsHistory: make([]RVTestRun, 0),

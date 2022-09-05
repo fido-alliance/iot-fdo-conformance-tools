@@ -1,4 +1,4 @@
-package rvtdeps
+package req_tests_deps
 
 import (
 	"time"
