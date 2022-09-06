@@ -119,18 +119,19 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 
 		var hashingAlg crypto.Hash
 		var payloadHash []byte
-		if rsaPubKeyLen == 2048 {
+		if rsaPubKeyLen*8 == 2048 {
+			hashingAlg = crypto.SHA256
 			sPayloadHash := sha256.Sum256(payload)
 			payloadHash = sPayloadHash[:]
-		} else if rsaPubKeyLen == 3072 {
+		} else if rsaPubKeyLen*8 == 3072 {
+			hashingAlg = crypto.SHA384
 			sPayloadHash := sha512.Sum384(payload)
 			payloadHash = sPayloadHash[:]
 		} else {
-			return fmt.Errorf("%d is an unsupported public key length for RSAPKCS", rsaPubKeyLen)
+			return fmt.Errorf("%d is an unsupported public key length for RSAPKCS", rsaPubKeyLen*8)
 		}
 
 		return rsa.VerifyPKCS1v15(rsaPubKey, hashingAlg, payloadHash, signature)
-
 	case RSAPSS:
 		return errors.New("RSAPSS is not currently implemented!")
 	default:
