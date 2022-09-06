@@ -12,14 +12,14 @@ type RequestTestInst struct {
 	_              struct{} `cbor:",toarray"`
 	Uuid           []byte
 	URL            string
-	Protocol       int
+	Protocol       fdoshared.FdoToProtocol
 	FdoSeedIDs     fdoshared.FdoSeedIDs
 	InProgress     bool
 	CurrentTestRun RequestTestRun
 	TestsHistory   []RequestTestRun
 }
 
-func NewRequestTestInst(url string, protocol int) RequestTestInst {
+func NewRequestTestInst(url string, protocol fdoshared.FdoToProtocol) RequestTestInst {
 	newUuid, _ := uuid.NewRandom()
 	uuidBytes, _ := newUuid.MarshalBinary()
 
@@ -34,14 +34,14 @@ func NewRequestTestInst(url string, protocol int) RequestTestInst {
 type RequestTestResultMap map[testcom.FDOTestID]testcom.FDOTestState
 
 type RequestTestRun struct {
-	_         struct{}             `cbor:",toarray"`
-	Uuid      string               `json:"uuid"`
-	Timestamp int64                `json:"timestamp"`
-	Tests     RequestTestResultMap `json:"tests"`
-	Protocol  int                  `json:"protocol"`
+	_         struct{}                `cbor:",toarray"`
+	Uuid      string                  `json:"uuid"`
+	Timestamp int64                   `json:"timestamp"`
+	Tests     RequestTestResultMap    `json:"tests"`
+	Protocol  fdoshared.FdoToProtocol `json:"protocol"`
 }
 
-func NewRVTestRun(protocol int) RequestTestRun {
+func NewRVTestRun(protocol fdoshared.FdoToProtocol) RequestTestRun {
 	newUuid, _ := uuid.NewRandom()
 	uuidStr, _ := newUuid.MarshalText()
 	newRVTestRun := RequestTestRun{

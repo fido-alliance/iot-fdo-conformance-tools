@@ -12,6 +12,7 @@ import (
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
 const FdoSeedIDsBatchSize int64 = 500
@@ -182,8 +183,61 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	RespondSuccessStruct(w, rvtsList)
 }
 
-func (h *RVTestMgmtAPI) Delete(w http.ResponseWriter, r *http.Request) {
-	//TODO
+func (h *RVTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	receivedContentType := r.Header.Get("Content-Type")
+	if receivedContentType != CONTENT_TYPE_JSON {
+		RespondError(w, "Unsupported media types!", http.StatusUnsupportedMediaType)
+	}
+
+	userInst, err := h.checkAutzAndGetUser(r)
+	if err != nil {
+		log.Println("Failed to read cookie. " + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Failed to read body. " + err.Error())
+		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		return
+	}
+
+	var execReq RVT_RequestInfo
+	err = json.Unmarshal(bodyBytes, &execReq)
+	if err != nil {
+		log.Println("Failed to decode body. " + err.Error())
+		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		return
+	}
+
+	if len(execReq.TestRunId) == 0 {
+		log.Println("Missing test run id field")
+		RespondError(w, "Missing test run id field!", http.StatusBadRequest)
+		return
+	}
+
+	rvtId, err := hex.DecodeString(execReq.Id)
+	if err != nil {
+		log.Println("Can not decode hex rvtid " + err.Error())
+		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		return
+	}
+
+	if userInst.RVT_ContainID(rvtId) != nil {
+		log.Println("Id does not belong to user")
+		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		return
+	}
+
+	h.ReqTDB.RemoveTestRun(rvtId, execReq.TestRunId)
+
+	RespondSuccess(w)
 }
 
 func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
@@ -205,7 +259,7 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var execReq RVT_ExecureReq
+	var execReq RVT_RequestInfo
 	err = json.Unmarshal(bodyBytes, &execReq)
 	if err != nil {
 		log.Println("Failed to decode body. " + err.Error())
@@ -233,7 +287,15 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	testexec.ExecuteRVTests(*rvte, h.ReqTDB, h.DevBaseDB)
+	if rvte.Protocol == fdoshared.To0 {
+		testexec.ExecuteRVTestsTo0(*rvte, h.ReqTDB, h.DevBaseDB)
+	} else if rvte.Protocol == fdoshared.To1 {
+		testexec.ExecuteRVTestsTo1(*rvte, h.ReqTDB, h.DevBaseDB)
+	} else {
+		log.Printf("Protocol TO%d is not supported. ", rvte.Protocol)
+		RespondError(w, "Unsupported protocol!", http.StatusBadRequest)
+		return
+	}
 
 	RespondSuccess(w)
 }

@@ -119,10 +119,10 @@ func (h *RequestTestDB) GetMany(rvtids [][]byte) (*[]req_tests_deps.RequestTestI
 	return &rvts, nil
 }
 
-func (h *RequestTestDB) StartNewRun(rvid []byte) {
-	rvte, err := h.Get(rvid)
+func (h *RequestTestDB) StartNewRun(rvteid []byte) {
+	rvte, err := h.Get(rvteid)
 	if err != nil {
-		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvteid))
 	}
 
 	newRVTestRun := req_tests_deps.NewRVTestRun(rvte.Protocol)
@@ -133,28 +133,28 @@ func (h *RequestTestDB) StartNewRun(rvid []byte) {
 
 	err = h.Save(*rvte)
 	if err != nil {
-		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvteid))
 	}
 }
 
-func (h *RequestTestDB) FinishRun(rvid []byte) {
-	rvte, err := h.Get(rvid)
+func (h *RequestTestDB) FinishRun(rvteid []byte) {
+	rvte, err := h.Get(rvteid)
 	if err != nil {
-		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvteid))
 	}
 
 	rvte.InProgress = false
 
 	err = h.Save(*rvte)
 	if err != nil {
-		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvteid))
 	}
 }
 
-func (h *RequestTestDB) ReportTest(rvid []byte, testID testcom.FDOTestID, testResult testcom.FDOTestState) {
-	rvte, err := h.Get(rvid)
+func (h *RequestTestDB) ReportTest(rvteid []byte, testID testcom.FDOTestID, testResult testcom.FDOTestState) {
+	rvte, err := h.Get(rvteid)
 	if err != nil {
-		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvteid))
 	}
 
 	rvte.CurrentTestRun.Tests[testID] = testResult
@@ -162,6 +162,27 @@ func (h *RequestTestDB) ReportTest(rvid []byte, testID testcom.FDOTestID, testRe
 
 	err = h.Save(*rvte)
 	if err != nil {
-		log.Printf("%s error saving test entry.", hex.EncodeToString(rvid))
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvteid))
+	}
+}
+
+func (h *RequestTestDB) RemoveTestRun(rvteid []byte, testRunId string) {
+	rvte, err := h.Get(rvteid)
+	if err != nil {
+		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvteid))
+	}
+
+	var updatedTestsHistory []req_tests_deps.RequestTestRun = []req_tests_deps.RequestTestRun{}
+	for _, testRunEntry := range rvte.TestsHistory {
+		if testRunEntry.Uuid != testRunId {
+			updatedTestsHistory = append(updatedTestsHistory, testRunEntry)
+		}
+	}
+
+	rvte.TestsHistory = updatedTestsHistory
+
+	err = h.Save(*rvte)
+	if err != nil {
+		log.Printf("%s error saving test entry.", hex.EncodeToString(rvteid))
 	}
 }
