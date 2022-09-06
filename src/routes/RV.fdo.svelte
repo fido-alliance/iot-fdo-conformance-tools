@@ -1,5 +1,5 @@
 <script>
-    import {getRVTsList, addNewRv, executeRvTests} from '../lib/RVTest.api'
+    import {getRVTsList, removeTestRun, addNewRv, executeRvTests} from '../lib/RVTest.api'
     import {ensureUserIsLoggedIn} from '../lib/User.api'
 
     ensureUserIsLoggedIn()
@@ -41,7 +41,6 @@
     }
 
     let rvTestExecuteErrorMessage = ""
-
     const handleRvTestExecuteTo0 = async(e) => {
         e.preventDefault()
 
@@ -74,6 +73,18 @@
         }, 1250)
     }
 
+
+    const handleRemoveTestRun = async(id, protocol) => {
+        try {
+            if(protocol == 0) {
+                await removeTestRun(rvtMap[selectedRVTUuid].to0.id, id)
+            } else {
+                await removeTestRun(rvtMap[selectedRVTUuid].to1.id, id)
+            }
+        } catch(e) {
+            rvTestExecuteErrorMessage = "Error removing test run. " + e
+        }
+    }
 
 
 /* ----- Handle New RV ----- */
@@ -144,10 +155,10 @@
                         <section class="rvt-mgmt">
                             <div class="row paddtobbottom">
                                 <div class="col-6 col-12-xsmall">
-                                    <a href="#" on:click={handleRvTestExecuteTo0} class="button primary fit small exec">Execute To0</a>
+                                    <a href="#" on:click|preventDefault={handleRvTestExecuteTo0} class="button primary fit small exec">Execute To0</a>
                                 </div>
                                 <div class="col-6 col-12-xsmall">
-                                    <a href="#" on:click={handleRvTestExecuteTo1} class="button primary fit small exec">Execute To1</a>
+                                    <a href="#" on:click|preventDefault={handleRvTestExecuteTo1} class="button primary fit small exec">Execute To1</a>
                                 </div>
                                 <div class="col-12 col-12-xsmall">
                                     <p class="rvt-info">{rvTestExecuteErrorMessage}</p>
@@ -158,7 +169,7 @@
                                 <div class="row">
                                     <div class="col-12 col-12-xsmall">
                                         <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
-                                        <label for="trun-radio-{run.uuid}">TO{run.protocol} {(new Date(run.timestamp * 1000)).toLocaleString()}</label>
+                                        <label for="trun-radio-{run.uuid}">TO{run.protocol} {(new Date(run.timestamp * 1000)).toLocaleString()} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.uuid, run.protocol)} value="{run.uuid}">X</a></label>
                                     </div>
                                 </div>
                                 {/each}
