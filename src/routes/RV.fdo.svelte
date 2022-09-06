@@ -1,47 +1,38 @@
 <script>
-    import {getRVTsListTo0, getRVTsListTo1, addNewRv, executeRvTests} from '../lib/RVTest.api'
+    import {getRVTsList, addNewRv, executeRvTests} from '../lib/RVTest.api'
     import {ensureUserIsLoggedIn} from '../lib/User.api'
 
     ensureUserIsLoggedIn()
 
-    let rvtListDir = {}
-    let selectedRVT = ""
-
-    let rvtTestRunDirTo0 = {}
+    let selectedRVTUuid = ""
     let selectedTestRunUuid = ""
 
-    let rvtTestRunDirTo1 = {}
+    let testRunMap = {}
+    let rvtMap = {}
 
+    console.log(testRunMap)
 
     let errorMsg = ""
     const refreshRvtList = async() => {
         try {
-            let rvtListTo0 = await getRVTsListTo0()
-            let rvtListTo1 = await getRVTsListTo1()
+            let rvtList = await getRVTsList()
 
-            rvtListDir = {}
-            rvtTestRunDirTo0 = {}
-            for(let rvt of rvtListTo0) {
-                rvtListDir[rvt.id] = rvt
-                
-                for(let trun of rvt.runs) {
-                    rvtTestRunDirTo0[trun.uuid] = trun
+            for(let rvt of rvtList) {
+                rvtMap[rvt.id] = rvt
+
+                for(let testRun of rvt.to0.runs) {
+                    testRunMap[testRun.uuid] = testRun
+                }
+
+                for(let testRun of rvt.to1.runs) {
+                    testRunMap[testRun.uuid] = testRun
                 }
             }
+
             
-            rvtListDir = {}
-            rvtTestRunDirTo1 = {}
-            for(let rvt of rvtListTo1) {
-                rvtListDir[rvt.id] = rvt
-                
-                for(let trun of rvt.runs) {
-                    rvtTestRunDirTo1[trun.uuid] = trun
-                }
-            }
         } catch(err) {
             errorMsg = err; // TypeError: failed to fetch
         }
-
     }
 
     const handleSelect = async(e) => {
@@ -50,12 +41,29 @@
     }
 
     let rvTestExecuteErrorMessage = ""
-    const handleRvTestExecute = async(e) => {
+
+    const handleRvTestExecuteTo0 = async(e) => {
         e.preventDefault()
 
         rvTestExecuteErrorMessage = "Executing..."
         try {
-            await executeRvTests(selectedRVT)
+            await executeRvTests(rvtMap[selectedRVTUuid].to0.id)
+            rvTestExecuteErrorMessage = "Success"
+        } catch(e) {
+            rvTestExecuteErrorMessage = "Error executing RV. " + e
+        }
+
+        setTimeout(() => { 
+            rvTestExecuteErrorMessage = ""
+        }, 1250)
+    }
+
+    const handleRvTestExecuteTo1 = async(e) => {
+        e.preventDefault()
+
+        rvTestExecuteErrorMessage = "Executing..."
+        try {
+            await executeRvTests(rvtMap[selectedRVTUuid].to1.id)
             rvTestExecuteErrorMessage = "Success"
         } catch(e) {
             rvTestExecuteErrorMessage = "Error executing RV. " + e
@@ -126,28 +134,31 @@
             <h2>Available RVs for testing</h2>
             <!-- {selectedRVT}
             {selectedTestRunUuid} -->
-            {#each Object.keys(rvtListDir) as rvtk}
+            {#each Object.keys(rvtMap) as rvtk}
                 <div class="row">
                     <div class="col-12 col-12-xsmall">
-                        <input type="radio" id="rvt-radio-{rvtListDir[rvtk].id}" on:click={handleSelect} value="{rvtListDir[rvtk].id}" name="rvts-radio" bind:group={selectedRVT}>
-                        <label for="rvt-radio-{rvtListDir[rvtk].id}">{rvtListDir[rvtk].url}</label>
+                        <input type="radio" id="rvt-radio-{rvtMap[rvtk].id}" on:click={handleSelect} value="{rvtMap[rvtk].id}" name="rvts-radio" bind:group={selectedRVTUuid}>
+                        <label for="rvt-radio-{rvtMap[rvtk].id}">{rvtMap[rvtk].url}</label>
 
-                        {#if selectedRVT === rvtListDir[rvtk].id}
+                        {#if selectedRVTUuid === rvtMap[rvtk].id}
                         <section class="rvt-mgmt">
                             <div class="row paddtobbottom">
-                                <div class="col-12 col-12-xsmall">
-                                    <a href="#" on:click={handleRvTestExecute} class="button primary fit small exec">Execute</a>
+                                <div class="col-6 col-12-xsmall">
+                                    <a href="#" on:click={handleRvTestExecuteTo0} class="button primary fit small exec">Execute To0</a>
+                                </div>
+                                <div class="col-6 col-12-xsmall">
+                                    <a href="#" on:click={handleRvTestExecuteTo1} class="button primary fit small exec">Execute To1</a>
                                 </div>
                                 <div class="col-12 col-12-xsmall">
                                     <p class="rvt-info">{rvTestExecuteErrorMessage}</p>
                                 </div>
                             </div>
-                            {#if rvtListDir[rvtk].runs.length > 0}
-                                {#each rvtListDir[rvtk].runs as run}
+                            {#if rvtMap[rvtk].to0.runs.length > 0}
+                                {#each rvtMap[rvtk].to0.runs as run}
                                 <div class="row">
                                     <div class="col-12 col-12-xsmall">
                                         <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
-                                        <label for="trun-radio-{run.uuid}">{(new Date(run.timestamp * 1000)).toLocaleString()}</label>
+                                        <label for="trun-radio-{run.uuid}">TO{run.protocol} {(new Date(run.timestamp * 1000)).toLocaleString()}</label>
                                     </div>
                                 </div>
                                 {/each}
@@ -196,9 +207,9 @@
         </div>
         <div class="col-8 col-12-xsmall">
             {#if selectedTestRunUuid !== ""}
-                <h2>Tests info for {rvtListDir[selectedRVT].url} at {(new Date(rvtTestRunDirTo0[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h2>
+                <h2>TO{testRunMap[selectedTestRunUuid].protocol} Tests info for {rvtMap[selectedRVTUuid].url} at {(new Date(testRunMap[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h2>
 
-                {#each Object.keys(rvtTestRunDirTo0[selectedTestRunUuid].tests) as rvtest}
+                {#each Object.keys(testRunMap[selectedTestRunUuid].tests) as rvtest}
                 
                 <div class="row rvt-test-case">
         
@@ -206,14 +217,14 @@
                         <p>{rvtest}</p>
                     </div>
                     <div class="col-3 col-12-xsmall">
-                        {#if rvtTestRunDirTo0[selectedTestRunUuid].tests[rvtest].passed}
+                        {#if testRunMap[selectedTestRunUuid].tests[rvtest].passed}
                             <p class="success">Passed</p>
                         {:else}
                             <p class="failed">Failed</p>
                         {/if}
                     </div>
                     <div class="col-12 col-12-xsmall">
-                        <p><b>{rvtTestRunDirTo0[selectedTestRunUuid].tests[rvtest].error}</b></p>
+                        <p><b>{testRunMap[selectedTestRunUuid].tests[rvtest].error}</b></p>
                     </div>
                 </div>
                 {/each}

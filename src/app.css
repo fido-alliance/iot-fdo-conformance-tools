@@ -3,6 +3,11 @@ body {
   background-image: url("/public/css/images/overlay.png"), linear-gradient(45deg, #ffbf3b 50%, #000000 85%);
 }
 
+#footer {
+  padding: 2.5em  2.5em  2.5em  1.5em ;
+
+}
+
 nav > ul > li {
   float: left;
 }
