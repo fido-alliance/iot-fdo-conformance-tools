@@ -184,14 +184,22 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) (*De
 		return nil, err
 	}
 
-	// Generate new oventry
-
 	oveHdrInfo := append(newDi.DCGuid[:], []byte(newDi.DCDeviceInfo)...)
 	oveHdrInfoHash, _ := fdoshared.GenerateFdoHash(oveHdrInfo, newDi.DCHashAlg)
 
-	headerHmacBytes, _ := cbor.Marshal(ovHeaderHmac)
+	headerHmacBytes, err := cbor.Marshal(ovHeaderHmac)
+	if err != nil {
+		log.Println("Error generating hash: ", err.Error())
+		return nil, err
+	}
+
 	prevEntryPayloadBytes := append(ovHeaderBytes, headerHmacBytes...)
-	prevEntryHash, _ := fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
+
+	prevEntryHash, err := fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
+	if err != nil {
+		log.Println("Error generating hash: ", err.Error())
+		return nil, err
+	}
 
 	ovEntryPrivateKeyBytes, firstOvEntry, err := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, deviceCredBase.DCSgType)
 	if err != nil {
