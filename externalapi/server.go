@@ -9,13 +9,17 @@ import (
 
 func SetupServer(db *badger.DB) {
 	userDb := dbs.NewUserTestDB(db)
-	rvtDb := dbs.NewRendezvousServerTestDB(db)
+	rvtDb := dbs.NewRequestTestDB(db)
 	sessionDb := dbs.NewSessionDB(db)
+	configDb := dbs.NewConfigDB(db)
+	devBaseDb := dbs.NewDeviceBaseDB(db)
 
 	rvtApiHandler := RVTestMgmtAPI{
 		UserDB:    &userDb,
-		RvtDB:     &rvtDb,
+		ReqTDB:    &rvtDb,
 		SessionDB: &sessionDb,
+		ConfigDB:  &configDb,
+		DevBaseDB: &devBaseDb,
 	}
 
 	userApiHandler := UserAPI{
@@ -34,5 +38,4 @@ func SetupServer(db *badger.DB) {
 
 	// http.Handle("/", http.FileServer(http.Dir("./_static")))
 	http.HandleFunc("/", ProxyDevUI)
-
 }

@@ -1,8 +1,11 @@
 package dbs
 
 import (
+	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/dgraph-io/badger/v3"
@@ -14,6 +17,19 @@ type UserTestDB struct {
 	prefix []byte
 }
 
+type RVTestInst struct {
+	_   struct{} `cbor:",toarray"`
+	Url string
+	To0 []byte
+	To1 []byte
+}
+
+type DOTestInst struct {
+	_   struct{} `cbor:",toarray"`
+	Url string
+	To2 []byte
+}
+
 type UserTestDBEntry struct {
 	_            struct{} `cbor:",toarray"`
 	Username     string
@@ -21,10 +37,18 @@ type UserTestDBEntry struct {
 	Name         string
 	Company      string
 	Phone        string
+	RVTestInsts  []RVTestInst
+	DOTestInsts  []DOTestInst
+}
 
-	RVT_TO0_Req_Insts [][]byte
-	RVT_TO1_Req_Insts [][]byte
-	DOT_TO2_Req_Insts [][]byte
+func (h *UserTestDBEntry) RVT_ContainID(rvtid []byte) error {
+	for _, rvt := range h.RVTestInsts {
+		if bytes.Equal(rvt.To0, rvtid) || bytes.Equal(rvt.To1, rvtid) {
+			return nil
+		}
+	}
+
+	return errors.New("ID not found")
 }
 
 func NewUserTestDB(db *badger.DB) UserTestDB {
@@ -88,4 +112,34 @@ func (h *UserTestDB) Get(username string) (*UserTestDBEntry, error) {
 	}
 
 	return &usertEntryInst, nil
+}
+
+func (h *UserTestDB) ResetUsers() error {
+	dbtxn := h.db.NewTransaction(true)
+	defer dbtxn.Discard()
+
+	iterTxn := dbtxn.NewIterator(badger.IteratorOptions{
+		Prefix: h.prefix,
+	})
+
+	for iterTxn.Rewind(); iterTxn.Valid(); iterTxn.Next() {
+		item := iterTxn.Item()
+		k := item.Key()
+
+		log.Println("Deleting... " + hex.EncodeToString(k))
+
+		err := dbtxn.Delete(k)
+		if err != nil {
+			log.Println("Error creater delete req... " + hex.EncodeToString(k))
+		}
+
+		err = dbtxn.Commit()
+		if err != nil {
+			log.Println("Failed to commit delete req... " + hex.EncodeToString(k))
+		}
+	}
+
+	iterTxn.Close()
+
+	return nil
 }

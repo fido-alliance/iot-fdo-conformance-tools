@@ -10,15 +10,18 @@ import (
 	"net/url"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/rvtdeps"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 )
 
+const FdoSeedIDsBatchSize int64 = 500
+
 type RVTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB
-	RvtDB     *dbs.RendezvousServerTestDB
+	ReqTDB    *dbs.RequestTestDB
+	DevBaseDB *dbs.DeviceBaseDB
 	SessionDB *dbs.SessionDB
+	ConfigDB  *dbs.ConfigDB
 }
 
 func (h *RVTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEntry, error) {
@@ -85,24 +88,40 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vdis, err := testcom.GenerateTestVoucherSet()
+	rvUrl := parsedUrl.Scheme + "://" + parsedUrl.Host
+
+	mainConfig, err := h.ConfigDB.Get()
 	if err != nil {
 		log.Println("Failed to generate VDIs. " + err.Error())
 		RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	newRVTest := rvtdeps.NewRVDBTestEntry(parsedUrl.Scheme + "://" + parsedUrl.Host)
-	newRVTest.VDIs = vdis
-
-	err = h.RvtDB.Save(newRVTest)
+	newRVTestTo0 := req_tests_deps.NewRequestTestInst(rvUrl)
+	newRVTestTo0.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
+	err = h.ReqTDB.Save(newRVTestTo0)
 	if err != nil {
 		log.Println("Failed to save rvte. " + err.Error())
 		RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	userInst.RVTInsts = append(userInst.RVTInsts, newRVTest.Uuid)
+	newRVTestTo1 := req_tests_deps.NewRequestTestInst(rvUrl)
+	newRVTestTo1.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
+	err = h.ReqTDB.Save(newRVTestTo1)
+	if err != nil {
+		log.Println("Failed to save rvte. " + err.Error())
+		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	userInst.RVTestInsts = []dbs.RVTestInst{
+		{
+			Url: rvUrl,
+			To0: newRVTestTo0.Uuid,
+			To1: newRVTestTo1.Uuid,
+		},
+	}
 
 	err = h.UserDB.Save(userInst.Username, *userInst)
 	if err != nil {
@@ -127,23 +146,36 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rvts, err := h.RvtDB.GetMany(userInst.RVTInsts)
-	if err != nil {
-		log.Println("Error reading rvts. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
-		return
+	var rvtsList RVT_ListRvts
+
+	for _, rvtInfo := range userInst.RVTestInsts {
+		var rvtItem RVT_Item
+
+		rvtsInfoPayloadsPtr, err := h.ReqTDB.GetMany([][]byte{rvtInfo.To0, rvtInfo.To1})
+		if err != nil {
+			log.Println("Error reading rvts. " + err.Error())
+			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		rvtsInfoPayloads := *rvtsInfoPayloadsPtr
+
+		rvtItem.To0 = RVT_InstInfo{
+			Id:         hex.EncodeToString(rvtsInfoPayloads[0].Uuid),
+			Runs:       rvtsInfoPayloads[0].TestsHistory,
+			InProgress: rvtsInfoPayloads[0].InProgress,
+		}
+
+		rvtItem.To1 = RVT_InstInfo{
+			Id:         hex.EncodeToString(rvtsInfoPayloads[1].Uuid),
+			Runs:       rvtsInfoPayloads[1].TestsHistory,
+			InProgress: rvtsInfoPayloads[1].InProgress,
+		}
+
+		rvtsList.RVTItems = append(rvtsList.RVTItems, rvtItem)
+
 	}
 
-	var rvtsList RVT_ListRvts
-	rvtsList.Rvts = make([]RVT_Inst, 0)
-	for _, rvt := range *rvts {
-		rvtsList.Rvts = append(rvtsList.Rvts, RVT_Inst{
-			Id:         hex.EncodeToString(rvt.Uuid),
-			Url:        rvt.URL,
-			TestRuns:   rvt.TestsHistory,
-			InProgress: rvt.InProgress,
-		})
-	}
 	rvtsList.Status = FdoApiStatus_OK
 
 	RespondSuccessStruct(w, rvtsList)
@@ -187,20 +219,20 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !userInst.ContainsRVT(rvtId) {
+	if userInst.RVT_ContainID(rvtId) != nil {
 		log.Println("Id does not belong to user")
 		RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
-	rvte, err := h.RvtDB.Get(rvtId)
+	rvte, err := h.ReqTDB.Get(rvtId)
 	if err != nil {
 		log.Println("Can get RVT entry. " + err.Error())
 		RespondError(w, "Internal server error!", http.StatusBadRequest)
 		return
 	}
 
-	testexec.ExecuteRVTests(*rvte, h.RvtDB)
+	testexec.ExecuteRVTests(*rvte, h.ReqTDB, h.DevBaseDB)
 
 	RespondSuccess(w)
 }
