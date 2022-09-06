@@ -12,13 +12,14 @@ type RequestTestInst struct {
 	_              struct{} `cbor:",toarray"`
 	Uuid           []byte
 	URL            string
+	Protocol       int
 	FdoSeedIDs     fdoshared.FdoSeedIDs
 	InProgress     bool
 	CurrentTestRun RequestTestRun
 	TestsHistory   []RequestTestRun
 }
 
-func NewRequestTestInst(url string) RequestTestInst {
+func NewRequestTestInst(url string, protocol int) RequestTestInst {
 	newUuid, _ := uuid.NewRandom()
 	uuidBytes, _ := newUuid.MarshalBinary()
 
@@ -26,6 +27,7 @@ func NewRequestTestInst(url string) RequestTestInst {
 		Uuid:         uuidBytes,
 		URL:          url,
 		TestsHistory: make([]RequestTestRun, 0),
+		Protocol:     protocol,
 	}
 }
 
@@ -36,15 +38,17 @@ type RequestTestRun struct {
 	Uuid      string               `json:"uuid"`
 	Timestamp int64                `json:"timestamp"`
 	Tests     RequestTestResultMap `json:"tests"`
+	Protocol  int                  `json:"protocol"`
 }
 
-func NewRVTestRun() RequestTestRun {
+func NewRVTestRun(protocol int) RequestTestRun {
 	newUuid, _ := uuid.NewRandom()
 	uuidStr, _ := newUuid.MarshalText()
 	newRVTestRun := RequestTestRun{
 		Uuid:      string(uuidStr),
 		Timestamp: time.Now().Unix(),
 		Tests:     RequestTestResultMap{},
+		Protocol:  protocol,
 	}
 
 	return newRVTestRun

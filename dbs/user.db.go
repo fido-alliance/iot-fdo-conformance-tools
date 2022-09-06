@@ -10,6 +10,7 @@ import (
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
+	"github.com/google/uuid"
 )
 
 type UserTestDB struct {
@@ -18,16 +19,30 @@ type UserTestDB struct {
 }
 
 type RVTestInst struct {
-	_   struct{} `cbor:",toarray"`
-	Url string
-	To0 []byte
-	To1 []byte
+	_    struct{} `cbor:",toarray"`
+	Uuid []byte
+	Url  string
+	To0  []byte
+	To1  []byte
+}
+
+func NewRVTestInst(url string, to0 []byte, to1 []byte) RVTestInst {
+	newUuid, _ := uuid.NewRandom()
+	uuidBytes, _ := newUuid.MarshalBinary()
+
+	return RVTestInst{
+		Uuid: uuidBytes,
+		Url:  url,
+		To0:  to0,
+		To1:  to1,
+	}
 }
 
 type DOTestInst struct {
-	_   struct{} `cbor:",toarray"`
-	Url string
-	To2 []byte
+	_    struct{} `cbor:",toarray"`
+	Uuid []byte
+	Url  string
+	To2  []byte
 }
 
 type UserTestDBEntry struct {

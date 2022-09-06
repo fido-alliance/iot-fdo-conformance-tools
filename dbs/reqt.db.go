@@ -125,7 +125,7 @@ func (h *RequestTestDB) StartNewRun(rvid []byte) {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvid))
 	}
 
-	newRVTestRun := req_tests_deps.NewRVTestRun()
+	newRVTestRun := req_tests_deps.NewRVTestRun(rvte.Protocol)
 
 	rvte.InProgress = true
 	rvte.CurrentTestRun = newRVTestRun

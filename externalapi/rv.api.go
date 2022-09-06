@@ -97,7 +97,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newRVTestTo0 := req_tests_deps.NewRequestTestInst(rvUrl)
+	newRVTestTo0 := req_tests_deps.NewRequestTestInst(rvUrl, 0)
 	newRVTestTo0.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
 	err = h.ReqTDB.Save(newRVTestTo0)
 	if err != nil {
@@ -106,7 +106,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newRVTestTo1 := req_tests_deps.NewRequestTestInst(rvUrl)
+	newRVTestTo1 := req_tests_deps.NewRequestTestInst(rvUrl, 1)
 	newRVTestTo1.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
 	err = h.ReqTDB.Save(newRVTestTo1)
 	if err != nil {
@@ -115,13 +115,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInst.RVTestInsts = []dbs.RVTestInst{
-		{
-			Url: rvUrl,
-			To0: newRVTestTo0.Uuid,
-			To1: newRVTestTo1.Uuid,
-		},
-	}
+	userInst.RVTestInsts = append(userInst.RVTestInsts, dbs.NewRVTestInst(rvUrl, newRVTestTo0.Uuid, newRVTestTo1.Uuid))
 
 	err = h.UserDB.Save(userInst.Username, *userInst)
 	if err != nil {
@@ -146,10 +140,15 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rvtsList RVT_ListRvts
+	var rvtsList RVT_ListRvts = RVT_ListRvts{
+		RVTItems: []RVT_Item{},
+	}
 
 	for _, rvtInfo := range userInst.RVTestInsts {
-		var rvtItem RVT_Item
+		var rvtItem RVT_Item = RVT_Item{
+			Id:  hex.EncodeToString(rvtInfo.Uuid),
+			Url: rvtInfo.Url,
+		}
 
 		rvtsInfoPayloadsPtr, err := h.ReqTDB.GetMany([][]byte{rvtInfo.To0, rvtInfo.To1})
 		if err != nil {
@@ -164,12 +163,14 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 			Id:         hex.EncodeToString(rvtsInfoPayloads[0].Uuid),
 			Runs:       rvtsInfoPayloads[0].TestsHistory,
 			InProgress: rvtsInfoPayloads[0].InProgress,
+			Protocol:   rvtsInfoPayloads[0].Protocol,
 		}
 
 		rvtItem.To1 = RVT_InstInfo{
 			Id:         hex.EncodeToString(rvtsInfoPayloads[1].Uuid),
 			Runs:       rvtsInfoPayloads[1].TestsHistory,
 			InProgress: rvtsInfoPayloads[1].InProgress,
+			Protocol:   rvtsInfoPayloads[1].Protocol,
 		}
 
 		rvtsList.RVTItems = append(rvtsList.RVTItems, rvtItem)

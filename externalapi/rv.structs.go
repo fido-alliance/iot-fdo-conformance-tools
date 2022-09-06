@@ -12,9 +12,11 @@ type RVT_InstInfo struct {
 	Id         string                          `json:"id"`
 	Runs       []req_tests_deps.RequestTestRun `json:"runs"`
 	InProgress bool                            `json:"inprogress"`
+	Protocol   int                             `json:"protocol"`
 }
 
 type RVT_Item struct {
+	Id  string       `json:"id"`
 	Url string       `json:"url"`
 	To0 RVT_InstInfo `json:"to0"`
 	To1 RVT_InstInfo `json:"to1"`

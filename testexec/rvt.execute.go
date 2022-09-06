@@ -19,7 +19,7 @@ var rv22Tests []testcom.FDOTestID = []testcom.FDOTestID{
 	testcom.FIDO_RVT_23_POSITIVE,
 }
 
-func ExecuteRVTests(reqte req_tests_deps.RequestTestInstDBEntry, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
+func ExecuteRVTests(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	for _, rv20test := range rv20Tests {
