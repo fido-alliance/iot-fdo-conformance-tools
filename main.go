@@ -1,19 +1,23 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	fdodo "github.com/WebauthnWorks/fdo-do"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi"
 	fdorv "github.com/WebauthnWorks/fdo-rv"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/urfave/cli/v2"
 )
 
 const PORT = 8080
+const SeedingSize = 100000
 
 func main() {
 	options := badger.DefaultOptions("./badger.local.db")
@@ -29,7 +33,7 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:  "serve",
-				Usage: "Starts do",
+				Usage: "Starts conformance server",
 				Action: func(c *cli.Context) error {
 					// Setup FDO listeners
 					fdodo.SetupServer(db)
@@ -46,46 +50,56 @@ func main() {
 				},
 			},
 			{
-				Name:  "testto0",
-				Usage: "",
+				Name:      "seed",
+				Usage:     "Seed FDO Cred Base",
+				UsageText: "Generates one hundred thousand cred bases to be used in testing",
 				Action: func(c *cli.Context) error {
+					devbasedb := dbs.NewDeviceBaseDB(db)
+					configdb := dbs.NewConfigDB(db)
 
-					// voucherDb := fdodbs.NewVoucherDB(db)
+					newConfig := dbs.MainConfig{
+						SeededGuids: fdoshared.FdoSeedIDs{},
+					}
+					for _, sgType := range fdoshared.DeviceSgTypeList {
+						newConfig.SeededGuids[sgType] = []fdoshared.FdoGuid{}
 
-					// vouchers, err := fdodo.LoadLocalVouchers()
-					// if err != nil {
-					// 	log.Panic(err)
-					// }
+						if sgType == fdoshared.StEPID10 || sgType == fdoshared.StEPID11 {
+							log.Println("EPID is not currently supported!")
+							continue
+						}
 
-					// for _, voucher := range vouchers {
-					// 	to0requestor := fdodo.NewTo0Requestor(fdodo.RVEntry{
-					// 		RVURL:       "http://localhost:8083",
-					// 		AccessToken: "",
-					// 	}, voucher)
+						log.Printf("----- SgType %d. -----\n", sgType)
+						getSgAlgInfo, err := fdoshared.GetAlgInfoFromSgType(sgType)
+						if err != nil {
+							return errors.New("Error getting AlgInfo. " + err.Error())
+						}
 
-					// 	helloack21, err := to0requestor.Hello20()
-					// 	if err != nil {
-					// 		log.Panic(err)
-					// 	}
+						for i := 0; i < SeedingSize; i++ {
+							log.Printf("No %d: Generating device base %d... ", i, sgType)
+							newDeviceBase, err := fdoshared.NewWawDeviceCredBase(getSgAlgInfo.HmacType, sgType)
+							if err != nil {
+								return fmt.Errorf("Error generating device base for sgType %d. " + err.Error())
+							}
 
-					// 	acceptOwner23, err := to0requestor.OwnerSign22(helloack21.NonceTO0Sign)
-					// 	if err != nil {
-					// 		log.Panic(err)
-					// 	}
+							err = devbasedb.Save(*newDeviceBase)
+							if err != nil {
+								return fmt.Errorf("Error saving device base. " + err.Error())
+							}
 
-					// 	err = voucherDb.Save(fdoshared.VoucherDBEntry{
-					// 		Voucher:        voucher.Voucher,
-					// 		PrivateKeyX509: voucher.PrivateKeyX509,
-					// 	})
-					// 	if err != nil {
-					// 		log.Panic(err)
-					// 	}
+							newConfig.SeededGuids[sgType] = append(newConfig.SeededGuids[sgType], newDeviceBase.FdoGuid)
 
-					// 	ovHeader, _ := voucher.Voucher.GetOVHeader()
+							log.Println("OK\n")
+						}
+					}
 
-					// 	log.Println(acceptOwner23)
-					// 	log.Println(hex.EncodeToString(ovHeader.OVGuid[:]))
-					// }
+					err = configdb.Save(newConfig)
+					if err != nil {
+						return fmt.Errorf("Error saving config. " + err.Error())
+					}
+
+					return nil
+				},
+			},
 
 					return nil
 				},
