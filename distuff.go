@@ -231,10 +231,8 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 }
 
 func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredential, error) {
-
 	// Generate HmacSecret
 	var hmacSecret []byte
-	var dcHashAlg HashType
 	rand.Read(hmacSecret)
 
 	dcSigInfo := SigInfo{
@@ -246,7 +244,7 @@ func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredent
 		DCProtVer:    ProtVer101,
 		DCHmacSecret: hmacSecret,
 		DCHmacAlg:    deviceCredBase.DCHmacAlg,
-		DCHashAlg:    dcHashAlg,
+		DCHashAlg:    deviceCredBase.DCCertificateChainHash.Type,
 		DCDeviceInfo: "I am a virtual FIDO Alliance device!",
 		DCGuid:       deviceCredBase.FdoGuid,
 		DCSigInfo:    dcSigInfo,
