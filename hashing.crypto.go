@@ -18,6 +18,13 @@ const (
 	HASH_HMAC_SHA384 HashType = 6
 )
 
+var HashHmacAlgs []HashType = []HashType{
+	HASH_SHA256,
+	HASH_SHA384,
+	HASH_HMAC_SHA256,
+	HASH_HMAC_SHA384,
+}
+
 type HashOrHmac struct {
 	_    struct{} `cbor:",toarray"`
 	Type HashType

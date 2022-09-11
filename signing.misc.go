@@ -91,6 +91,14 @@ const (
 	SECP384R1    FdoPkType = 11 // ECDSA secp384r1 = NIST-P-384
 )
 
+var FdoPkType_List []FdoPkType = []FdoPkType{
+	RSA2048RESTR,
+	RSAPKCS,
+	RSAPSS,
+	SECP256R1,
+	SECP384R1,
+}
+
 const (
 	SECP256R1_SIG_LEN int = 64
 	SECP384R1_SIG_LEN int = 96
@@ -99,11 +107,18 @@ const (
 type FdoPkEnc uint8
 
 const (
-	Crypto  FdoPkEnc = 0
+	Crypto  FdoPkEnc = 0 // TODO: EPID
 	X509    FdoPkEnc = 1
 	X5CHAIN FdoPkEnc = 2
 	COSEKEY FdoPkEnc = 3
 )
+
+var FdoPkEnc_List []FdoPkEnc = []FdoPkEnc{
+	// Crypto, // TODO: EPID
+	X509,
+	X5CHAIN,
+	COSEKEY,
+}
 
 type FdoPublicKey struct {
 	_      struct{} `cbor:",toarray"`
@@ -146,8 +161,8 @@ var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
 	StSECP384R1,
 	StRSA2048,
 	StRSA3072,
-	StEPID10,
-	StEPID11,
+	// StEPID10, // TODO
+	// StEPID11,
 }
 
 type SigInfo struct {

@@ -59,8 +59,8 @@ func NewFdoGuid_FIDO() FdoGuid {
 
 type FdoGuidList []FdoGuid
 
-func (h FdoGuidList) GetRandomBatch(size int64) FdoGuidList {
-	listLen := int64(len(h))
+func (h FdoGuidList) GetRandomBatch(size int) FdoGuidList {
+	listLen := len(h)
 
 	if listLen == 0 {
 		return FdoGuidList{}
@@ -71,7 +71,7 @@ func (h FdoGuidList) GetRandomBatch(size int64) FdoGuidList {
 	if randomLoc+size > listLen {
 		l1len := listLen - randomLoc
 		l1 := h[randomLoc : randomLoc+l1len-1]
-		l2 := h[0 : size-int64(len(l1))]
+		l2 := h[0 : size-len(l1)]
 
 		return append(l1, l2...)
 	}
@@ -81,7 +81,7 @@ func (h FdoGuidList) GetRandomBatch(size int64) FdoGuidList {
 
 type FdoSeedIDs map[DeviceSgType]FdoGuidList
 
-func (h *FdoSeedIDs) GetTestBatch(size int64) FdoSeedIDs {
+func (h *FdoSeedIDs) GetTestBatch(size int) FdoSeedIDs {
 	var newTestBatch FdoSeedIDs = FdoSeedIDs{}
 
 	for k, v := range *h {
@@ -99,11 +99,11 @@ func (h *FdoSeedIDs) GetRandomTestGuid() FdoGuid {
 			continue
 		}
 
-		randLoc := NewRandomInt(0, int64(len(v))-1)
+		randLoc := NewRandomInt(0, len(v)-1)
 		randomGuids = append(randomGuids, v[randLoc])
 	}
 
-	randLoc := NewRandomInt(0, int64(len(randomGuids))-1)
+	randLoc := NewRandomInt(0, len(randomGuids)-1)
 	return randomGuids[randLoc]
 }
 
@@ -161,14 +161,14 @@ func DecodeErrorResponse(bodyBytes []byte) (*FdoError, error) {
 	return &errInst, nil
 }
 
-func NewRandomInt(min int64, max int64) int64 {
+func NewRandomInt(min int, max int) int {
 	if min == 0 || max == 0 {
 		return 0
 	}
 
-	maxBint := new(big.Int).SetInt64(max - min)
+	maxBint := new(big.Int).SetInt64(int64(max - min))
 	newRandBint, _ := rand.Int(rand.Reader, maxBint)
-	return min + newRandBint.Int64()
+	return min + int(newRandBint.Int64())
 }
 
 func ByteIdsContain(byteIds [][]byte, byteId []byte) bool {

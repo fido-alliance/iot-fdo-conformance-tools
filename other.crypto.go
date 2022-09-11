@@ -17,6 +17,13 @@ func NewFdoNonce() [16]byte {
 	return NonceInst
 }
 
+func NewRandomBuffer(size int) []byte {
+	nonceBuff := make([]byte, size)
+	rand.Read(nonceBuff)
+
+	return nonceBuff
+}
+
 type X509CertificateBytes []byte
 
 func (h *X509CertificateBytes) GetPEM() string {
