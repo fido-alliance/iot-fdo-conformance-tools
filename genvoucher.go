@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -106,11 +107,16 @@ func MarshalPrivateKey(privKey interface{}, sgType fdoshared.DeviceSgType) ([]by
 	}
 }
 
-func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashOrHmac, mfgPrivateKey interface{}, sgType fdoshared.DeviceSgType) ([]byte, *fdoshared.CoseSignature, error) {
+func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashOrHmac, mfgPrivateKey interface{}, sgType fdoshared.DeviceSgType, testId testcom.FDOTestID) (interface{}, []byte, *fdoshared.CoseSignature, error) {
+
 	// Generate manufacturer private key.
 	newOVEPrivateKey, newOVEPublicKey, err := GenerateVoucherKeypair(sgType)
 	if err != nil {
-		return []byte{}, nil, err
+		return nil, []byte{}, nil, err
+	}
+
+	if testId == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_PUBKEY {
+		newOVEPublicKey = fdoshared.Conf_RandomTestFuzzPublicKey(*newOVEPublicKey)
 	}
 
 	ovEntryPayload := fdoshared.OVEntryPayload{
@@ -122,7 +128,7 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 
 	ovEntryPayloadBytes, err := cbor.Marshal(ovEntryPayload)
 	if err != nil {
-		return []byte{}, nil, errors.New("Error mashaling OVEntry. " + err.Error())
+		return nil, []byte{}, nil, errors.New("Error mashaling OVEntry. " + err.Error())
 	}
 
 	protectedHeader := fdoshared.ProtectedHeader{
@@ -131,15 +137,15 @@ func GenerateFirstOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.
 
 	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, sgType)
 	if err != nil {
-		return []byte{}, nil, errors.New("Error generating OVEntry. " + err.Error())
+		return nil, []byte{}, nil, errors.New("Error generating OVEntry. " + err.Error())
 	}
 
 	marshaledPrivateKey, err := MarshalPrivateKey(newOVEPrivateKey, sgType)
 	if err != nil {
-		return []byte{}, nil, errors.New("Error mashaling private key. " + err.Error())
+		return nil, []byte{}, nil, errors.New("Error mashaling private key. " + err.Error())
 	}
 
-	return marshaledPrivateKey, ovEntry, nil
+	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
 }
 
 type DeviceCredAndVoucher struct {
@@ -147,7 +153,7 @@ type DeviceCredAndVoucher struct {
 	WawDeviceCredential fdoshared.WawDeviceCredential
 }
 
-func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) (*DeviceCredAndVoucher, error) {
+func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoTestID testcom.FDOTestID) (*DeviceCredAndVoucher, error) {
 	newDi, err := fdoshared.NewWawDeviceCredential(deviceCredBase)
 	if err != nil {
 		return nil, errors.New("Error generating new device credential. " + err.Error())
@@ -174,6 +180,33 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) (*De
 		OVDevCertChainHash: &newDi.DCCertificateChainHash,
 	}
 
+	// Test
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_PROT_VERSION {
+		voucherHeader.OVHProtVer = fdoshared.ProtVersion(uint16(fdoshared.NewRandomInt(105, 10000)))
+	}
+
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_RVINFO_EMPTY {
+		voucherHeader.OVRvInfo = []fdoshared.RendezvousInstrList{}
+
+	}
+
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_DEVICEINFO_EMPTY {
+		voucherHeader.OVDeviceInfo = ""
+	}
+
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_PUBKEY {
+		voucherHeader.OVPublicKey = *fdoshared.Conf_RandomTestFuzzPublicKey(voucherHeader.OVPublicKey)
+	}
+
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_CERTCHAIN_HASH {
+		var totalBytes []byte
+		for _, cert := range newDi.DCCertificateChain {
+			totalBytes = append(totalBytes, cert...)
+		}
+
+		voucherHeader.OVDevCertChainHash = fdoshared.Conf_RandomTestHashHmac(*voucherHeader.OVDevCertChainHash, totalBytes, nil)
+	}
+
 	ovHeaderBytes, err := cbor.Marshal(voucherHeader)
 	if err != nil {
 		return nil, errors.New("Error marhaling OVHeader! " + err.Error())
@@ -187,39 +220,121 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) (*De
 	oveHdrInfo := append(newDi.DCGuid[:], []byte(newDi.DCDeviceInfo)...)
 	oveHdrInfoHash, _ := fdoshared.GenerateFdoHash(oveHdrInfo, newDi.DCHashAlg)
 
-	headerHmacBytes, err := cbor.Marshal(ovHeaderHmac)
-	if err != nil {
-		log.Println("Error generating hash: ", err.Error())
-		return nil, err
+	// Generating OVEntries
+	var ovEntryArray []fdoshared.CoseSignature = []fdoshared.CoseSignature{}
+
+	// Test params preparation
+	var ovEntriesCount int = fdoshared.NewRandomInt(3, 7)
+	var badOvEntryIndex = fdoshared.NewRandomInt(0, ovEntriesCount)
+
+	var prevEntryPrivKey interface{} = mfgPrivateKey
+	var prevEntryHash fdoshared.HashOrHmac
+
+	var finalOvEntryPrivateKeyBytes []byte
+
+	for i := 0; i < ovEntriesCount; i++ {
+		if i == 0 {
+			headerHmacBytes, err := cbor.Marshal(ovHeaderHmac)
+			if err != nil {
+				log.Println("Error generating hash: ", err.Error())
+				return nil, err
+			}
+
+			if err != nil {
+				log.Println("Error generating hash: ", err.Error())
+				return nil, err
+			}
+			prevEntryPayloadBytes := append(ovHeaderBytes, headerHmacBytes...)
+
+			prevEntryHash, err = fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
+			if err != nil {
+				log.Println("Error generating hash: ", err.Error())
+				return nil, err
+			}
+
+			// Test
+			if i == badOvEntryIndex && fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_PREV_HASH {
+				prevEntryHash = *fdoshared.Conf_RandomTestHashHmac(prevEntryHash, oveHdrInfo, []byte{})
+			}
+		} else {
+			prevEntry := ovEntryArray[i-1]
+			prevEntryBytes, _ := cbor.Marshal(prevEntry)
+			prevEntryHash, _ = fdoshared.GenerateFdoHash(prevEntryBytes, newDi.DCHashAlg)
+
+			// Test
+			if i == badOvEntryIndex && fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_PREV_HASH {
+				prevEntryHash = *fdoshared.Conf_RandomTestHashHmac(prevEntryHash, oveHdrInfo, []byte{})
+			}
+		}
+
+		chosenSgType := deviceCredBase.DCSgType
+		// Test
+		if i == badOvEntryIndex {
+			if fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_HDRINFO_HASH {
+				oveHdrInfoHash = *fdoshared.Conf_RandomTestHashHmac(oveHdrInfoHash, oveHdrInfo, []byte{})
+			}
+
+			if fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_SG_TYPE {
+				chosenSgType = fdoshared.Conf_NewRandomSgTypeExcept(chosenSgType)
+			}
+		}
+
+		newPrivKeyInst, newPrivMashaled, newOvEntry, err := GenerateOvEntry(prevEntryHash, oveHdrInfoHash, prevEntryPrivKey, chosenSgType, fdoTestID)
+		if err != nil {
+			return nil, err
+		}
+
+		if i == badOvEntryIndex && fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_SIGNATURE {
+			newOvEntry.Signature = fdoshared.Conf_RandomCborBufferFuzzing(newOvEntry.Signature)
+		}
+
+		ovEntryArray = append(ovEntryArray, *newOvEntry)
+
+		prevEntryPrivKey = newPrivKeyInst
+
+		if i == ovEntriesCount-1 {
+			finalOvEntryPrivateKeyBytes = newPrivMashaled
+		}
 	}
 
-	prevEntryPayloadBytes := append(ovHeaderBytes, headerHmacBytes...)
-
-	prevEntryHash, err := fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
-	if err != nil {
-		log.Println("Error generating hash: ", err.Error())
-		return nil, err
-	}
-
-	ovEntryPrivateKeyBytes, firstOvEntry, err := GenerateFirstOvEntry(prevEntryHash, oveHdrInfoHash, mfgPrivateKey, deviceCredBase.DCSgType)
-	if err != nil {
-		return nil, err
-	}
-
-	// Voucher
 	voucherInst := fdoshared.OwnershipVoucher{
 		OVProtVer:      fdoshared.ProtVer101,
 		OVHeaderTag:    ovHeaderBytes,
 		OVHeaderHMac:   *ovHeaderHmac,
 		OVDevCertChain: &newDi.DCCertificateChain,
-		OVEntryArray: []fdoshared.CoseSignature{
-			*firstOvEntry,
-		},
+		OVEntryArray:   ovEntryArray,
+	}
+
+	// Test
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_PROT_VERSION {
+		voucherInst.OVProtVer = fdoshared.ProtVersion(uint16(fdoshared.NewRandomInt(105, 10000)))
+	}
+
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_HEADER_BYTES {
+		voucherInst.OVHeaderTag = fdoshared.Conf_RandomCborBufferFuzzing(voucherInst.OVHeaderTag)
+	}
+
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_HDR_HMAC {
+		voucherInst.OVHeaderHMac = *fdoshared.Conf_RandomTestHashHmac(voucherInst.OVHeaderHMac, ovHeaderBytes, newDi.DCHmacSecret)
+	}
+
+	if voucherInst.OVDevCertChain != nil && fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_HDR_HMAC {
+		chainTemp := *voucherInst.OVDevCertChain
+		leafCert := chainTemp[0]
+
+		chainTemp[0] = chainTemp[1]
+		chainTemp[1] = leafCert
+
+		voucherInst.OVDevCertChain = &chainTemp
+	}
+
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
+		voucherInst.OVEntryArray = []fdoshared.CoseSignature{}
 	}
 
 	voucherDBEInst := fdoshared.VoucherDBEntry{
 		Voucher:        voucherInst,
-		PrivateKeyX509: ovEntryPrivateKeyBytes,
+		PrivateKeyX509: finalOvEntryPrivateKeyBytes,
 	}
 
 	newWDC := DeviceCredAndVoucher{
@@ -230,8 +345,8 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) (*De
 	return &newWDC, err
 }
 
-func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase) error {
-	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase)
+func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoTestID testcom.FDOTestID) error {
+	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase, fdoTestID)
 	if err != nil {
 		return err
 	}
