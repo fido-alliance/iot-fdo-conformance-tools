@@ -15,7 +15,7 @@ import (
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
-const FdoSeedIDsBatchSize int64 = 500
+const FdoSeedIDsBatchSize int = 500
 
 type RVTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB

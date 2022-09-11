@@ -19,6 +19,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
+	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
@@ -43,3 +44,5 @@ replace github.com/WebauthnWorks/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com
 replace github.com/WebauthnWorks/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-device-implementation
 
 replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
+
+replace github.com/WebauthnWorks/fdo-fido-conformance-server v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-fido-conformance-server
