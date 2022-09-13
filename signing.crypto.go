@@ -149,14 +149,22 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) error {
 	case Crypto:
 		return errors.New("EPID signatures are not currently supported!")
 	case X509:
-		pubKeyInst, err := x509.ParsePKIXPublicKey(publicKey.PkBody.([]byte))
+		publicKeyCasted, ok := publicKey.PkBody.([]byte)
+		if !ok {
+			return errors.New("Failed to cast pubkey PkBody to []byte")
+		}
+
+		pubKeyInst, err := x509.ParsePKIXPublicKey(publicKeyCasted)
 		if err != nil {
 			return errors.New("Error parsing PKIX X509 Public Key. " + err.Error())
 		}
 
 		return VerifySignature(coseSigPayloadBytes, coseSig.Signature, pubKeyInst, publicKey.PkType)
 	case X5CHAIN:
-		var decCertBytes []X509CertificateBytes = publicKey.PkBody.([]X509CertificateBytes)
+		decCertBytes, ok := publicKey.PkBody.([]X509CertificateBytes)
+		if !ok {
+			return errors.New("Failed to cast pubkey PkBody to []X509CertificateBytes")
+		}
 
 		successChain, err := VerifyCertificateChain(decCertBytes)
 		if err != nil {
@@ -205,8 +213,12 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 	case StSECP256R1:
 
 		payloadHash := sha256.Sum256(coseSigPayloadBytes)
+		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
+		if !ok {
+			return nil, errors.New("Error generating ES256 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
+		}
 
-		r, s, err := ecdsa.Sign(rand.Reader, privateKeyInterface.(*ecdsa.PrivateKey), payloadHash[:])
+		r, s, err := ecdsa.Sign(rand.Reader, privKeyCasted, payloadHash[:])
 		if err != nil {
 			return nil, errors.New("Error generating ES256 cose signature. " + err.Error())
 		}
@@ -214,7 +226,13 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 		signature = append(r.Bytes(), s.Bytes()...)
 	case StSECP384R1:
 		payloadHash := sha512.Sum384(coseSigPayloadBytes)
-		r, s, err := ecdsa.Sign(rand.Reader, privateKeyInterface.(*ecdsa.PrivateKey), payloadHash[:])
+
+		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
+		if !ok {
+			return nil, errors.New("Error generating ES384 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
+		}
+
+		r, s, err := ecdsa.Sign(rand.Reader, privKeyCasted, payloadHash[:])
 		if err != nil {
 			return nil, errors.New("Error generating ES384 cose signature. " + err.Error())
 		}
@@ -223,18 +241,28 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 	case StRSA3072:
 		payloadHash := sha512.Sum384(coseSigPayloadBytes)
 
-		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privateKeyInterface.(*rsa.PrivateKey), crypto.SHA384, payloadHash[:])
+		privKeyCasted, ok := privateKeyInterface.(*rsa.PrivateKey)
+		if !ok {
+			return nil, errors.New("Error generating RSA3072 cose signature. Could not cast privKey instance to RSA PrivateKey")
+		}
+
+		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privKeyCasted, crypto.SHA384, payloadHash[:])
 		if err != nil {
-			return nil, errors.New("Error generating RS2048 cose signature. " + err.Error())
+			return nil, errors.New("Error generating RSA3072 cose signature. " + err.Error())
 		}
 
 		signature = tSignature
 	case StRSA2048:
 		payloadHash := sha256.Sum256(coseSigPayloadBytes)
 
-		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privateKeyInterface.(*rsa.PrivateKey), crypto.SHA256, payloadHash[:])
+		privKeyCasted, ok := privateKeyInterface.(*rsa.PrivateKey)
+		if !ok {
+			return nil, errors.New("Error generating RSA2048 cose signature. Could not cast privKey instance to RSA PrivateKey")
+		}
+
+		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privKeyCasted, crypto.SHA256, payloadHash[:])
 		if err != nil {
-			return nil, errors.New("Error generating RS2048 cose signature. " + err.Error())
+			return nil, errors.New("Error generating RSA2048 cose signature. " + err.Error())
 		}
 
 		signature = tSignature

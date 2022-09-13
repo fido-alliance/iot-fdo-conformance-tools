@@ -165,6 +165,10 @@ func (h OwnershipVoucher) GetOVHeader() (OwnershipVoucherHeader, error) {
 }
 
 func (h OwnershipVoucher) GetFinalOwnerPublicKey() (FdoPublicKey, error) {
+	if len(h.OVEntryArray) == 0 {
+		return FdoPublicKey{}, errors.New("Error OVEntryArray is empty!")
+	}
+
 	finalOVEntry := h.OVEntryArray[len(h.OVEntryArray)-1]
 
 	var finalOVEntryPayload OVEntryPayload
