@@ -93,7 +93,7 @@ func ExecuteRVTestsTo1(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.Request
 			}
 
 		default:
-			log.Printf("Skipping \"\" test...", rv30test)
+			log.Printf("Skipping \"%s\" test...", rv30test)
 
 		}
 	}
@@ -132,7 +132,7 @@ func ExecuteRVTestsTo1(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.Request
 			}
 
 		default:
-			log.Printf("Skipping \"\" test...", rv32test)
+			log.Printf("Skipping \"%s\" test...", rv32test)
 
 		}
 	}
