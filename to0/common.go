@@ -15,7 +15,6 @@ type To0Requestor struct {
 	rvEntry        RVEntry
 	voucherDBEntry fdoshared.VoucherDBEntry
 	authzHeader    string
-	rvTestID       []byte
 }
 
 func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry fdoshared.VoucherDBEntry) To0Requestor {

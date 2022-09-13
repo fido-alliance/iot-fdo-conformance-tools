@@ -3,26 +3,72 @@ package to0
 import (
 	"errors"
 
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
-func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce) (*fdoshared.AcceptOwner23, error) {
-	// TO0D
+func (h *To0Requestor) checkOwnerSignResponse(bodyBytes []byte, fdoTestID testcom.FDOTestID, httpStatusCode int) testcom.FDOTestState {
+	switch fdoTestID {
+	case testcom.FIDO_RVT_21_CHECK_RESP:
+		var helloAck21 fdoshared.HelloAck21
+		err := cbor.Unmarshal(bodyBytes, &helloAck21)
+		if err != nil {
+			return testcom.FDOTestState{
+				Passed: false,
+				Error:  "Error decoding HelloAck21. " + err.Error(),
+			}
+		}
+
+		return testcom.FDOTestState{Passed: true}
+
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_20, fdoTestID):
+		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_22, fdoTestID):
+		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_VOUCHER, fdoTestID):
+		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+	}
+
+	return testcom.FDOTestState{
+		Passed: false,
+		Error:  "Unsupported test " + string(fdoTestID),
+	}
+}
+
+func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID testcom.FDOTestID) (*fdoshared.AcceptOwner23, *testcom.FDOTestState, error) {
+	var testState testcom.FDOTestState
+	var acceptOwner23 fdoshared.AcceptOwner23
+
 	var to0d fdoshared.To0d = fdoshared.To0d{
 		OwnershipVoucher: h.voucherDBEntry.Voucher,
 		WaitSeconds:      ServerWaitSeconds,
 		NonceTO0Sign:     nonceTO0Sign,
 	}
+
+	if fdoTestID == testcom.FIDO_RVT_22_BAD_TO0SIGN_NONCE {
+		to0d.NonceTO0Sign = fdoshared.NewFdoNonce()
+	}
+
 	to0dBytes, err := cbor.Marshal(to0d)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error marshaling To0d. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error marshaling To0d. " + err.Error())
+	}
+
+	if fdoTestID == testcom.FIDO_RVT_22_BAD_ENCODING {
+		to0dBytes = fdoshared.Conf_RandomCborBufferFuzzing(to0dBytes)
 	}
 
 	deviceHashAlg := fdoshared.HmacToHashAlg[h.voucherDBEntry.Voucher.OVHeaderHMac.Type]
 	to0dHash, err := fdoshared.GenerateFdoHash(to0dBytes, deviceHashAlg)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error generating to0dHash. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error generating to0dHash. " + err.Error())
+	}
+
+	if fdoTestID == testcom.FIDO_RVT_22_BAD_TO0D_HASH {
+		to0dHash = *fdoshared.Conf_RandomTestHashHmac(to0dHash, to0dBytes, []byte{})
 	}
 
 	// TO1D Payload
@@ -42,28 +88,32 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce) (*fdoshared.
 
 	to1dPayloadBytes, err := cbor.Marshal(to1dPayload)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error marshaling To1dPayload. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error marshaling To1dPayload. " + err.Error())
 	}
 
 	// TO1D CoseSignature
 	lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
 	}
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.voucherDBEntry.PrivateKeyX509)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error extracting private key. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error extracting private key. " + err.Error())
 	}
 
 	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error getting device SgType. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error getting device SgType. " + err.Error())
 	}
 
 	to1d, err := fdoshared.GenerateCoseSignature(to1dPayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, sgType)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error generating To1D COSE signature. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error generating To1D COSE signature. " + err.Error())
+	}
+
+	if fdoTestID == testcom.FIDO_RVT_22_BAD_SIGNATURE {
+		to1d.Signature[0] = 0x49
 	}
 
 	var ownerSign fdoshared.OwnerSign22 = fdoshared.OwnerSign22{
@@ -72,21 +122,29 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce) (*fdoshared.
 	}
 	ownerSign22Bytes, err := cbor.Marshal(ownerSign)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
 	}
 
-	resultBytes, authzHeader, _, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
+	if fdoTestID == testcom.FIDO_RVT_22_BAD_ENCODING {
+		ownerSign22Bytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerSign22Bytes)
+	}
+
+	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
+	if fdoTestID != testcom.NULL_TEST {
+		testState = h.checkOwnerSignResponse(resultBytes, fdoTestID, httpStatusCode)
+		return nil, &testState, nil
+	}
+
 	if err != nil {
-		return nil, errors.New("OwnerSign22: " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: " + err.Error())
 	}
 
 	h.authzHeader = authzHeader
 
-	var acceptOwner23 fdoshared.AcceptOwner23
 	err = cbor.Unmarshal(resultBytes, &acceptOwner23)
 	if err != nil {
-		return nil, errors.New("OwnerSign22: Failed to unmarshal AcceptOwner23. " + err.Error())
+		return nil, nil, errors.New("OwnerSign22: Failed to unmarshal AcceptOwner23. " + err.Error())
 	}
 
-	return &acceptOwner23, nil
+	return &acceptOwner23, nil, nil
 }
