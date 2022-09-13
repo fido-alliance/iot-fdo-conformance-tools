@@ -27,7 +27,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Error marshaling To0d. " + err.Error())
 	}
 
-	if fdoTestID == testcom.FIDO_RVT_22_BAD_ENCODING {
+	if fdoTestID == testcom.FIDO_RVT_22_BAD_TO0D_ENCODING {
 		to0dBytes = fdoshared.Conf_RandomCborBufferFuzzing(to0dBytes)
 	}
 
@@ -95,14 +95,13 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
 	}
 
-	if fdoTestID == testcom.FIDO_RVT_22_BAD_ENCODING {
+	if fdoTestID == testcom.FIDO_RVT_22_BAD_OWNERSIGN_ENCODING {
 		ownerSign22Bytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerSign22Bytes)
 	}
 
 	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
-		return nil, &testState, nil
 	}
 
 	if err != nil {
@@ -116,5 +115,5 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Failed to unmarshal AcceptOwner23. " + err.Error())
 	}
 
-	return &acceptOwner23, nil, nil
+	return &acceptOwner23, &testState, nil
 }
