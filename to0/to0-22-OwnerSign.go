@@ -8,36 +8,6 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-func (h *To0Requestor) checkOwnerSignResponse(bodyBytes []byte, fdoTestID testcom.FDOTestID, httpStatusCode int) testcom.FDOTestState {
-	switch fdoTestID {
-	case testcom.FIDO_RVT_21_CHECK_RESP:
-		var helloAck21 fdoshared.HelloAck21
-		err := cbor.Unmarshal(bodyBytes, &helloAck21)
-		if err != nil {
-			return testcom.FDOTestState{
-				Passed: false,
-				Error:  "Error decoding HelloAck21. " + err.Error(),
-			}
-		}
-
-		return testcom.FDOTestState{Passed: true}
-
-	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_20, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
-
-	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_22, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
-
-	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_VOUCHER, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
-	}
-
-	return testcom.FDOTestState{
-		Passed: false,
-		Error:  "Unsupported test " + string(fdoTestID),
-	}
-}
-
 func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID testcom.FDOTestID) (*fdoshared.AcceptOwner23, *testcom.FDOTestState, error) {
 	var testState testcom.FDOTestState
 	var acceptOwner23 fdoshared.AcceptOwner23
@@ -113,7 +83,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 	}
 
 	if fdoTestID == testcom.FIDO_RVT_22_BAD_SIGNATURE {
-		to1d.Signature[0] = 0x49
+		to1d.Signature = fdoshared.Conf_RandomCborBufferFuzzing(to1d.Signature)
 	}
 
 	var ownerSign fdoshared.OwnerSign22 = fdoshared.OwnerSign22{
@@ -131,7 +101,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 
 	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
 	if fdoTestID != testcom.NULL_TEST {
-		testState = h.checkOwnerSignResponse(resultBytes, fdoTestID, httpStatusCode)
+		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
 		return nil, &testState, nil
 	}
 
