@@ -20,3 +20,4 @@ badger.local.db/
 fdo-fido-conformance-server
 *.voucher.pem
 *.dis.pem
+_randomKeys/

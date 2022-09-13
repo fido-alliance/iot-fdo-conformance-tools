@@ -120,6 +120,7 @@ func (h *RequestTestDB) GetMany(rvtids [][]byte) (*[]req_tests_deps.RequestTestI
 }
 
 func (h *RequestTestDB) StartNewRun(rvteid []byte) {
+	log.Printf("----- Starting New Run For %s -----", hex.EncodeToString(rvteid))
 	rvte, err := h.Get(rvteid)
 	if err != nil {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvteid))
@@ -149,6 +150,8 @@ func (h *RequestTestDB) FinishRun(rvteid []byte) {
 	if err != nil {
 		log.Printf("%s error saving test entry.", hex.EncodeToString(rvteid))
 	}
+
+	log.Printf("----- Finishing Run For %s -----", hex.EncodeToString(rvteid))
 }
 
 func (h *RequestTestDB) ReportTest(rvteid []byte, testID testcom.FDOTestID, testResult testcom.FDOTestState) {

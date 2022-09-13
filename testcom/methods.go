@@ -43,3 +43,13 @@ func ExpectedFdoSuccess(httpStatus int) FDOTestState {
 
 	return FDOTestState{Passed: true}
 }
+
+func ExpectGroupTests(testIds []FDOTestID, inputTestId FDOTestID) FDOTestID {
+	for _, testId := range testIds {
+		if testId == inputTestId {
+			return testId
+		}
+	}
+
+	return FIDO_TEST_GROUP_SKIP
+}

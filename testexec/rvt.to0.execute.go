@@ -1,30 +1,18 @@
 package testexec
 
 import (
+	"log"
+
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 )
 
-var rv20Tests []testcom.FDOTestID = []testcom.FDOTestID{
-	testcom.FIDO_RVT_20_BAD_ENCODING,
-	testcom.FIDO_RVT_21_CHECK_RESP,
-	testcom.FIDO_RVT_20_POSITIVE,
-}
-
-var rv22Tests []testcom.FDOTestID = []testcom.FDOTestID{
-	testcom.FIDO_RVT_22_BAD_ENCODING,
-	testcom.FIDO_RVT_23_CHECK_RESP,
-	testcom.FIDO_RVT_22_BAD_TO0D_HASH,
-	testcom.FIDO_RVT_22_BAD_TO0SIGN_NONCE,
-	testcom.FIDO_RVT_23_POSITIVE,
-}
-
 func ExecuteRVTestsTo0(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
-	for _, rv20test := range rv20Tests {
+	for _, rv20test := range testcom.FIDO_TEST_LIST_RVT_20 {
 		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
 		testCredV, err := devDB.GetVANDV(randomGuid, rv20test)
 
@@ -77,7 +65,7 @@ func ExecuteRVTestsTo0(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.Request
 		}
 	}
 
-	for _, rv22test := range rv22Tests {
+	for _, rv22test := range testcom.FIDO_TEST_LIST_RVT_22 {
 		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
 		testCredV, err := devDB.GetVANDV(randomGuid, rv22test)
 
@@ -125,30 +113,50 @@ func ExecuteRVTestsTo0(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.Request
 			}
 
 		default:
-			var errTestState testcom.FDOTestState
-			helloAck, _, err := to0inst.Hello20(testcom.NULL_TEST)
-			if err != nil {
-				errTestState = testcom.FDOTestState{
-					Passed: false,
-					Error:  err.Error(),
-				}
-				reqtDB.ReportTest(reqte.Uuid, rv22test, errTestState)
-				continue
-			}
-
-			_, rvtTestState, err := to0inst.OwnerSign22(helloAck.NonceTO0Sign, rv22test)
-			if rvtTestState == nil && err != nil {
-				errTestState := testcom.FDOTestState{
-					Passed: false,
-					Error:  err.Error(),
-				}
-
-				rvtTestState = &errTestState
-			}
-
-			reqtDB.ReportTest(reqte.Uuid, rv22test, *rvtTestState)
-
+			log.Printf("Skipping \"\" test...", rv22test)
 		}
+	}
+
+	for _, rv22VoucherTest := range testcom.FIDO_TEST_LIST_VOUCHER {
+		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
+		testCredV, err := devDB.GetVANDV(randomGuid, rv22VoucherTest)
+
+		if err != nil {
+			errTestState := testcom.FDOTestState{
+				Passed: false,
+				Error:  err.Error(),
+			}
+
+			reqtDB.ReportTest(reqte.Uuid, rv22VoucherTest, errTestState)
+			continue
+		}
+
+		to0inst := to0.NewTo0Requestor(to0.RVEntry{
+			RVURL: reqte.URL,
+		}, testCredV.VoucherDBEntry)
+
+		var errTestState testcom.FDOTestState
+		helloAck, _, err := to0inst.Hello20(testcom.NULL_TEST)
+		if err != nil {
+			errTestState = testcom.FDOTestState{
+				Passed: false,
+				Error:  err.Error(),
+			}
+			reqtDB.ReportTest(reqte.Uuid, rv22VoucherTest, errTestState)
+			continue
+		}
+
+		_, rvtTestState, err := to0inst.OwnerSign22(helloAck.NonceTO0Sign, rv22VoucherTest)
+		if rvtTestState == nil && err != nil {
+			errTestState := testcom.FDOTestState{
+				Passed: false,
+				Error:  err.Error(),
+			}
+
+			rvtTestState = &errTestState
+		}
+
+		reqtDB.ReportTest(reqte.Uuid, rv22VoucherTest, *rvtTestState)
 	}
 
 	reqtDB.FinishRun(reqte.Uuid)
