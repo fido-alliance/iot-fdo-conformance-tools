@@ -1,7 +1,6 @@
 package dbs
 
 import (
-	"bytes"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -10,62 +9,9 @@ import (
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
-	"github.com/google/uuid"
 )
 
-type UserTestDB struct {
-	db     *badger.DB
-	prefix []byte
-}
-
-type RVTestInst struct {
-	_    struct{} `cbor:",toarray"`
-	Uuid []byte
-	Url  string
-	To0  []byte
-	To1  []byte
-}
-
-func NewRVTestInst(url string, to0 []byte, to1 []byte) RVTestInst {
-	newUuid, _ := uuid.NewRandom()
-	uuidBytes, _ := newUuid.MarshalBinary()
-
-	return RVTestInst{
-		Uuid: uuidBytes,
-		Url:  url,
-		To0:  to0,
-		To1:  to1,
-	}
-}
-
-type DOTestInst struct {
-	_    struct{} `cbor:",toarray"`
-	Uuid []byte
-	Url  string
-	To2  []byte
-}
-
-type UserTestDBEntry struct {
-	_            struct{} `cbor:",toarray"`
-	Username     string
-	PasswordHash []byte
-	Name         string
-	Company      string
-	Phone        string
-	RVTestInsts  []RVTestInst
-	DOTestInsts  []DOTestInst
-}
-
-func (h *UserTestDBEntry) RVT_ContainID(rvtid []byte) error {
-	for _, rvt := range h.RVTestInsts {
-		if bytes.Equal(rvt.To0, rvtid) || bytes.Equal(rvt.To1, rvtid) {
-			return nil
-		}
-	}
-
-	return errors.New("ID not found")
-}
-
+// DB Methods
 func NewUserTestDB(db *badger.DB) UserTestDB {
 	return UserTestDB{
 		db:     db,

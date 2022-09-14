@@ -3,6 +3,7 @@ package req_tests_deps
 import (
 	"time"
 
+	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/google/uuid"
@@ -17,6 +18,7 @@ type RequestTestInst struct {
 	InProgress     bool
 	CurrentTestRun RequestTestRun
 	TestsHistory   []RequestTestRun
+	TestVouchers   map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher
 }
 
 func NewRequestTestInst(url string, protocol fdoshared.FdoToProtocol) RequestTestInst {
@@ -28,6 +30,7 @@ func NewRequestTestInst(url string, protocol fdoshared.FdoToProtocol) RequestTes
 		URL:          url,
 		TestsHistory: make([]RequestTestRun, 0),
 		Protocol:     protocol,
+		TestVouchers: make(map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher),
 	}
 }
 
