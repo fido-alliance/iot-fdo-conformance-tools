@@ -173,7 +173,20 @@
                                     </div>
                                 </div>
                                 {/each}
-                            {:else}
+                            {/if}
+
+                            {#if rvtMap[rvtk].to1.runs.length > 0}
+                                {#each rvtMap[rvtk].to1.runs as run}
+                                <div class="row">
+                                    <div class="col-12 col-12-xsmall">
+                                        <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
+                                        <label for="trun-radio-{run.uuid}">TO{run.protocol} {(new Date(run.timestamp * 1000)).toLocaleString()} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.uuid, run.protocol)} value="{run.uuid}">X</a></label>
+                                    </div>
+                                </div>
+                                {/each}
+                            {/if}
+
+                            {#if rvtMap[rvtk].to0.runs.length == 0 && rvtMap[rvtk].to1.runs.length == 0}
                                 <div class="row">
                                     <div class="col-12 col-12-xsmall">
                                         <p class="rvt-info">No records found</p>
