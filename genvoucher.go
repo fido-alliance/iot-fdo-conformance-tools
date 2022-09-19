@@ -107,10 +107,10 @@ func MarshalPrivateKey(privKey interface{}, sgType fdoshared.DeviceSgType) ([]by
 	}
 }
 
-func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashOrHmac, mfgPrivateKey interface{}, sgType fdoshared.DeviceSgType, testId testcom.FDOTestID) (interface{}, []byte, *fdoshared.CoseSignature, error) {
+func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashOrHmac, mfgPrivateKey interface{}, prevEntrySgType fdoshared.DeviceSgType, newEntrySgType fdoshared.DeviceSgType, testId testcom.FDOTestID) (interface{}, []byte, *fdoshared.CoseSignature, error) {
 
 	// Generate manufacturer private key.
-	newOVEPrivateKey, newOVEPublicKey, err := GenerateVoucherKeypair(sgType)
+	newOVEPrivateKey, newOVEPublicKey, err := GenerateVoucherKeypair(newEntrySgType)
 	if err != nil {
 		return nil, []byte{}, nil, err
 	}
@@ -132,15 +132,15 @@ func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashO
 	}
 
 	protectedHeader := fdoshared.ProtectedHeader{
-		Alg: int(sgType),
+		Alg: int(prevEntrySgType),
 	}
 
-	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, sgType)
+	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, prevEntrySgType)
 	if err != nil {
 		return nil, []byte{}, nil, errors.New("Error generating OVEntry. " + err.Error())
 	}
 
-	marshaledPrivateKey, err := MarshalPrivateKey(newOVEPrivateKey, sgType)
+	marshaledPrivateKey, err := MarshalPrivateKey(newOVEPrivateKey, newEntrySgType)
 	if err != nil {
 		return nil, []byte{}, nil, errors.New("Error mashaling private key. " + err.Error())
 	}
@@ -232,6 +232,8 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 
 	var finalOvEntryPrivateKeyBytes []byte
 
+	var prevEntrySgType fdoshared.DeviceSgType = deviceCredBase.DCSgType
+
 	for i := 0; i < ovEntriesCount; i++ {
 		if i == 0 {
 			headerHmacBytes, err := cbor.Marshal(ovHeaderHmac)
@@ -279,10 +281,12 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 			}
 		}
 
-		newPrivKeyInst, newPrivMashaled, newOvEntry, err := GenerateOvEntry(prevEntryHash, oveHdrInfoHash, prevEntryPrivKey, chosenSgType, fdoTestID)
+		newPrivKeyInst, newPrivMashaled, newOvEntry, err := GenerateOvEntry(prevEntryHash, oveHdrInfoHash, prevEntryPrivKey, prevEntrySgType, chosenSgType, fdoTestID)
 		if err != nil {
 			return nil, err
 		}
+
+		prevEntrySgType = chosenSgType
 
 		if i == badOvEntryIndex && fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_SIGNATURE {
 			newOvEntry.Signature = fdoshared.Conf_RandomCborBufferFuzzing(newOvEntry.Signature)
