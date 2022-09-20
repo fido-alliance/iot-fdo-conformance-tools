@@ -2,7 +2,6 @@ package dbs
 
 import (
 	"bytes"
-	"errors"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/google/uuid"
@@ -62,22 +61,22 @@ type UserTestDBEntry struct {
 	DOTestInsts  []DOTestInst
 }
 
-func (h *UserTestDBEntry) RVT_ContainID(rvtid []byte) error {
+func (h *UserTestDBEntry) RVT_ContainID(rvtid []byte) bool {
 	for _, rvt := range h.RVTestInsts {
 		if bytes.Equal(rvt.To0, rvtid) || bytes.Equal(rvt.To1, rvtid) {
-			return nil
+			return true
 		}
 	}
 
-	return errors.New("ID not found")
+	return false
 }
 
-func (h *UserTestDBEntry) DOT_ContainID(dotid []byte) error {
+func (h *UserTestDBEntry) DOT_ContainID(dotid []byte) bool {
 	for _, rvt := range h.DOTestInsts {
 		if bytes.Equal(rvt.To2, dotid) {
-			return nil
+			return true
 		}
 	}
 
-	return errors.New("ID not found")
+	return false
 }
