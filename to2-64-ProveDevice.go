@@ -23,7 +23,7 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error generating session ShSe... " + err.Error())
 	}
-	h.SessionKey = newSessionKey
+	h.SessionKey = *newSessionKey
 
 	// Nonce
 	h.NonceTO2SetupDv64 = fdoshared.NewFdoNonce()

@@ -15,7 +15,7 @@ type To2Requestor struct {
 	CipherSuiteName fdoshared.CipherSuiteName
 
 	AuthzHeader string
-	SessionKey  []byte
+	SessionKey  fdoshared.SessionKeyInfo
 	XAKex       []byte
 	XBKEXParams fdoshared.KeXParams
 
