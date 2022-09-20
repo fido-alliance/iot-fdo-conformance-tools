@@ -34,6 +34,10 @@ func (h FdoGuid) GetFormattedHex() string {
 	return strings.ReplaceAll(uuidInst.String(), "-", "")
 }
 
+func (h FdoGuid) Equals(secondGuid FdoGuid) bool {
+	return bytes.Equal(h[:], secondGuid[:])
+}
+
 func NewFdoGuid() FdoGuid {
 	newUuid, _ := uuid.NewRandom()
 	uuidBytes, _ := newUuid.MarshalBinary()
@@ -77,6 +81,39 @@ func (h FdoGuidList) GetRandomBatch(size int) FdoGuidList {
 	}
 
 	return h[randomLoc : randomLoc+size]
+}
+
+func (h FdoGuidList) Contains(guid FdoGuid) bool {
+	for _, arrGuid := range h {
+		if arrGuid.Equals(guid) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (h FdoGuidList) GetRandomSelection(size int) FdoGuidList {
+	randomPick := FdoGuidList{}
+
+	if size >= len(h) {
+		return h
+	}
+
+	for {
+		randomId := NewRandomInt(0, len(h)-1)
+		randomGuid := h[randomId]
+
+		if !randomPick.Contains(randomGuid) {
+			randomPick = append(randomPick, randomGuid)
+		}
+
+		if len(randomPick) >= size {
+			break
+		}
+	}
+
+	return randomPick
 }
 
 type FdoSeedIDs map[DeviceSgType]FdoGuidList
@@ -162,8 +199,8 @@ func DecodeErrorResponse(bodyBytes []byte) (*FdoError, error) {
 }
 
 func NewRandomInt(min int, max int) int {
-	if min == 0 || max == 0 {
-		return 0
+	if min == max {
+		return min
 	}
 
 	maxBint := new(big.Int).SetInt64(int64(max - min))

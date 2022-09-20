@@ -35,7 +35,7 @@ func Conf_NewRandomFdoPkTypeExcept(exceptAlg FdoPkType) FdoPkType {
 
 func Conf_NewRandomFdoPkEncExcept(exceptAlg FdoPkEnc) FdoPkEnc {
 	for {
-		randLoc := NewRandomInt(0, len(FdoPkType_List)-1)
+		randLoc := NewRandomInt(0, len(FdoPkEnc_List)-1)
 
 		if FdoPkEnc_List[randLoc] != exceptAlg {
 			return FdoPkEnc_List[randLoc]
