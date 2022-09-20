@@ -120,9 +120,7 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 		} else {
 			return nil
 		}
-	case RSA2048RESTR:
-		return errors.New("RSA2048RESTR is not currently implemented!")
-	case RSAPKCS:
+	case RSAPKCS, RSA2048RESTR:
 		rsaPubKeyCasted, ok := publicKeyInst.(*rsa.PublicKey)
 		if !ok {
 			return errors.New("Error verifying RS2RSAPKCS56 cose signature. Could not cast pubKey instance to RSA PubKey")

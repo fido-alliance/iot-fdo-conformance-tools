@@ -8,6 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+
+	"github.com/WebauthnWorks/dhkx"
+	"github.com/fxamacker/cbor/v2"
 )
 
 type KexSuiteName string
@@ -51,11 +54,84 @@ type KeXParams struct {
 	KexSuit       KexSuiteName
 }
 
+type DHKexPrivateKey struct {
+	_       struct{} `cbor:",toarray"`
+	X       []byte
+	Y       []byte
+	GroupID dhkx.GroupID
+}
+
+type SessionKeyInfo struct {
+	_           struct{} `cbor:",toarray"`
+	ShSe        []byte
+	ContextRand []byte
+}
+
+func NewDHKexPrivateKey(x []byte, y []byte, groupID dhkx.GroupID) DHKexPrivateKey {
+	return DHKexPrivateKey{
+		X:       x,
+		Y:       y,
+		GroupID: groupID,
+	}
+}
+
+func (h *DHKexPrivateKey) MarshalCbor() []byte {
+	resultBytes, _ := cbor.Marshal(*h)
+	return resultBytes
+}
+
+func (h *DHKexPrivateKey) UnmarshalCbor(cborBytes []byte) error {
+	return cbor.Unmarshal(cborBytes, h)
+}
+
+func (h *DHKexPrivateKey) GetDHKEXPrivateKeyInst() *dhkx.DHKey {
+	group, _ := dhkx.GetGroup(h.GroupID)
+	dhKex := dhkx.DHKey{
+		X:     big.NewInt(0).SetBytes(h.X),
+		Y:     big.NewInt(0).SetBytes(h.Y),
+		Group: group,
+	}
+
+	return &dhKex
+}
+
 func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
 	switch kexSuitName {
-	// case CONST_KEX_DHKEXID14:
-	// 	// TODO
-	// case CONST_KEX_DHKEXID15:
+	case KEX_DHKEXid14:
+		g, _ := dhkx.GetGroup(dhkx.DHKX_ID14)
+
+		priv, err := g.GeneratePrivateKey(nil)
+		if err != nil {
+			return nil, errors.New("error while generating DHKEX ID14 key: " + err.Error())
+		}
+
+		privKeyStruct := NewDHKexPrivateKey(priv.X.Bytes(), priv.Y.Bytes(), dhkx.DHKX_ID14)
+
+		resultKex := KeXParams{
+			Private:       privKeyStruct.MarshalCbor(),
+			XAKeyExchange: priv.MarshalPublicKey(),
+			KexSuit:       kexSuitName,
+		}
+
+		return &resultKex, nil
+
+	case KEX_DHKEXid15:
+		g, _ := dhkx.GetGroup(dhkx.DHKX_ID15)
+
+		priv, err := g.GeneratePrivateKey(nil)
+		if err != nil {
+			return nil, errors.New("error while generating DHKEX ID15 key: " + err.Error())
+		}
+
+		privKeyStruct := NewDHKexPrivateKey(priv.X.Bytes(), priv.Y.Bytes(), dhkx.DHKX_ID15)
+
+		resultKex := KeXParams{
+			Private:       privKeyStruct.MarshalCbor(),
+			XAKeyExchange: priv.MarshalPublicKey(),
+			KexSuit:       kexSuitName,
+		}
+
+		return &resultKex, nil
 	// 	// TODO
 	// case CONST_KEX_ASYMKEX2048:
 	// 	// TODO
@@ -135,12 +211,28 @@ func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
 	}
 }
 
-func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) ([]byte, error) {
+func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*SessionKeyInfo, error) {
 	switch kexA.KexSuit {
-	// case KEX_DHKEXid14:
-	// 	// TODO
-	// case KEX_DHKEXid15:
-	// 	// TODO
+	case KEX_DHKEXid14, KEX_DHKEXid15:
+		privKeyStruct := DHKexPrivateKey{}
+		privKeyStruct.UnmarshalCbor(kexA.Private)
+
+		dhkxPrivKeyA := privKeyStruct.GetDHKEXPrivateKeyInst()
+
+		// Recover Bob's public key
+		dhkxBPubKey := dhkx.NewPublicKey(xBKeyExchange)
+
+		// Compute the key
+		sharedPubKey, err := dhkxPrivKeyA.Group.ComputeKey(dhkxBPubKey, dhkxPrivKeyA)
+		if err != nil {
+			return nil, fmt.Errorf("Error deriving shared key for KEX_DHKEX id14/id15. %s", err.Error())
+		}
+
+		return &SessionKeyInfo{
+			ShSe:        sharedPubKey.MarshalPublicKey(),
+			ContextRand: []byte{},
+		}, nil
+
 	// case CONST_KEX_ASYMKEX2048:
 	// 	// TODO
 	// case CONST_KEX_ASYMKEX3072:
@@ -185,7 +277,10 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) ([]b
 
 		shSe := append(Shx.Bytes(), randomSuffix...)
 
-		return shSe, nil
+		return &SessionKeyInfo{
+			ShSe:        shSe,
+			ContextRand: []byte{},
+		}, nil
 
 	case KEX_ECDH384:
 		expectedLen := 2 + 48 + 2 + 48 + 2 + int(KEX_ECDH384_RANDOM_LEN)
@@ -227,7 +322,10 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) ([]b
 
 		shSe := append(Shx.Bytes(), randomSuffix...)
 
-		return shSe, nil
+		return &SessionKeyInfo{
+			ShSe:        shSe,
+			ContextRand: []byte{},
+		}, nil
 	}
 
 	return nil, errors.New("unexpected error in deriving ECDH shared secret")

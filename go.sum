@@ -1,3 +1,5 @@
+github.com/WebauthnWorks/dhkx v0.3.3 h1:C+X9EeZPRIgv5tT/jIoBvXsqLqKbUnFXOipvEAU5UIw=
+github.com/WebauthnWorks/dhkx v0.3.3/go.mod h1:dxBmjaAf+m+ba0moLw5ytPNeZdOXnDnymEZbfreapAM=
 github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246 h1:m0+1paUpmLlBpUxldAEvJZVCrNQpt2iyecCw4TdHdOc=
 github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246/go.mod h1:NsKVpF4h4j13Vm6Cx7Kf0V03aJKjfaStvm5rvK4+FyQ=
 github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD88=

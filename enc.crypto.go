@@ -180,7 +180,7 @@ func Sp800108CounterKDF(sizeBytes int, hmacAlg HashType, key []byte, contextRand
 	return result[0:sizeBytes], nil
 }
 
-func encryptETM(plaintext []byte, shseKey []byte, cipherSuite CipherSuiteName) ([]byte, error) {
+func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
 	// INNER ENCRYPTION BLOCK
@@ -200,7 +200,7 @@ func encryptETM(plaintext []byte, shseKey []byte, cipherSuite CipherSuiteName) (
 		AESIV: IvBytes,
 	}
 
-	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, shseKey, []byte{})
+	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SVK/SEK! " + err.Error())
 	}
@@ -270,7 +270,7 @@ func encryptETM(plaintext []byte, shseKey []byte, cipherSuite CipherSuiteName) (
 	return outerBlockBytes, nil
 }
 
-func decryptETM(encrypted []byte, shseKey []byte, cipherSuite CipherSuiteName) ([]byte, error) {
+func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	var outer ETMOuterBlock
 	err := cbor.Unmarshal(encrypted, &outer)
 	if err != nil {
@@ -285,7 +285,7 @@ func decryptETM(encrypted []byte, shseKey []byte, cipherSuite CipherSuiteName) (
 
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
-	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, shseKey, []byte{})
+	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SVK/SEK! " + err.Error())
 	}
@@ -361,7 +361,7 @@ type EMBlock struct {
 	Ciphertext  []byte
 }
 
-func encryptEMB(plaintext []byte, shseKey []byte, cipherSuite CipherSuiteName) ([]byte, error) {
+func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
 	// INNER ENCRYPTION BLOCK
@@ -381,7 +381,7 @@ func encryptEMB(plaintext []byte, shseKey []byte, cipherSuite CipherSuiteName) (
 		AESIV: IvBytes,
 	}
 
-	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, shseKey, []byte{})
+	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SEVK! " + err.Error())
 	}
@@ -419,10 +419,10 @@ func encryptEMB(plaintext []byte, shseKey []byte, cipherSuite CipherSuiteName) (
 	return innerBlockBytes, nil
 }
 
-func decryptEMB(encrypted []byte, shseKey []byte, cipherSuite CipherSuiteName) ([]byte, error) {
+func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
-	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, shseKey, []byte{})
+	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SVK/SEK! " + err.Error())
 	}
@@ -471,23 +471,23 @@ func decryptEMB(encrypted []byte, shseKey []byte, cipherSuite CipherSuiteName) (
 	return plaintext, nil
 }
 
-func AddEncryptionWrapping(payload []byte, shse []byte, cipherSuite CipherSuiteName) ([]byte, error) {
+func AddEncryptionWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	switch cipherSuite {
 	case CIPHER_COSE_AES128_CBC, CIPHER_COSE_AES128_CTR, CIPHER_COSE_AES256_CBC, CIPHER_COSE_AES256_CTR:
-		return encryptETM(payload, shse, cipherSuite)
+		return encryptETM(payload, sessionKeyInfo, cipherSuite)
 	case CIPHER_A128GCM, CIPHER_A256GCM:
-		return encryptEMB(payload, shse, cipherSuite)
+		return encryptEMB(payload, sessionKeyInfo, cipherSuite)
 	default:
 		return nil, fmt.Errorf("Unsupported encryption scheme! %s", cipherSuite)
 	}
 }
 
-func RemoveEncryptionWrapping(encryptedPayload []byte, shse []byte, cipherSuite CipherSuiteName) ([]byte, error) {
+func RemoveEncryptionWrapping(encryptedPayload []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	switch cipherSuite {
 	case CIPHER_COSE_AES128_CBC, CIPHER_COSE_AES128_CTR, CIPHER_COSE_AES256_CBC, CIPHER_COSE_AES256_CTR:
-		return decryptETM(encryptedPayload, shse, cipherSuite)
+		return decryptETM(encryptedPayload, sessionKeyInfo, cipherSuite)
 	case CIPHER_A128GCM, CIPHER_A256GCM:
-		return decryptEMB(encryptedPayload, shse, cipherSuite)
+		return decryptEMB(encryptedPayload, sessionKeyInfo, cipherSuite)
 	default:
 		return nil, fmt.Errorf("Unsupported encryption scheme! %s", cipherSuite)
 	}
