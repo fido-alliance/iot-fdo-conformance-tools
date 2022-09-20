@@ -79,6 +79,11 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 			return errors.New("For ES256, signature must be 64 bytes long!")
 		}
 
+		pubKeyCasted, ok := publicKeyInst.(*ecdsa.PublicKey)
+		if !ok {
+			return errors.New("Error verifying SECP384R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
+		}
+
 		payloadHash := sha256.Sum256(payload)
 
 		r := new(big.Int)
@@ -87,7 +92,7 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 		s := new(big.Int)
 		s.SetBytes(signature[32:64])
 
-		if !ecdsa.Verify(publicKeyInst.(*ecdsa.PublicKey), payloadHash[:], r, s) {
+		if !ecdsa.Verify(pubKeyCasted, payloadHash[:], r, s) {
 			return errors.New("Failed to verify signature")
 		} else {
 			return nil
@@ -95,6 +100,11 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 	case SECP384R1:
 		if len(signature) != SECP384R1_SIG_LEN {
 			return errors.New("For ES384, signature must be 96 bytes long!")
+		}
+
+		pubKeyCasted, ok := publicKeyInst.(*ecdsa.PublicKey)
+		if !ok {
+			return errors.New("Error verifying SECP384R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
 		}
 
 		payloadHash := sha512.Sum384(payload)
@@ -105,7 +115,7 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 		s := new(big.Int)
 		s.SetBytes(signature[48:96])
 
-		if !ecdsa.Verify(publicKeyInst.(*ecdsa.PublicKey), payloadHash[:], r, s) {
+		if !ecdsa.Verify(pubKeyCasted, payloadHash[:], r, s) {
 			return errors.New("Failed to verify signature")
 		} else {
 			return nil
@@ -113,9 +123,12 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 	case RSA2048RESTR:
 		return errors.New("RSA2048RESTR is not currently implemented!")
 	case RSAPKCS:
-		rsaPubKey := publicKeyInst.(*rsa.PublicKey)
+		rsaPubKeyCasted, ok := publicKeyInst.(*rsa.PublicKey)
+		if !ok {
+			return errors.New("Error verifying RS2RSAPKCS56 cose signature. Could not cast pubKey instance to RSA PubKey")
+		}
 
-		rsaPubKeyLen := len(rsaPubKey.N.Bytes())
+		rsaPubKeyLen := len(rsaPubKeyCasted.N.Bytes())
 
 		var hashingAlg crypto.Hash
 		var payloadHash []byte
@@ -131,7 +144,7 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 			return fmt.Errorf("%d is an unsupported public key length for RSAPKCS", rsaPubKeyLen*8)
 		}
 
-		return rsa.VerifyPKCS1v15(rsaPubKey, hashingAlg, payloadHash, signature)
+		return rsa.VerifyPKCS1v15(rsaPubKeyCasted, hashingAlg, payloadHash, signature)
 	case RSAPSS:
 		return errors.New("RSAPSS is not currently implemented!")
 	default:
