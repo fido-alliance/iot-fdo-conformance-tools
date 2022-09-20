@@ -392,3 +392,20 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 
 	return nil
 }
+
+func MarshalVoucherAndPrivateKey(vdbEntry fdoshared.VoucherDBEntry) ([]byte, error) {
+	// Voucher to PEM
+	voucherBytes, err := cbor.Marshal(vdbEntry.Voucher)
+	if err != nil {
+		return []byte{}, errors.New("Error marshaling voucher bytes. " + err.Error())
+	}
+	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: "OWNERSHIP VOUCHER", Bytes: voucherBytes})
+
+	// LastOVEntry private key to PEM
+	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: vdbEntry.PrivateKeyX509})
+
+	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
+
+	return voucherFileBytes, nil
+
+}
