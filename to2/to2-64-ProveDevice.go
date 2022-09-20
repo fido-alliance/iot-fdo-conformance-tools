@@ -93,7 +93,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	setupDeviceBytes, _ := cbor.Marshal(setupDevice)
 
 	// Response encrypted
-	setupDeviceBytesEnc, err := fdoshared.AddEncryptionWrapping(setupDeviceBytes, sessionKey, session.CipherSuiteName)
+	setupDeviceBytesEnc, err := fdoshared.AddEncryptionWrapping(setupDeviceBytes, *sessionKey, session.CipherSuiteName)
 	if err != nil {
 		log.Println("ProveDevice64: Error encrypting..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Internal server error!", http.StatusInternalServerError)
@@ -101,7 +101,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update session
-	session.SessionKey = sessionKey
+	session.SessionKey = *sessionKey
 	session.PrevCMD = fdoshared.TO2_65_SETUP_DEVICE
 	err = h.Session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {

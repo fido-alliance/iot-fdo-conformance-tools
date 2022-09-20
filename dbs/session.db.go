@@ -26,7 +26,7 @@ type SessionEntry struct {
 	PrevCMD  fdoshared.FdoCmd
 
 	// Session encryption key
-	SessionKey   []byte
+	SessionKey   fdoshared.SessionKeyInfo
 	XAKex        fdoshared.KeXParams
 	KexSuiteName fdoshared.KexSuiteName
 
