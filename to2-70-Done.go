@@ -12,13 +12,30 @@ import (
 func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, *testcom.FDOTestState, error) {
 	var testState testcom.FDOTestState
 
-	done70Bytes, _ := cbor.Marshal(fdoshared.Done70{
+	done70 := fdoshared.Done70{
 		NonceTO2ProveDv: h.NonceTO2ProveDv61,
-	})
+	}
+
+	if fdoTestID == testcom.FIDO_DOT_70_BAD_NONCE_PROVE_DV_61 {
+		done70.NonceTO2ProveDv = fdoshared.NewFdoNonce()
+	}
+
+	done70Bytes, _ := cbor.Marshal(done70)
+
+	if fdoTestID == testcom.FIDO_DOT_70_BAD_ENCODING {
+		done70Bytes = fdoshared.Conf_RandomCborBufferFuzzing(done70Bytes)
+	}
 
 	done70BytesEnc, err := fdoshared.AddEncryptionWrapping(done70Bytes, h.SessionKey, h.CipherSuiteName)
 	if err != nil {
 		return nil, nil, errors.New("Done70: Error encrypting... " + err.Error())
+	}
+
+	if fdoTestID == testcom.FIDO_DOT_70_BAD_ENCRYPTION {
+		done70BytesEnc, err = fdoshared.Conf_Fuzz_AddWrapping(done70BytesEnc, h.SessionKey, h.CipherSuiteName)
+		if err != nil {
+			return nil, nil, errors.New("DeviceServiceInfoReady66: Error encrypting... " + err.Error())
+		}
 	}
 
 	rawResultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.SrvEntry, fdoshared.TO2_70_DONE, done70BytesEnc, &h.AuthzHeader)

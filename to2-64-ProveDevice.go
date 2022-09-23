@@ -38,7 +38,15 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		EatNonce: h.NonceTO2ProveDv61,
 		EatFDO:   to2ProveDevicePayload,
 	}
+
+	if fdoTestID == testcom.FIDO_DOT_64_BAD_NONCE_PROVEDV61 {
+		eatPayload.EatNonce = fdoshared.NewFdoNonce()
+	}
+
 	eatPayloadBytes, _ := cbor.Marshal(eatPayload)
+	if fdoTestID == testcom.FIDO_DOT_64_BAD_NONCE_PROVEDV61 {
+		eatPayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(eatPayloadBytes)
+	}
 
 	// Private key
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.Credential.DCPrivateKeyDer)
@@ -52,6 +60,11 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		return nil, nil, errors.New("ProveDevice64: Error generating device EAT... " + err.Error())
 
 	}
+
+	if fdoTestID == testcom.FIDO_DOT_64_BAD_SIGNATURE {
+		proveDevice.Signature = fdoshared.Conf_RandomCborBufferFuzzing(proveDevice.Signature)
+	}
+
 	proveDeviceBytes, _ := cbor.Marshal(proveDevice)
 
 	rawResultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.SrvEntry, fdoshared.TO2_64_PROVE_DEVICE, proveDeviceBytes, &h.AuthzHeader)

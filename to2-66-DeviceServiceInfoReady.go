@@ -17,9 +17,20 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 	}
 	deviceSrvInfoReadyBytes, _ := cbor.Marshal(deviceSrvInfoReady)
 
+	if fdoTestID == testcom.FIDO_DOT_66_BAD_SRVINFO_PAYLOAD {
+		deviceSrvInfoReadyBytes = fdoshared.Conf_RandomCborBufferFuzzing(deviceSrvInfoReadyBytes)
+	}
+
 	deviceSrvInfoReadyBytesEnc, err := fdoshared.AddEncryptionWrapping(deviceSrvInfoReadyBytes, h.SessionKey, h.CipherSuiteName)
 	if err != nil {
 		return nil, nil, errors.New("DeviceServiceInfoReady66: Error encrypting... " + err.Error())
+	}
+
+	if fdoTestID == testcom.FIDO_DOT_66_BAD_ENCRYPTION {
+		deviceSrvInfoReadyBytesEnc, err = fdoshared.Conf_Fuzz_AddWrapping(deviceSrvInfoReadyBytesEnc, h.SessionKey, h.CipherSuiteName)
+		if err != nil {
+			return nil, nil, errors.New("DeviceServiceInfoReady66: Error encrypting... " + err.Error())
+		}
 	}
 
 	rawResultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.SrvEntry, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, deviceSrvInfoReadyBytesEnc, &h.AuthzHeader)

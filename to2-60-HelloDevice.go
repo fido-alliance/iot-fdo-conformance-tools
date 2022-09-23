@@ -14,22 +14,29 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 
 	h.NonceTO2ProveOV60 = fdoshared.NewFdoNonce()
 
-	helloDevice60Byte, err := cbor.Marshal(fdoshared.HelloDevice60{
+	helloDevice60 := fdoshared.HelloDevice60{
 		MaxDeviceMessageSize: MaxDeviceMessageSize,
 		Guid:                 h.Credential.DCGuid,
 		NonceTO2ProveOV:      h.NonceTO2ProveOV60,
 		KexSuiteName:         h.KexSuiteName,
 		CipherSuiteName:      h.CipherSuiteName,
 		EASigInfo:            h.Credential.DCSigInfo,
-	})
+	}
 
+	helloDevice60Byte, err := cbor.Marshal(helloDevice60)
 	if err != nil {
 		return nil, nil, errors.New("HelloDevice60: Error marshaling HelloDevice60. " + err.Error())
+	}
+
+	if fdoTestID == testcom.FIDO_DOT_60_POSITIVE {
+		helloDevice60Byte = fdoshared.Conf_RandomCborBufferFuzzing(helloDevice60Byte)
 	}
 
 	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.SrvEntry, fdoshared.TO2_60_HELLO_DEVICE, helloDevice60Byte, &h.SrvEntry.AccessToken)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
+		return nil, &testState, nil
+
 	}
 
 	if err != nil {
