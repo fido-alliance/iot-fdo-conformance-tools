@@ -10,8 +10,6 @@
     let testRunMap = {}
     let rvtMap = {}
 
-    console.log(testRunMap)
-
     let errorMsg = ""
     const refreshRvtList = async() => {
         try {

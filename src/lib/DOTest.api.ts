@@ -1,6 +1,6 @@
 
-export const getRVTsList = async (): Promise<Array<any>> => {
-    let result = await fetch("/api/rvt/list", {
+export const getDOTsList = async (): Promise<Array<any>> => {
+    let result = await fetch("/api/dot/list", {
         method: "GET",
         headers: {
         "Content-Type": "application/json",
@@ -22,8 +22,8 @@ export const getRVTsList = async (): Promise<Array<any>> => {
     return resultJson.entries
 }
 
-export const addNewRv = async (url): Promise<Array<any>> => {
-    let result = await fetch("/api/rvt/create", {
+export const addNewDo = async (url): Promise<Array<any>> => {
+    let result = await fetch("/api/dot/create", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -43,13 +43,13 @@ export const addNewRv = async (url): Promise<Array<any>> => {
         return Promise.reject(`Error sending request: ${statusText}`)
     }
 
-    return resultJson.entries
+    return resultJson.rvts
 }
 
 
 
-export const executeRvTests = async (id): Promise<Array<any>> => {
-    let result = await fetch("/api/rvt/execute", {
+export const executeDoTests = async (id): Promise<Array<any>> => {
+    let result = await fetch("/api/dot/execute", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -73,7 +73,7 @@ export const executeRvTests = async (id): Promise<Array<any>> => {
 }
 
 export const removeTestRun = async (id: string, testRunId: string): Promise<Array<any>> => {
-    let result = await fetch("/api/rvt/list/testrun", {
+    let result = await fetch("/api/dot/list/testrun", {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",

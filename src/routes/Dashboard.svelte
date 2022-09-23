@@ -26,7 +26,7 @@
             <span class="icon solid major style5 fa fa-cogs"></span>
             <h3>Device Onboarding service (Coming soon)</h3>
             <p>Testing DO for support of TO0 and TO2 protocols</p>
-            <!-- <a href="/#/test/do" class="button">Run</a> -->
+            <a href="/#/test/do" class="button">Run</a>
         </li>
     </ul>
 </section>
