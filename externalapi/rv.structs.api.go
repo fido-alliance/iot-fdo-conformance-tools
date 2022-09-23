@@ -24,7 +24,7 @@ type RVT_Item struct {
 }
 
 type RVT_ListRvts struct {
-	RVTItems []RVT_Item       `json:"rvts"`
+	RVTItems []RVT_Item       `json:"entries"`
 	Status   FdoConfApiStatus `json:"status"`
 }
 

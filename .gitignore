@@ -16,7 +16,9 @@
 
 .DS_Store
 
-badger.local.db/
+badger.local.db*/
+badger.local.db.*
+
 fdo-fido-conformance-server
 *.voucher.pem
 *.dis.pem

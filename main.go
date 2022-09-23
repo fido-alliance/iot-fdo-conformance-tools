@@ -158,6 +158,23 @@ func main() {
 				},
 			},
 			{
+				Name: "testrandomguidpick",
+				Action: func(ctx *cli.Context) error {
+					configdb := dbs.NewConfigDB(db)
+					configInst, err := configdb.Get()
+					if err != nil {
+						return fmt.Errorf("Error reading config. " + err.Error())
+					}
+
+					randomBatch := configInst.SeededGuids.GetTestBatch(500)
+
+					x := randomBatch[fdoshared.StRSA2048]
+
+					x.GetRandomSelection(10)
+					return nil
+				},
+			},
+			{
 				Name: "testrandid",
 				Action: func(ctx *cli.Context) error {
 					var randGuids fdoshared.FdoGuidList

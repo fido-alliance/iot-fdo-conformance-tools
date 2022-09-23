@@ -229,7 +229,7 @@ func (h *RVTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userInst.RVT_ContainID(rvtId) != nil {
+	if !userInst.RVT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
 		RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
@@ -274,7 +274,7 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userInst.RVT_ContainID(rvtId) != nil {
+	if !userInst.RVT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
 		RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return

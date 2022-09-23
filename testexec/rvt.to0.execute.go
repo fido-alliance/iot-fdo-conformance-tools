@@ -47,18 +47,15 @@ func ExecuteRVTestsTo0(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.Request
 			}
 
 		default:
-			_, rvtTestState, err := to0inst.Hello20(rv20test)
-
-			if rvtTestState == nil && err != nil {
-				errTestState := testcom.FDOTestState{
+			_, testState, err := to0inst.Hello20(rv20test)
+			if testState == nil && err != nil {
+				testState = &testcom.FDOTestState{
 					Passed: false,
 					Error:  err.Error(),
 				}
-
-				rvtTestState = &errTestState
 			}
 
-			reqtDB.ReportTest(reqte.Uuid, rv20test, *rvtTestState)
+			reqtDB.ReportTest(reqte.Uuid, rv20test, *testState)
 		}
 	}
 

@@ -1,18 +1,23 @@
 package externalapi
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 
+	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/gorilla/mux"
 )
 
 const FdoDOSeedIDsBatchSize int = 50
@@ -68,6 +73,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Getting URL
 	var createTestCase DOT_CreateTestCase
 	err = json.Unmarshal(bodyBytes, &createTestCase)
 	if err != nil {
@@ -91,6 +97,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 
 	doUrl := parsedUrl.Scheme + "://" + parsedUrl.Host
 
+	// Getting pre-gen config
 	mainConfig, err := h.ConfigDB.Get()
 	if err != nil {
 		log.Println("Failed to generate VDIs. " + err.Error())
@@ -98,19 +105,37 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newDOTTestTo0 := req_tests_deps.NewRequestTestInst(doUrl, 0)
-	newDOTTestTo0.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
-	err = h.ReqTDB.Save(newDOTTestTo0)
+	// New request test instance
+	newDOTTestTo2 := req_tests_deps.NewRequestTestInst(doUrl, 2)
+
+	// Generate test vouchers
+	voucherTestBatch := mainConfig.SeededGuids.GetTestBatch(10000)
+
+	var allTestIds fdoshared.FdoGuidList
+	for _, v := range voucherTestBatch {
+		allTestIds = append(allTestIds, v...)
+	}
+
+	voucherTestMap, err := testexec.GenerateTo2Vouchers(allTestIds, h.DevBaseDB)
 	if err != nil {
-		log.Println("Failed to save rvte. " + err.Error())
+		log.Println("Generate vouchers. " + err.Error())
+		RespondError(w, "Failed to generate vouchers. Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	newDOTTestTo2.TestVouchers = voucherTestMap
+	newDOTTestTo2.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
+
+	// Saving stuff
+	err = h.ReqTDB.Save(newDOTTestTo2)
+	if err != nil {
+		log.Println("Failed to save do test inst. " + err.Error())
 		RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	newDotTestInst := dbs.NewDOTestInst(doUrl, newDOTTestTo0.Uuid)
-
-	userInst.DOTestInsts = append(userInst.DOTestInsts, newDotTestInst)
-
+	// Saving user
+	userInst.DOTestInsts = append(userInst.DOTestInsts, dbs.NewDOTestInst(doUrl, newDOTTestTo2.Uuid))
 	err = h.UserDB.Save(userInst.Username, *userInst)
 	if err != nil {
 		log.Println("Failed to save user. " + err.Error())
@@ -144,7 +169,7 @@ func (h *DOTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 			Url: dotInfo.Url,
 		}
 
-		dotsInfoPayloadPtr, err := h.ReqTDB.Get(dotInfo.Uuid)
+		dotsInfoPayloadPtr, err := h.ReqTDB.Get(dotInfo.To2)
 		if err != nil {
 			log.Println("Error reading dots. " + err.Error())
 			RespondError(w, "Internal server error", http.StatusInternalServerError)
@@ -167,6 +192,92 @@ func (h *DOTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	dotList.Status = FdoApiStatus_OK
 
 	RespondSuccessStruct(w, dotList)
+}
+
+func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userInst, err := h.checkAutzAndGetUser(r)
+	if err != nil {
+		log.Println("Failed to read cookie. " + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	idBytes, err := hex.DecodeString(vars["uuid"])
+	if err != nil {
+		log.Printf("Cound not decode %s hex", vars["uuid"])
+		RespondError(w, "ID not found!", http.StatusNotFound)
+		return
+	}
+
+	if !userInst.DOT_ContainID(idBytes) {
+		log.Printf("ID %s does not belong to user", vars["uuid"])
+		RespondError(w, "ID not found!", http.StatusNotFound)
+		return
+	}
+
+	dotsInfoPayloadPtr, err := h.ReqTDB.Get(idBytes)
+	if err != nil {
+		log.Println("Error reading dots. " + err.Error())
+		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	parsedUrl, err := url.ParseRequestURI(dotsInfoPayloadPtr.URL)
+	if err != nil {
+		log.Println("Bad URL. " + err.Error())
+		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var voucherList []fdodeviceimplementation.DeviceCredAndVoucher
+	for _, v := range dotsInfoPayloadPtr.TestVouchers {
+		voucherList = append(voucherList, v...)
+	}
+
+	// Generate zip
+
+	zipBuffer := new(bytes.Buffer)
+	writer := zip.NewWriter(zipBuffer)
+
+	for _, vanv := range voucherList {
+		zipFile, err := writer.Create(fmt.Sprintf("%s.voucher.pem", hex.EncodeToString(vanv.WawDeviceCredential.DCGuid[:])))
+		if err != nil {
+			log.Println("Error creating new zip file instance. " + err.Error())
+			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		voucherPemBytes, err := fdodeviceimplementation.MarshalVoucherAndPrivateKey(vanv.VoucherDBEntry)
+		if err != nil {
+			log.Println("Error encoding voucher. " + err.Error())
+			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		_, err = zipFile.Write(voucherPemBytes)
+		if err != nil {
+			log.Println("Error writing zip file bytes. " + err.Error())
+			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	err = writer.Close()
+	if err != nil {
+		log.Println("Error closing zip stream. " + err.Error())
+		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.vouchers.zip\"", parsedUrl.Host))
+	w.Write(zipBuffer.Bytes())
 }
 
 func (h *DOTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
@@ -215,7 +326,7 @@ func (h *DOTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userInst.RVT_ContainID(rvtId) != nil {
+	if !userInst.DOT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
 		RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
@@ -260,7 +371,7 @@ func (h *DOTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userInst.RVT_ContainID(rvtId) != nil {
+	if !userInst.RVT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
 		RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
@@ -273,15 +384,7 @@ func (h *DOTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rvte.Protocol == fdoshared.To0 {
-		testexec.ExecuteRVTestsTo0(*rvte, h.ReqTDB, h.DevBaseDB)
-	} else if rvte.Protocol == fdoshared.To1 {
-		testexec.ExecuteRVTestsTo1(*rvte, h.ReqTDB, h.DevBaseDB)
-	} else {
-		log.Printf("Protocol TO%d is not supported. ", rvte.Protocol)
-		RespondError(w, "Unsupported protocol!", http.StatusBadRequest)
-		return
-	}
+	testexec.ExecuteDOTestsTo2(*rvte, h.ReqTDB)
 
 	RespondSuccess(w)
 }

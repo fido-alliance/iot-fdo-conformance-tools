@@ -19,11 +19,11 @@ type DOT_InstInfo struct {
 type DOT_Item struct {
 	Id  string       `json:"id"`
 	Url string       `json:"url"`
-	To2 DOT_InstInfo `json:"to0"`
+	To2 DOT_InstInfo `json:"to2"`
 }
 
 type DOT_ListTestEntries struct {
-	TestEntries []DOT_Item       `json:"rvts"`
+	TestEntries []DOT_Item       `json:"entries"`
 	Status      FdoConfApiStatus `json:"status"`
 }
 

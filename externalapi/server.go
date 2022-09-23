@@ -5,6 +5,7 @@ import (
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/dgraph-io/badger/v3"
+	"github.com/gorilla/mux"
 )
 
 func SetupServer(db *badger.DB) {
@@ -22,22 +23,40 @@ func SetupServer(db *badger.DB) {
 		DevBaseDB: &devBaseDb,
 	}
 
+	dotApiHandler := DOTestMgmtAPI{
+		UserDB:    &userDb,
+		ReqTDB:    &rvtDb,
+		SessionDB: &sessionDb,
+		ConfigDB:  &configDb,
+		DevBaseDB: &devBaseDb,
+	}
+
 	userApiHandler := UserAPI{
 		UserDB:    &userDb,
 		SessionDB: &sessionDb,
 	}
 
-	http.HandleFunc("/api/rvt/create", rvtApiHandler.Generate)
-	http.HandleFunc("/api/rvt/list", rvtApiHandler.List)
-	http.HandleFunc("/api/rvt/list/testrun", rvtApiHandler.DeleteTestRun)
+	r := mux.NewRouter()
 
-	http.HandleFunc("/api/rvt/execute", rvtApiHandler.Execute)
+	r.HandleFunc("/api/rvt/create", rvtApiHandler.Generate)
+	r.HandleFunc("/api/rvt/list", rvtApiHandler.List)
+	r.HandleFunc("/api/rvt/list/testrun", rvtApiHandler.DeleteTestRun)
+	r.HandleFunc("/api/rvt/execute", rvtApiHandler.Execute)
 
-	http.HandleFunc("/api/user/register", userApiHandler.Register)
-	http.HandleFunc("/api/user/login", userApiHandler.Login)
-	http.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
-	http.HandleFunc("/api/user/logout", userApiHandler.Logout)
+	r.HandleFunc("/api/dot/create", dotApiHandler.Generate)
+	r.HandleFunc("/api/dot/list", dotApiHandler.List)
+	r.HandleFunc("/api/dot/list/testrun", dotApiHandler.DeleteTestRun)
+	r.HandleFunc("/api/dot/vouchers/{uuid}", dotApiHandler.GetVouchers)
+	r.HandleFunc("/api/dot/execute", dotApiHandler.Execute)
 
-	// http.Handle("/", http.FileServer(http.Dir("./_static")))
-	http.HandleFunc("/", ProxyDevUI)
+	r.HandleFunc("/api/user/register", userApiHandler.Register)
+	r.HandleFunc("/api/user/login", userApiHandler.Login)
+	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
+	r.HandleFunc("/api/user/logout", userApiHandler.Logout)
+
+	// r.Handle("/", http.FileServer(http.Dir("./_static")))
+	r.PathPrefix("/").HandlerFunc(ProxyDevUI)
+
+	http.Handle("/", r)
+
 }

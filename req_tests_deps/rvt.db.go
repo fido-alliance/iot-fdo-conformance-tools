@@ -1,6 +1,7 @@
 package req_tests_deps
 
 import (
+	"fmt"
 	"time"
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
@@ -8,6 +9,20 @@ import (
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/google/uuid"
 )
+
+type TestVouchers map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher
+
+func (h *TestVouchers) GetVoucher(testId testcom.FDOTestID) (*fdodeviceimplementation.DeviceCredAndVoucher, error) {
+	for k, v := range *h {
+		if k == testId {
+			randVoucherId := fdoshared.NewRandomInt(0, len(v)-1)
+
+			return &v[randVoucherId], nil
+		}
+	}
+
+	return nil, fmt.Errorf("No vouchers found for the id %s", testId)
+}
 
 type RequestTestInst struct {
 	_              struct{} `cbor:",toarray"`
@@ -18,7 +33,7 @@ type RequestTestInst struct {
 	InProgress     bool
 	CurrentTestRun RequestTestRun
 	TestsHistory   []RequestTestRun
-	TestVouchers   map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher
+	TestVouchers   TestVouchers
 }
 
 func NewRequestTestInst(url string, protocol fdoshared.FdoToProtocol) RequestTestInst {
@@ -30,7 +45,7 @@ func NewRequestTestInst(url string, protocol fdoshared.FdoToProtocol) RequestTes
 		URL:          url,
 		TestsHistory: make([]RequestTestRun, 0),
 		Protocol:     protocol,
-		TestVouchers: make(map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher),
+		TestVouchers: make(TestVouchers),
 	}
 }
 
