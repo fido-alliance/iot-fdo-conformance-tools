@@ -1,6 +1,11 @@
 package fdoshared
 
-import lorem "github.com/drhodes/golorem"
+import (
+	"fmt"
+
+	lorem "github.com/drhodes/golorem"
+	"github.com/fxamacker/cbor/v2"
+)
 
 // CONFORMANCE TESTING
 func Conf_NewRandomSgTypeExcept(exceptSg DeviceSgType) DeviceSgType {
@@ -170,4 +175,105 @@ func Conf_RandomTestFuzzSigInfo(sigInfo SigInfo) SigInfo {
 	}
 
 	return newSigInfo
+}
+
+type Conf_EncFuzzTypes string
+
+const (
+	Conf_EncFuzz_Payload    Conf_EncFuzzTypes = "payload"
+	Conf_EncFuzz_Tag        Conf_EncFuzzTypes = "tag"
+	Conf_EncFuzz_Ciphertext Conf_EncFuzzTypes = "ciphertext"
+	Conf_EncFuzz_IV         Conf_EncFuzzTypes = "iv"
+	Conf_EncFuzz_Output     Conf_EncFuzzTypes = "output"
+)
+
+var Conf_EncFuzzTypes_List_ETM []Conf_EncFuzzTypes = []Conf_EncFuzzTypes{
+	Conf_EncFuzz_Payload,
+	Conf_EncFuzz_Tag,
+	Conf_EncFuzz_Ciphertext,
+	Conf_EncFuzz_IV,
+	Conf_EncFuzz_Output,
+}
+
+var Conf_EncFuzzTypes_List_EMB []Conf_EncFuzzTypes = []Conf_EncFuzzTypes{
+	Conf_EncFuzz_Ciphertext,
+	Conf_EncFuzz_IV,
+	Conf_EncFuzz_Output,
+}
+
+func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
+	var encryptedBytes []byte
+	var err error
+
+	switch cipherSuite {
+	case CIPHER_COSE_AES128_CBC, CIPHER_COSE_AES128_CTR, CIPHER_COSE_AES256_CBC, CIPHER_COSE_AES256_CTR:
+		var chosenType Conf_EncFuzzTypes = Conf_EncFuzzTypes_List_ETM[NewRandomInt(0, len(Conf_EncFuzzTypes_List_ETM)-1)]
+
+		encryptedBytes, err = encryptETM(payload, sessionKeyInfo, cipherSuite)
+		if err != nil {
+			return encryptedBytes, err
+		}
+
+		var outerBlock ETMOuterBlock
+		cbor.Unmarshal(encryptedBytes, &outerBlock)
+
+		var innerBlock ETMInnerBlock
+		cbor.Unmarshal(outerBlock.Payload, &innerBlock)
+
+		if chosenType == Conf_EncFuzz_Payload {
+			outerBlock.Payload = Conf_RandomCborBufferFuzzing(outerBlock.Payload)
+		}
+
+		if chosenType == Conf_EncFuzz_Tag {
+			outerBlock.Tag = Conf_RandomCborBufferFuzzing(outerBlock.Tag)
+		}
+
+		if chosenType == Conf_EncFuzz_Ciphertext {
+			innerBlock.Ciphertext = Conf_RandomCborBufferFuzzing(innerBlock.Ciphertext)
+			innerBytes, _ := cbor.Marshal(innerBlock)
+			outerBlock.Payload = innerBytes
+		}
+
+		if chosenType == Conf_EncFuzz_IV {
+			innerBlock.Unprotected.AESIV = NewRandomBuffer(len(innerBlock.Unprotected.AESIV))
+			innerBytes, _ := cbor.Marshal(innerBlock)
+			outerBlock.Payload = innerBytes
+		}
+
+		encryptedBytes, err = cbor.Marshal(outerBlock)
+
+		if chosenType == Conf_EncFuzz_Output {
+			encryptedBytes = Conf_RandomCborBufferFuzzing(encryptedBytes)
+		}
+
+	case CIPHER_A128GCM, CIPHER_A256GCM:
+		var chosenType Conf_EncFuzzTypes = Conf_EncFuzzTypes_List_EMB[NewRandomInt(0, len(Conf_EncFuzzTypes_List_EMB)-1)]
+
+		encryptedBytes, err = encryptEMB(payload, sessionKeyInfo, cipherSuite)
+		if err != nil {
+			return encryptedBytes, err
+		}
+
+		var embBlock EMBlock
+		cbor.Unmarshal(encryptedBytes, &embBlock)
+
+		if chosenType == Conf_EncFuzz_Ciphertext {
+			embBlock.Ciphertext = Conf_RandomCborBufferFuzzing(embBlock.Ciphertext)
+		}
+
+		if chosenType == Conf_EncFuzz_IV {
+			embBlock.Unprotected.AESIV = NewRandomBuffer(len(embBlock.Unprotected.AESIV))
+		}
+
+		encryptedBytes, err = cbor.Marshal(embBlock)
+
+		if chosenType == Conf_EncFuzz_Output {
+			encryptedBytes = Conf_RandomCborBufferFuzzing(encryptedBytes)
+		}
+
+	default:
+		return nil, fmt.Errorf("Unsupported encryption scheme! %d", cipherSuite)
+	}
+
+	return encryptedBytes, err
 }

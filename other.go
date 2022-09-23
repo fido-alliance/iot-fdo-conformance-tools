@@ -144,6 +144,14 @@ func (h *FdoSeedIDs) GetRandomTestGuid() FdoGuid {
 	return randomGuids[randLoc]
 }
 
+func (h *FdoSeedIDs) GetRandomTestGuidForSgType(sgType DeviceSgType) FdoGuid {
+	sh := *h
+	var randomGuids []FdoGuid = sh[sgType]
+
+	randLoc := NewRandomInt(0, len(randomGuids)-1)
+	return randomGuids[randLoc]
+}
+
 // timestamp = null / UTCStr / UTCInt / TIME_T
 // UTCStr = #6.0(tstr)
 // UTCInt = #6.1(uint)
