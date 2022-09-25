@@ -1,7 +1,7 @@
 package externalapi
 
 import (
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
@@ -10,10 +10,10 @@ type RVT_CreateTestCase struct {
 }
 
 type RVT_InstInfo struct {
-	Id         string                          `json:"id"`
-	Runs       []req_tests_deps.RequestTestRun `json:"runs"`
-	InProgress bool                            `json:"inprogress"`
-	Protocol   fdoshared.FdoToProtocol         `json:"protocol"`
+	Id         string                        `json:"id"`
+	Runs       []reqtestsdeps.RequestTestRun `json:"runs"`
+	InProgress bool                          `json:"inprogress"`
+	Protocol   fdoshared.FdoToProtocol       `json:"protocol"`
 }
 
 type RVT_Item struct {

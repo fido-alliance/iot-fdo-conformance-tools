@@ -10,7 +10,7 @@ import (
 	"net/url"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
@@ -98,7 +98,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newRVTestTo0 := req_tests_deps.NewRequestTestInst(rvUrl, 0)
+	newRVTestTo0 := reqtestsdeps.NewRequestTestInst(rvUrl, 0)
 	newRVTestTo0.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
 	err = h.ReqTDB.Save(newRVTestTo0)
 	if err != nil {
@@ -107,7 +107,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newRVTestTo1 := req_tests_deps.NewRequestTestInst(rvUrl, 1)
+	newRVTestTo1 := reqtestsdeps.NewRequestTestInst(rvUrl, 1)
 	newRVTestTo1.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
 	err = h.ReqTDB.Save(newRVTestTo1)
 	if err != nil {

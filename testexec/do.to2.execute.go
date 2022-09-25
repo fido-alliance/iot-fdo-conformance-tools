@@ -6,7 +6,7 @@ import (
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
@@ -55,7 +55,7 @@ func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB
 	return vouchers, nil
 }
 
-func ExecuteDOTestsTo2(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.RequestTestDB) {
+func ExecuteDOTestsTo2(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	executeTo2_60(reqte, reqtDB)

@@ -14,7 +14,7 @@ import (
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/gorilla/mux"
@@ -106,7 +106,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// New request test instance
-	newDOTTestTo2 := req_tests_deps.NewRequestTestInst(doUrl, 2)
+	newDOTTestTo2 := reqtestsdeps.NewRequestTestInst(doUrl, 2)
 
 	// Generate test vouchers
 	voucherTestBatch := mainConfig.SeededGuids.GetTestBatch(10000)

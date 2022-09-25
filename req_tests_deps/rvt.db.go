@@ -1,4 +1,4 @@
-package req_tests_deps
+package reqtestsdeps
 
 import (
 	"fmt"

@@ -1,1 +1,1 @@
-package req_tests_deps
+package reqtestsdeps

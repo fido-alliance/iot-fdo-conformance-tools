@@ -3,12 +3,12 @@ package testexec
 import (
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
-func executeTo2_60(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.RequestTestDB) {
+func executeTo2_60(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB) {
 	for _, dot60test := range testcom.FIDO_TEST_LIST_DOT_60 {
 		testCred, err := reqte.TestVouchers.GetVoucher(testcom.NULL_TEST)
 		if err != nil {

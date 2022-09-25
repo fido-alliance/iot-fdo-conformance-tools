@@ -6,11 +6,11 @@ import (
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 )
 
-func ExecuteRVTestsTo1(reqte req_tests_deps.RequestTestInst, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
+func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	// Generating voucher

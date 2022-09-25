@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
@@ -27,7 +27,7 @@ func NewRequestTestDB(db *badger.DB) RequestTestDB {
 	}
 }
 
-func (h *RequestTestDB) Save(rvte req_tests_deps.RequestTestInst) error {
+func (h *RequestTestDB) Save(rvte reqtestsdeps.RequestTestInst) error {
 	rvteBytes, err := cbor.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
@@ -52,7 +52,7 @@ func (h *RequestTestDB) Save(rvte req_tests_deps.RequestTestInst) error {
 	return nil
 }
 
-func (h *RequestTestDB) Update(rvtId []byte, rvte req_tests_deps.RequestTestInst) error {
+func (h *RequestTestDB) Update(rvtId []byte, rvte reqtestsdeps.RequestTestInst) error {
 	rvteBytes, err := cbor.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
@@ -77,7 +77,7 @@ func (h *RequestTestDB) Update(rvtId []byte, rvte req_tests_deps.RequestTestInst
 	return nil
 }
 
-func (h *RequestTestDB) Get(rvtId []byte) (*req_tests_deps.RequestTestInst, error) {
+func (h *RequestTestDB) Get(rvtId []byte) (*reqtestsdeps.RequestTestInst, error) {
 	rvteStorageId := append(h.prefix, rvtId...)
 
 	dbtxn := h.db.NewTransaction(true)
@@ -95,7 +95,7 @@ func (h *RequestTestDB) Get(rvtId []byte) (*req_tests_deps.RequestTestInst, erro
 		return nil, errors.New("Failed reading rvte entry value. The error is: " + err.Error())
 	}
 
-	var rvteInst req_tests_deps.RequestTestInst
+	var rvteInst reqtestsdeps.RequestTestInst
 	err = cbor.Unmarshal(itemBytes, &rvteInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding rvte entry value. The error is: " + err.Error())
@@ -104,8 +104,8 @@ func (h *RequestTestDB) Get(rvtId []byte) (*req_tests_deps.RequestTestInst, erro
 	return &rvteInst, nil
 }
 
-func (h *RequestTestDB) GetMany(rvtids [][]byte) (*[]req_tests_deps.RequestTestInst, error) {
-	var rvts []req_tests_deps.RequestTestInst
+func (h *RequestTestDB) GetMany(rvtids [][]byte) (*[]reqtestsdeps.RequestTestInst, error) {
+	var rvts []reqtestsdeps.RequestTestInst
 
 	for _, rvtid := range rvtids {
 		rvt, err := h.Get(rvtid)
@@ -126,11 +126,11 @@ func (h *RequestTestDB) StartNewRun(rvteid []byte) {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvteid))
 	}
 
-	newRVTestRun := req_tests_deps.NewRVTestRun(rvte.Protocol)
+	newRVTestRun := reqtestsdeps.NewRVTestRun(rvte.Protocol)
 
 	rvte.InProgress = true
 	rvte.CurrentTestRun = newRVTestRun
-	rvte.TestsHistory = append([]req_tests_deps.RequestTestRun{newRVTestRun}, rvte.TestsHistory...)
+	rvte.TestsHistory = append([]reqtestsdeps.RequestTestRun{newRVTestRun}, rvte.TestsHistory...)
 
 	err = h.Save(*rvte)
 	if err != nil {
@@ -175,7 +175,7 @@ func (h *RequestTestDB) RemoveTestRun(rvteid []byte, testRunId string) {
 		log.Printf("%s test entry can not be found.", hex.EncodeToString(rvteid))
 	}
 
-	var updatedTestsHistory []req_tests_deps.RequestTestRun = []req_tests_deps.RequestTestRun{}
+	var updatedTestsHistory []reqtestsdeps.RequestTestRun = []reqtestsdeps.RequestTestRun{}
 	for _, testRunEntry := range rvte.TestsHistory {
 		if testRunEntry.Uuid != testRunId {
 			updatedTestsHistory = append(updatedTestsHistory, testRunEntry)
