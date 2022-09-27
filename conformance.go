@@ -277,3 +277,37 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 
 	return encryptedBytes, err
 }
+
+type Conf_CoseSign_Field string
+
+const (
+	Conf_CoseSign_Field_Protected   Conf_CoseSign_Field = "string"
+	Conf_CoseSign_Field_Unprotected Conf_CoseSign_Field = "number"
+	Conf_CoseSign_Field_Payload     Conf_CoseSign_Field = "map"
+	Conf_CoseSign_Field_Signature   Conf_CoseSign_Field = "array"
+)
+
+var Conf_CoseSign_Field_List []Conf_CoseSign_Field = []Conf_CoseSign_Field{
+	Conf_CoseSign_Field_Protected,
+	Conf_CoseSign_Field_Unprotected,
+	Conf_CoseSign_Field_Payload,
+	Conf_CoseSign_Field_Signature,
+}
+
+func Conf_Fuzz_CoseSignature(coseSignature CoseSignature) CoseSignature {
+
+	var chosenType Conf_CoseSign_Field = Conf_CoseSign_Field_List[NewRandomInt(0, len(Conf_CoseSign_Field_List)-1)]
+
+	switch chosenType {
+	case Conf_CoseSign_Field_Protected:
+		coseSignature.Protected = NewRandomBuffer(NewRandomInt(5, 49))
+	case Conf_CoseSign_Field_Unprotected:
+		coseSignature.Unprotected = UnprotectedHeader{}
+	case Conf_CoseSign_Field_Payload:
+		coseSignature.Payload = Conf_RandomCborBufferFuzzing(coseSignature.Payload)
+	default:
+		coseSignature.Signature = Conf_RandomCborBufferFuzzing(coseSignature.Signature)
+	}
+
+	return coseSignature
+}
