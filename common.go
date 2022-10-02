@@ -2,6 +2,7 @@ package fdodeviceimplementation
 
 import (
 	"bytes"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -9,7 +10,10 @@ import (
 	"time"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/fxamacker/cbor/v2"
 )
+
+const OWNERSHIP_VOUCHER_PEM_TYPE string = "OWNERSHIP VOUCHER"
 
 type SRVEntry struct { // TODO: Unify type with DO
 	SrvURL      string
@@ -44,4 +48,44 @@ func SendCborPost(rvEntry SRVEntry, cmd fdoshared.FdoCmd, payload []byte, authzH
 	}
 
 	return bodyBytes, resp.Header.Get("Authorization"), resp.StatusCode, nil
+}
+
+func DecodePemVoucherAndKey(vandvpem string) (*fdoshared.VoucherDBEntry, error) {
+	var vandvpemBytes []byte = []byte(vandvpem)
+
+	if len(vandvpem) == 0 {
+		return nil, errors.New("Error parsing pem voucher and key. The input is empty")
+	}
+
+	voucherBlock, rest := pem.Decode(vandvpemBytes)
+	if voucherBlock == nil {
+		return nil, errors.New("Could not find voucher PEM data!")
+	}
+
+	if voucherBlock.Type != OWNERSHIP_VOUCHER_PEM_TYPE {
+		return nil, fmt.Errorf("Failed to decode PEM voucher. Unexpected type: %s", voucherBlock.Type)
+	}
+
+	privateKeyBytes, rest := pem.Decode(rest)
+	if privateKeyBytes == nil {
+		return nil, errors.New("Could not find key PEM data!")
+	}
+
+	// CBOR decode voucher
+
+	var voucherInst fdoshared.OwnershipVoucher
+	err := cbor.Unmarshal(voucherBlock.Bytes, &voucherInst)
+	if err != nil {
+		return nil, fmt.Errorf("Could not CBOR unmarshal voucher! %s", err.Error())
+	}
+
+	err = voucherInst.Validate()
+	if err != nil {
+		return nil, fmt.Errorf("Could not validate voucher inst! %s", err.Error())
+	}
+
+	return &fdoshared.VoucherDBEntry{
+		Voucher:        voucherInst,
+		PrivateKeyX509: privateKeyBytes.Bytes,
+	}, nil
 }
