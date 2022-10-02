@@ -40,12 +40,13 @@ func SetupServer(db *badger.DB) {
 
 	r.HandleFunc("/api/rvt/create", rvtApiHandler.Generate)
 	r.HandleFunc("/api/rvt/testruns", rvtApiHandler.List)
-	r.HandleFunc("/api/rvt/testruns/{testinsthex}/{testrunid}", rvtApiHandler.DeleteTestRun)
+	r.HandleFunc("/api/rvt/testruns/{testinsthex}/{testrunid}", rvtApiHandler.DeleteTestRun).Methods("DELETE")
 	r.HandleFunc("/api/rvt/execute", rvtApiHandler.Execute)
 
 	r.HandleFunc("/api/dot/create", dotApiHandler.Generate)
 	r.HandleFunc("/api/dot/testruns", dotApiHandler.List)
-	r.HandleFunc("/api/dot/testrun/{toprotocol}/{testinsthex}/{testrunid}", dotApiHandler.DeleteTestRun)
+	r.HandleFunc("/api/dot/testruns/{toprotocol}/{testinsthex}/{testrunid}", dotApiHandler.DeleteTestRun).Methods("DELETE")
+
 	r.HandleFunc("/api/dot/vouchers/{uuid}", dotApiHandler.GetVouchers)
 	r.HandleFunc("/api/dot/execute", dotApiHandler.Execute)
 
