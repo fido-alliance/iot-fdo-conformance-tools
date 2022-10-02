@@ -13,6 +13,7 @@ import (
 	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/gorilla/mux"
 )
 
 const FdoSeedIDsBatchSize int = 500
@@ -189,11 +190,6 @@ func (h *RVTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	receivedContentType := r.Header.Get("Content-Type")
-	if receivedContentType != CONTENT_TYPE_JSON {
-		RespondError(w, "Unsupported media types!", http.StatusUnsupportedMediaType)
-	}
-
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
@@ -201,28 +197,11 @@ func (h *RVTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println("Failed to read body. " + err.Error())
-		RespondError(w, "Failed to read body!", http.StatusBadRequest)
-		return
-	}
+	vars := mux.Vars(r)
+	testinsthex := vars["testinsthex"]
+	testrunid := vars["testrunid"]
 
-	var execReq RVT_RequestInfo
-	err = json.Unmarshal(bodyBytes, &execReq)
-	if err != nil {
-		log.Println("Failed to decode body. " + err.Error())
-		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
-		return
-	}
-
-	if len(execReq.TestRunId) == 0 {
-		log.Println("Missing test run id field")
-		RespondError(w, "Missing test run id field!", http.StatusBadRequest)
-		return
-	}
-
-	rvtId, err := hex.DecodeString(execReq.Id)
+	rvtId, err := hex.DecodeString(testinsthex)
 	if err != nil {
 		log.Println("Can not decode hex rvtid " + err.Error())
 		RespondError(w, "Invalid id!", http.StatusBadRequest)
@@ -235,7 +214,7 @@ func (h *RVTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.ReqTDB.RemoveTestRun(rvtId, execReq.TestRunId)
+	h.ReqTDB.RemoveTestRun(rvtId, testrunid)
 
 	RespondSuccess(w)
 }

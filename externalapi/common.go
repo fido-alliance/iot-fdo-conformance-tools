@@ -2,6 +2,7 @@ package externalapi
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 )
@@ -28,6 +29,7 @@ type FdoConformanceApiError struct {
 }
 
 func RespondError(w http.ResponseWriter, errorMessage string, httpErrorCode int) {
+	log.Printf("Responding error: %s. HTTP code %d", errorMessage, httpErrorCode)
 	errorResponse := FdoConformanceApiError{
 		Status:       FdoApiStatus_Failed,
 		ErrorMessage: errorMessage,

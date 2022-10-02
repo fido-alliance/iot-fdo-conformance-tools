@@ -9,13 +9,10 @@ import (
 )
 
 func executeTo2_60(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB) {
-	for _, dot60test := range testcom.FIDO_TEST_LIST_DOT_60 {
+	for _, fdoTestId := range testcom.FIDO_TEST_LIST_DOT_60 {
 		testCred, err := reqte.TestVouchers.GetVoucher(testcom.NULL_TEST)
 		if err != nil {
-			errTestState := testcom.FDOTestState{
-				Passed: false,
-				Error:  "Error getting voucher for TO2 60. " + err.Error(),
-			}
+			errTestState := testcom.NewFailTestState(fdoTestId, "Error getting voucher for TO2 60. "+err.Error())
 
 			reqtDB.ReportTest(reqte.Uuid, testcom.NULL_TEST, errTestState)
 			return
@@ -26,37 +23,28 @@ func executeTo2_60(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB
 			SrvURL: reqte.URL,
 		}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM) // TODO
 
-		switch dot60test {
+		switch fdoTestId {
 		case testcom.FIDO_DOT_60_POSITIVE:
 			var errTestState testcom.FDOTestState
-			_, _, err := to2requestor.HelloDevice60(dot60test)
+			_, _, err := to2requestor.HelloDevice60(fdoTestId)
 			if err != nil {
-				errTestState = testcom.FDOTestState{
-					Passed: false,
-					Error:  err.Error(),
-				}
-				reqtDB.ReportTest(reqte.Uuid, dot60test, errTestState)
+				errTestState := testcom.NewFailTestState(fdoTestId, err.Error())
+
+				reqtDB.ReportTest(reqte.Uuid, fdoTestId, errTestState)
 				return
 			} else {
-				errTestState = testcom.FDOTestState{
-					Passed: true,
-				}
-				reqtDB.ReportTest(reqte.Uuid, dot60test, errTestState)
+				errTestState = testcom.NewSuccessTestState(fdoTestId)
+				reqtDB.ReportTest(reqte.Uuid, fdoTestId, errTestState)
 			}
 
 		default:
-			_, rvtTestState, err := to2requestor.HelloDevice60(dot60test)
-
+			_, rvtTestState, err := to2requestor.HelloDevice60(fdoTestId)
 			if rvtTestState == nil && err != nil {
-				errTestState := testcom.FDOTestState{
-					Passed: false,
-					Error:  err.Error(),
-				}
-
+				errTestState := testcom.NewFailTestState(fdoTestId, err.Error())
 				rvtTestState = &errTestState
 			}
 
-			reqtDB.ReportTest(reqte.Uuid, dot60test, *rvtTestState)
+			reqtDB.ReportTest(reqte.Uuid, fdoTestId, *rvtTestState)
 		}
 	}
 }

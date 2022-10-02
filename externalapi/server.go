@@ -39,13 +39,13 @@ func SetupServer(db *badger.DB) {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/rvt/create", rvtApiHandler.Generate)
-	r.HandleFunc("/api/rvt/list", rvtApiHandler.List)
-	r.HandleFunc("/api/rvt/list/testrun", rvtApiHandler.DeleteTestRun)
+	r.HandleFunc("/api/rvt/testruns", rvtApiHandler.List)
+	r.HandleFunc("/api/rvt/testruns/{testinsthex}/{testrunid}", rvtApiHandler.DeleteTestRun)
 	r.HandleFunc("/api/rvt/execute", rvtApiHandler.Execute)
 
 	r.HandleFunc("/api/dot/create", dotApiHandler.Generate)
-	r.HandleFunc("/api/dot/list", dotApiHandler.List)
-	r.HandleFunc("/api/dot/list/testrun", dotApiHandler.DeleteTestRun)
+	r.HandleFunc("/api/dot/testruns", dotApiHandler.List)
+	r.HandleFunc("/api/dot/testrun/{toprotocol}/{testinsthex}/{testrunid}", dotApiHandler.DeleteTestRun)
 	r.HandleFunc("/api/dot/vouchers/{uuid}", dotApiHandler.GetVouchers)
 	r.HandleFunc("/api/dot/execute", dotApiHandler.Execute)
 
@@ -54,8 +54,8 @@ func SetupServer(db *badger.DB) {
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
 	r.HandleFunc("/api/user/logout", userApiHandler.Logout)
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./_static/")))
-	// r.PathPrefix("/").HandlerFunc(ProxyDevUI)
+	// r.PathPrefix("/").Handler(http.FileServer(http.Dir("./_static/")))
+	r.PathPrefix("/").HandlerFunc(ProxyDevUI)
 
 	http.Handle("/", r)
 
