@@ -16,14 +16,7 @@ func SetupServer(db *badger.DB) {
 		},
 	}
 
-	to1 := RvTo1{
-		session: &SessionDB{
-			db: db,
-		},
-		ownersignDB: &OwnerSignDB{
-			db: db,
-		},
-	}
+	to1 := NewRvTo1(db)
 
 	http.HandleFunc("/fdo/101/msg/20", to0.Handle20Hello)
 	http.HandleFunc("/fdo/101/msg/22", to0.Handle22OwnerSign)
