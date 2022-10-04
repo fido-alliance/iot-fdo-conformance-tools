@@ -58,7 +58,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-	testcomListener, err = h.listenerDB.Get(helloRV30.Guid)
+	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloRV30.Guid)
 	if err != nil {
 		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloRV30.Guid[:]), err.Error())
 	}
@@ -149,7 +149,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-	testcomListener, err = h.listenerDB.Get(session.Guid)
+	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(session.Guid)
 	if err != nil {
 		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
 	}
