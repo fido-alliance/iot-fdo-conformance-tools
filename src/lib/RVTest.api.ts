@@ -1,6 +1,6 @@
 
 export const getRVTsList = async (): Promise<Array<any>> => {
-    let result = await fetch("/api/rvt/list", {
+    let result = await fetch("/api/rvt/testruns", {
         method: "GET",
         headers: {
         "Content-Type": "application/json",
@@ -73,12 +73,11 @@ export const executeRvTests = async (id): Promise<Array<any>> => {
 }
 
 export const removeTestRun = async (id: string, testRunId: string): Promise<Array<any>> => {
-    let result = await fetch("/api/rvt/list/testrun", {
+    let result = await fetch(`/api/rvt/testruns/${id}/${testRunId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({id, testRunId})
     })
 
     let resultJson = await result.json()

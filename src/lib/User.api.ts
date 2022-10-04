@@ -77,6 +77,28 @@ export const logout = async(): Promise<Boolean> => {
     return true
 }
 
+
+export const purgeTests = async(): Promise<Boolean> => {
+    let result = await fetch("/api/user/purgetests", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+    })
+
+    let resultJson = await result.json()
+
+    if (result.status !== 200) {
+        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
+            return false
+        }
+
+        return false
+    }
+
+    return true
+}
+
 export const register = async (password: String, passwordRepeat:string, email: string, company:string, name:string, phone:string): Promise<any> => {
     if (password.length == 0
     || passwordRepeat.length == 0

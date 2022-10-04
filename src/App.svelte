@@ -5,9 +5,9 @@
     import Dashboard from './routes/Dashboard.svelte';
     import {logout} from './lib/User.api'
     import Router, {location, push} from "svelte-spa-router"
-import Rv from './routes/RV.fdo.svelte';
-import Do from './routes/DO.fdo.svelte';
-import Device from './routes/Device.fdo.svelte';
+    import Rv from './routes/RV.fdo.svelte';
+    import Do from './routes/DO.fdo.svelte';
+    import Device from './routes/Device.fdo.svelte';
 
     let routes = {
         "/": Login,
