@@ -146,14 +146,11 @@ func (h *ListenerTestDB) RemoveTestRun(toProtocol fdoshared.FdoToProtocol, testI
 		return fmt.Errorf("Unknown FDO protocol %d", toProtocol)
 	}
 
-	var updatedTestsHistory []listenertestsdeps.ListenerTestRun = []listenertestsdeps.ListenerTestRun{}
-	for _, testRunEntry := range chosenReqListRunner.TestRunHistory {
-		if testRunEntry.Uuid != testRunId {
-			updatedTestsHistory = append(updatedTestsHistory, testRunEntry)
-		}
+	err = chosenReqListRunner.RemoveTestRun(testRunId)
+	if err != nil {
+		return err
 	}
 
-	chosenReqListRunner.TestRunHistory = updatedTestsHistory
 	switch toProtocol {
 	case fdoshared.To0:
 		testInst.To0 = chosenReqListRunner

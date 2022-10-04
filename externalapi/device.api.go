@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -123,26 +124,107 @@ func (h *DeviceTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listDeviceRuns := Device_ListRuns{}
+	listDeviceRuns := Device_ListRuns{
+		DeviceItems: []Device_Item{},
+	}
 
 	for _, devInsts := range userInst.DeviceTestInsts {
-		reqListener, err := h.ListenerDB.Get(devInsts.Uuid)
+		reqListener, err := h.ListenerDB.Get(devInsts.ListenerUuid)
 		if err != nil {
-			log.Printf("Failed find entry for %s. %s", hex.EncodeToString(reqListener.Guid[:]), err.Error())
+			log.Printf("Failed find entry for %s. %s", hex.EncodeToString(devInsts.Uuid), err.Error())
 			continue
+		}
+
+		var to1testRunHistory []listenertestsdeps.ListenerTestRun = []listenertestsdeps.ListenerTestRun{}
+		if reqListener.To1.Running {
+			to1testRunHistory = append([]listenertestsdeps.ListenerTestRun{reqListener.To1.CurrentTestRun}, reqListener.To1.TestRunHistory...)
+		} else {
+			to1testRunHistory = reqListener.To1.TestRunHistory
+		}
+
+		var to2testRunHistory []listenertestsdeps.ListenerTestRun = []listenertestsdeps.ListenerTestRun{}
+		if reqListener.To2.Running {
+			to2testRunHistory = append([]listenertestsdeps.ListenerTestRun{reqListener.To2.CurrentTestRun}, reqListener.To2.TestRunHistory...)
+		} else {
+			to2testRunHistory = reqListener.To2.TestRunHistory
 		}
 
 		listDeviceRuns.DeviceItems = append(listDeviceRuns.DeviceItems, Device_Item{
 			Id:   hex.EncodeToString(reqListener.Uuid),
-			Name: devInsts.Name,
-			To0:  reqListener.To0.TestRunHistory,
-			To2:  reqListener.To0.TestRunHistory,
+			Name: fmt.Sprintf("%s GUID(%s)", devInsts.Name, hex.EncodeToString(devInsts.DeviceGuid[:])),
+			To1:  to1testRunHistory,
+			To2:  to2testRunHistory,
 		})
 	}
 
 	listDeviceRuns.Status = FdoApiStatus_OK
 
 	RespondSuccessStruct(w, listDeviceRuns)
+}
+
+func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userInst, err := h.checkAutzAndGetUser(r)
+	if err != nil {
+		log.Println("Failed to read cookie. " + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+
+	toprotocol := vars["toprotocol"]
+	testinsthex := vars["testinsthex"]
+
+	if len(testinsthex) == 0 {
+		RespondError(w, "Missing testInstID or testRunID!", http.StatusBadRequest)
+		return
+	}
+
+	testIstIdBytes, err := hex.DecodeString(testinsthex)
+	if err != nil {
+		RespondError(w, "Failed to decode test inst id!", http.StatusBadRequest)
+		return
+	}
+
+	if !userInst.DeviceT_ContainID(testIstIdBytes) {
+		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		return
+	}
+
+	topInt, err := strconv.ParseInt(toprotocol, 10, 64)
+	if err != nil {
+		RespondError(w, "Failed to decode TO Protocol ID!", http.StatusBadRequest)
+		return
+	}
+
+	reqListInst, err := h.ListenerDB.Get(testIstIdBytes)
+	if err != nil {
+		RespondError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	runnerInst, err := reqListInst.GetProtocolInst(int(topInt))
+	if err != nil {
+		RespondError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	runnerInst.StartNewTestRun()
+
+	err = h.ListenerDB.Update(*reqListInst)
+	if err != nil {
+		RespondError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Println(len(reqListInst.To1.TestRunHistory))
+
+	RespondSuccess(w)
 }
 
 func (h *DeviceTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
@@ -169,6 +251,7 @@ func (h *DeviceTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	log.Println(testinsthex)
 	testIstIdBytes, err := hex.DecodeString(testinsthex)
 	if err != nil {
 		RespondError(w, "Failed to decode test inst id!", http.StatusBadRequest)

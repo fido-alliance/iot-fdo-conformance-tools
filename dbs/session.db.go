@@ -16,8 +16,8 @@ type SessionDB struct {
 	prefix []byte
 }
 
-func NewSessionDB(db *badger.DB) SessionDB {
-	return SessionDB{
+func NewSessionDB(db *badger.DB) *SessionDB {
+	return &SessionDB{
 		db:     db,
 		prefix: []byte("session-"),
 	}

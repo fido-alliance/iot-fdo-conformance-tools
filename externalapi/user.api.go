@@ -268,3 +268,52 @@ func (h *UserAPI) Logout(w http.ResponseWriter, r *http.Request) {
 
 	RespondSuccess(w)
 }
+
+func (h *UserAPI) PurgeTests(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	sessionCookie, err := r.Cookie("session")
+	if err != nil {
+		log.Println("Failed to read cookie. " + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if sessionCookie == nil {
+		log.Println("Request missing session cookie!")
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
+	if err != nil {
+		log.Println("Error reading session db!" + err.Error())
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	userInst, err := h.UserDB.Get(sessionInst.Username)
+	if err != nil {
+		log.Println("User does not exists.")
+		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	userInst.DeviceTestInsts = []dbs.DeviceTestInst{}
+	userInst.DOTestInsts = []dbs.DOTestInst{}
+	userInst.RVTestInsts = []dbs.RVTestInst{}
+
+	err = h.UserDB.Save(userInst.Username, *userInst)
+	if err != nil {
+		log.Println("Failed to save user. " + err.Error())
+		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	log.Println("SUCCESSFULLY PURGED TESTS")
+
+	RespondSuccess(w)
+}

@@ -19,8 +19,8 @@ type RequestTestDB struct {
 	ttl    int
 }
 
-func NewRequestTestDB(db *badger.DB) RequestTestDB {
-	return RequestTestDB{
+func NewRequestTestDB(db *badger.DB) *RequestTestDB {
+	return &RequestTestDB{
 		db:     db,
 		prefix: []byte("rvte-"),
 		ttl:    60 * 60 * 24 * 183, //6months storage

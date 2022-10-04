@@ -23,6 +23,7 @@ type RequestListenerRunnerInst struct {
 
 	CurrentTestIndex int                                      `cbor:"currentTestIndex,omitempty"`
 	Tests            map[fdoshared.FdoCmd][]testcom.FDOTestID `cbor:"tests,omitempty"`
+	Running          bool                                     `cbor:"started,omitempty"`
 	CurrentTestRun   ListenerTestRun                          `cbor:"currentTestRun,omitempty"`
 	TestRunHistory   []ListenerTestRun                        `cbor:"testRunHistory,omitempty"`
 }
@@ -35,6 +36,19 @@ type RequestListenerInst struct {
 	To0         RequestListenerRunnerInst `cbor:"to0,omitempty"`
 	To1         RequestListenerRunnerInst `cbor:"to1,omitempty"`
 	To2         RequestListenerRunnerInst `cbor:"to2,omitempty"`
+}
+
+func (h *RequestListenerInst) GetProtocolInst(toProtocol int) (*RequestListenerRunnerInst, error) {
+	switch fdoshared.FdoToProtocol(toProtocol) {
+	case fdoshared.To0:
+		return &h.To0, nil
+	case fdoshared.To1:
+		return &h.To1, nil
+	case fdoshared.To2:
+		return &h.To2, nil
+	default:
+		return nil, fmt.Errorf("Unknown FDO protocol %d", toProtocol)
+	}
 }
 
 func (h *RequestListenerRunnerInst) CheckExpectedCmd(currentCmd fdoshared.FdoCmd) bool {
@@ -52,15 +66,22 @@ func (h *RequestListenerRunnerInst) CheckCmdTestingIsCompleted(currentCmd fdosha
 }
 
 func (h *RequestListenerRunnerInst) StartNewTestRun() {
-	if len(h.TestRunHistory) != 0 {
+	if len(h.TestRunHistory) != 0 && h.Running {
 		h.TestRunHistory = append([]ListenerTestRun{h.CurrentTestRun}, h.TestRunHistory...)
 	}
 
+	h.Running = true
 	h.CurrentTestRun = NewListenerTestRun(h.Protocol)
 }
 
 func (h *RequestListenerRunnerInst) RemoveTestRun(id string) error {
 	var newList []ListenerTestRun = []ListenerTestRun{}
+
+	if h.CurrentTestRun.Uuid == id {
+		h.CurrentTestRun = ListenerTestRun{}
+		h.Running = false
+		return nil
+	}
 
 	for _, testRun := range h.TestRunHistory {
 		if id != testRun.Uuid {
@@ -97,9 +118,9 @@ func (h *RequestListenerRunnerInst) CompleteCmd(nextCMD fdoshared.FdoCmd) {
 }
 
 func (h *RequestListenerRunnerInst) PushFail(errorMsg string) {
-	h.CurrentTestRun.TestRun = append(h.CurrentTestRun.TestRun, testcom.NewFailTestState(h.GetLastTestID(), errorMsg))
+	h.CurrentTestRun.TestRuns = append(h.CurrentTestRun.TestRuns, testcom.NewFailTestState(h.GetLastTestID(), errorMsg))
 }
 
 func (h *RequestListenerRunnerInst) PushSuccess() {
-	h.CurrentTestRun.TestRun = append(h.CurrentTestRun.TestRun, testcom.NewSuccessTestState(h.GetLastTestID()))
+	h.CurrentTestRun.TestRuns = append(h.CurrentTestRun.TestRuns, testcom.NewSuccessTestState(h.GetLastTestID()))
 }

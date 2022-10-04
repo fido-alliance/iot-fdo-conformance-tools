@@ -12,7 +12,7 @@ type ListenerTestRun struct {
 	_         struct{}                `cbor:",toarray"`
 	Uuid      string                  `json:"uuid"`
 	Timestamp int64                   `json:"timestamp"`
-	TestRun   []testcom.FDOTestState  `json:"tests"`
+	TestRuns  []testcom.FDOTestState  `json:"tests"`
 	Protocol  fdoshared.FdoToProtocol `json:"protocol"`
 }
 
@@ -22,7 +22,7 @@ func NewListenerTestRun(protocol fdoshared.FdoToProtocol) ListenerTestRun {
 	newRVTestRun := ListenerTestRun{
 		Uuid:      string(uuidStr),
 		Timestamp: time.Now().Unix(),
-		TestRun:   []testcom.FDOTestState{},
+		TestRuns:  []testcom.FDOTestState{},
 		Protocol:  protocol,
 	}
 

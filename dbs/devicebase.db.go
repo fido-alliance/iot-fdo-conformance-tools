@@ -17,8 +17,8 @@ type DeviceBaseDB struct {
 	prefix []byte
 }
 
-func NewDeviceBaseDB(db *badger.DB) DeviceBaseDB {
-	return DeviceBaseDB{
+func NewDeviceBaseDB(db *badger.DB) *DeviceBaseDB {
+	return &DeviceBaseDB{
 		db:     db,
 		prefix: []byte("devbase-"),
 	}

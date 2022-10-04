@@ -21,6 +21,8 @@ func NewDevice_RequestListenerInst(voucherEntry fdoshared.VoucherDBEntry, guid f
 				fdoshared.TO1_30_HELLO_RV:    append(testcom.FIDO_LISTENER_30_LIST, testcom.FIDO_LISTENER_POSITIVE),
 				fdoshared.TO1_32_PROVE_TO_RV: append(testcom.FIDO_LISTENER_32_LIST, testcom.FIDO_LISTENER_POSITIVE),
 			},
+			Running:        false,
+			TestRunHistory: []ListenerTestRun{},
 		},
 		To2: RequestListenerRunnerInst{
 			Protocol: fdoshared.To2,
@@ -32,6 +34,8 @@ func NewDevice_RequestListenerInst(voucherEntry fdoshared.VoucherDBEntry, guid f
 				fdoshared.TO2_68_DEVICE_SERVICE_INFO:       append(testcom.FIDO_LISTENER_68_LIST, testcom.FIDO_LISTENER_POSITIVE),
 				fdoshared.TO2_70_DONE:                      append(testcom.FIDO_LISTENER_70_LIST, testcom.FIDO_LISTENER_POSITIVE),
 			},
+			Running:        false,
+			TestRunHistory: []ListenerTestRun{},
 		},
 	}
 }
@@ -51,6 +55,8 @@ func NewDO_RequestListenerInst(voucherEntry fdoshared.VoucherDBEntry, guid fdosh
 				fdoshared.TO0_20_HELLO:      append(testcom.FIDO_LISTENER_20_LIST, testcom.FIDO_LISTENER_POSITIVE),
 				fdoshared.TO0_22_OWNER_SIGN: append(testcom.FIDO_LISTENER_22_LIST, testcom.FIDO_LISTENER_POSITIVE),
 			},
+			Running:        false,
+			TestRunHistory: []ListenerTestRun{},
 		},
 	}
 }

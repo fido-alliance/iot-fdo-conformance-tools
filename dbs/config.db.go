@@ -14,8 +14,8 @@ type ConfigDB struct {
 	prefix []byte
 }
 
-func NewConfigDB(db *badger.DB) ConfigDB {
-	return ConfigDB{
+func NewConfigDB(db *badger.DB) *ConfigDB {
+	return &ConfigDB{
 		db:     db,
 		prefix: []byte("config-"),
 	}

@@ -53,22 +53,18 @@ func NewRVTestInst(url string, to0 []byte, to1 []byte) RVTestInst {
 }
 
 type DeviceTestInst struct {
-	_        struct{} `cbor:",toarray"`
-	Uuid     []byte
-	Guid     fdoshared.FdoGuid
-	Name     string
-	Listener []byte
+	_            struct{} `cbor:",toarray"`
+	Uuid         []byte
+	DeviceGuid   fdoshared.FdoGuid
+	Name         string
+	ListenerUuid []byte
 }
 
 func NewDeviceTestInst(name string, listenerUuid []byte, guid fdoshared.FdoGuid) DeviceTestInst {
-	newUuid, _ := uuid.NewRandom()
-	uuidBytes, _ := newUuid.MarshalBinary()
-
 	return DeviceTestInst{
-		Uuid:     uuidBytes,
-		Name:     name,
-		Guid:     guid,
-		Listener: listenerUuid,
+		Name:         name,
+		DeviceGuid:   guid,
+		ListenerUuid: listenerUuid,
 	}
 }
 
@@ -106,7 +102,7 @@ func (h *UserTestDBEntry) DOT_ContainID(dotid []byte) bool {
 
 func (h *UserTestDBEntry) DeviceT_ContainID(id []byte) bool {
 	for _, devtinst := range h.DeviceTestInsts {
-		if bytes.Equal(devtinst.Listener, id) {
+		if bytes.Equal(devtinst.ListenerUuid, id) {
 			return true
 		}
 	}

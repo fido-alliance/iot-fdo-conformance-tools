@@ -12,8 +12,8 @@ import (
 )
 
 // DB Methods
-func NewUserTestDB(db *badger.DB) UserTestDB {
-	return UserTestDB{
+func NewUserTestDB(db *badger.DB) *UserTestDB {
+	return &UserTestDB{
 		db:     db,
 		prefix: []byte("usere-"),
 	}
