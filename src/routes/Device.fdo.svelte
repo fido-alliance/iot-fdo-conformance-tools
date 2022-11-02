@@ -268,8 +268,6 @@
             {#if selectedTestRunUuid !== ""}
                 <h2>TO{testRunMap[selectedTestRunUuid].protocol} Tests info for <b>{devTestInstMap[selectedDeviceTestUuid].name}</b> at {(new Date(testRunMap[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h2>
 
-
-
                 {#if testRunMap[selectedTestRunUuid].tests.length > 0}
                     {#each testRunMap[selectedTestRunUuid].tests as devtest}
                         <div class="row rvt-test-case">
@@ -296,9 +294,6 @@
                         </div>
                     </div>
                 {/if}
-
-
-            
             {:else}
                 <h2>Tests info</h2>
 
@@ -308,7 +303,6 @@
                     </div>
                 </div>
             {/if}
-           
         </div>
     </div>
 </section>
