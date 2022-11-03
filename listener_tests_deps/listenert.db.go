@@ -55,6 +55,16 @@ func (h *RequestListenerRunnerInst) CheckExpectedCmd(currentCmd fdoshared.FdoCmd
 	return currentCmd == h.ExpectedCmd
 }
 
+func (h *RequestListenerRunnerInst) CheckExpectedCmds(expectedCmds []fdoshared.FdoCmd) bool {
+	for _, cmd := range expectedCmds {
+		if h.ExpectedCmd == cmd {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (h *RequestListenerRunnerInst) CheckCmdTestingIsCompleted(currentCmd fdoshared.FdoCmd) bool {
 	for _, completedCmd := range h.CompletedCmds {
 		if completedCmd == currentCmd {

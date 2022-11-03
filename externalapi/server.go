@@ -69,8 +69,8 @@ func SetupServer(db *badger.DB) {
 	r.HandleFunc("/api/user/logout", userApiHandler.Logout)
 	r.HandleFunc("/api/user/purgetests", userApiHandler.PurgeTests)
 
-	// r.PathPrefix("/").Handler(http.FileServer(http.Dir("./_static/")))
-	r.PathPrefix("/").HandlerFunc(ProxyDevUI)
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
+	// r.PathPrefix("/").HandlerFunc(ProxyDevUI)
 
 	http.Handle("/", r)
 
