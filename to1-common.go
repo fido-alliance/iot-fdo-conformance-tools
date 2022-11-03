@@ -22,14 +22,11 @@ func (h *To1Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 	switch fdoTestID {
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DEVT_30, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DEVT_32, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
 	}
-	return testcom.FDOTestState{
-		Passed: false,
-		Error:  "Unsupported test " + string(fdoTestID),
-	}
+	return testcom.NewFailTestState(fdoTestID, "Unsupported test "+string(fdoTestID))
 }
