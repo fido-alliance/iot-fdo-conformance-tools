@@ -2,9 +2,12 @@ package to2
 
 import (
 	"bytes"
+	"encoding/hex"
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -15,6 +18,29 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	session, sessionId, authorizationHeader, bodyBytes, err := h.receiveAndVerify(w, r, fdoshared.TO2_64_PROVE_DEVICE)
 	if err != nil {
 		return
+	}
+
+	// Test stuff
+	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
+	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
+	if err != nil {
+		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
+	}
+
+	for i := 0; i < int(session.NumOVEntries); i++ {
+		if !session.Conf_RequestedOVEntriesContain(uint8(i)) {
+			testcomListener.To2.PushFail(fmt.Sprintf("The %d OVEntry was never requested.", i))
+		}
+	}
+
+	if testcomListener != nil {
+		if !testcomListener.To2.CheckExpectedCmd(fdoshared.TO2_64_PROVE_DEVICE) {
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, fdoshared.TO2_64_PROVE_DEVICE))
+		}
+
+		if !testcomListener.To2.CheckCmdTestingIsCompleted(fdoshared.TO2_64_PROVE_DEVICE) {
+			fdoTestId = testcomListener.To2.GetNextTestID()
+		}
 	}
 
 	if session.PrevCMD != fdoshared.TO2_63_OV_NEXTENTRY {
@@ -65,15 +91,23 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 
 	// ----- RESPONSE ----- //
 
-	nonceTO2SetupDv := proveDevice64.Unprotected.EUPHNonce
 	ownerHeader, _ := session.Voucher.GetOVHeader()
 	setupDevicePayload := fdoshared.TO2SetupDevicePayload{
 		RendezvousInfo:  []fdoshared.RendezvousInstrList{},
 		Guid:            session.Guid,
-		NonceTO2SetupDv: nonceTO2SetupDv,
+		NonceTO2SetupDv: proveDevice64.Unprotected.EUPHNonce,
 		Owner2Key:       ownerHeader.OVPublicKey,
 	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_NONCE_TO2SETUPDV {
+		setupDevicePayload.NonceTO2SetupDv = fdoshared.NewFdoNonce()
+	}
+
 	setupDevicePayloadBytes, _ := cbor.Marshal(setupDevicePayload)
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_SETUPDEVICE_PAYLOAD {
+		setupDevicePayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(setupDevicePayloadBytes)
+	}
 
 	// Response signature
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(session.PrivateKeyDER)
@@ -90,7 +124,15 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_SETUPDEVICE_COSE_SIGNATURE {
+		tempSig := fdoshared.Conf_Fuzz_CoseSignature(*setupDevice)
+		setupDevice = &tempSig
+	}
+
 	setupDeviceBytes, _ := cbor.Marshal(setupDevice)
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_SETUPDEVICE_BYTES {
+		setupDeviceBytes = fdoshared.Conf_RandomCborBufferFuzzing(setupDeviceBytes)
+	}
 
 	// Response encrypted
 	setupDeviceBytesEnc, err := fdoshared.AddEncryptionWrapping(setupDeviceBytes, *sessionKey, session.CipherSuiteName)
@@ -100,14 +142,31 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_ENC_WRAPPING {
+		setupDeviceBytesEnc, err = fdoshared.Conf_Fuzz_AddWrapping(setupDeviceBytesEnc, session.SessionKey, session.CipherSuiteName)
+		if err != nil {
+			log.Println("ProveDevice64: Error encrypting..." + err.Error())
+			fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Internal server error!", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_SETUPDEVICE_ENCODING {
+		setupDeviceBytesEnc = fdoshared.Conf_RandomCborBufferFuzzing(setupDeviceBytesEnc)
+	}
+
 	// Update session
 	session.SessionKey = *sessionKey
 	session.PrevCMD = fdoshared.TO2_65_SETUP_DEVICE
-	err = h.Session.UpdateSessionEntry(sessionId, *session)
+	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
 		log.Println("ProveDevice64: Error saving session..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Internal server error!", http.StatusInternalServerError)
 		return
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
+		testcomListener.To2.CompleteCmd(fdoshared.TO2_64_PROVE_DEVICE)
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)

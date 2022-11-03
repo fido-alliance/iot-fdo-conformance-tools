@@ -1,9 +1,12 @@
 package to2
 
 import (
+	"encoding/hex"
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -22,6 +25,23 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		log.Println("DeviceServiceInfoReady66: Unexpected CMD... ")
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Unauthorized", http.StatusUnauthorized)
 		return
+	}
+
+	// Test stuff
+	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
+	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
+	if err != nil {
+		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
+	}
+
+	if testcomListener != nil {
+		if !testcomListener.To2.CheckExpectedCmd(fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY) {
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY))
+		}
+
+		if !testcomListener.To2.CheckCmdTestingIsCompleted(fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY) {
+			fdoTestId = testcomListener.To2.GetNextTestID()
+		}
 	}
 
 	// ----- MAIN BODY ----- //
@@ -46,6 +66,10 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	}
 	ownerServiceInfoReadyPayloadBytes, _ := cbor.Marshal(ownerServiceInfoReadyPayload)
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_66_BAD_ENCODING {
+		ownerServiceInfoReadyPayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerServiceInfoReadyPayloadBytes)
+	}
+
 	// ----- MAIN BODY ENDS ----- //
 
 	ownerServiceInfoReadyBytes, err := fdoshared.AddEncryptionWrapping(ownerServiceInfoReadyPayloadBytes, session.SessionKey, session.CipherSuiteName)
@@ -53,6 +77,15 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		log.Println("DeviceServiceInfoReady66: Error encrypting..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Internal server error!", http.StatusInternalServerError)
 		return
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_66_BAD_ENC_WRAPPING {
+		ownerServiceInfoReadyBytes, err = fdoshared.Conf_Fuzz_AddWrapping(ownerServiceInfoReadyBytes, session.SessionKey, session.CipherSuiteName)
+		if err != nil {
+			log.Println("DeviceServiceInfoReady66: Error encrypting..." + err.Error())
+			fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Internal server error!", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Stores MaxSz for 68
@@ -65,7 +98,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 
 	session.MaxDeviceServiceInfoSz = maxDeviceServiceInfoSz
 	session.PrevCMD = fdoshared.TO2_67_OWNER_SERVICE_INFO_READY
-	err = h.Session.UpdateSessionEntry(sessionId, *session)
+	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
 		log.Println("DeviceServiceInfoReady66: Error saving session..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Internal server error!", http.StatusInternalServerError)

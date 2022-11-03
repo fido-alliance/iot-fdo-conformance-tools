@@ -1,11 +1,14 @@
 package to2
 
 import (
+	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-do/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -32,6 +35,26 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Test stuff
+	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
+	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(helloDevice.Guid)
+	if err != nil {
+		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloDevice.Guid[:]), err.Error())
+	}
+
+	if testcomListener != nil {
+		if !testcomListener.To2.CheckExpectedCmds([]fdoshared.FdoCmd{
+			fdoshared.TO2_60_HELLO_DEVICE,
+			fdoshared.TO2_62_GET_OVNEXTENTRY,
+		}) {
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, fdoshared.TO2_60_HELLO_DEVICE))
+		}
+
+		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO2_60_HELLO_DEVICE) {
+			fdoTestId = testcomListener.To2.GetNextTestID()
+		}
+	}
+
 	// Getting cipher suit params
 	cryptoParams, ok := fdoshared.CipherSuitesInfoMap[helloDevice.CipherSuiteName]
 	if !ok {
@@ -41,7 +64,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Getting voucher from DB
-	voucherDBEntry, err := h.Voucher.Get(helloDevice.Guid)
+	voucherDBEntry, err := h.voucher.Get(helloDevice.Guid)
 	if err != nil {
 		log.Println("HelloDevice60: Error locating voucher..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, fdoshared.TO2_60_HELLO_DEVICE, "Can not find voucher.", http.StatusUnauthorized)
@@ -80,6 +103,22 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		MaxOwnerMessageSize: helloDevice.MaxDeviceMessageSize,
 	}
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_HELLODEVICEHASH {
+		proveOVHdrPayload.HelloDeviceHash = *fdoshared.Conf_RandomTestHashHmac(proveOVHdrPayload.HelloDeviceHash, bodyBytes, []byte{})
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_NONCE_TO2PROVEOV {
+		proveOVHdrPayload.NonceTO2ProveOV = fdoshared.NewFdoNonce()
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_EBSIGNINFO {
+		proveOVHdrPayload.EBSigInfo.SgType = fdoshared.Conf_NewRandomSgTypeExcept(proveOVHdrPayload.EBSigInfo.SgType)
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_OVHDR_OVHEADER {
+		proveOVHdrPayload.OVHeader = fdoshared.Conf_RandomCborBufferFuzzing(proveOVHdrPayload.OVHeader)
+	}
+
 	lastOwnerPubKey, err := voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
 	if err != nil {
 		log.Println("HelloDevice60: Error getting last owner public key... " + err.Error())
@@ -110,7 +149,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		OwnerSIMsSendCounter:     0,
 	}
 
-	sessionId, err := h.Session.NewSessionEntry(newSessionInst)
+	sessionId, err := h.session.NewSessionEntry(newSessionInst)
 	if err != nil {
 		log.Println("HelloDevice60: Error saving session... " + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal Server Error!", http.StatusInternalServerError)
@@ -118,6 +157,9 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	proveOVHdrPayloadBytes, _ := cbor.Marshal(proveOVHdrPayload)
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_HELLOACK_PAYLOAD_ENCODING {
+		proveOVHdrPayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(proveOVHdrPayloadBytes)
+	}
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(voucherDBEntry.PrivateKeyX509)
 	if err != nil {
@@ -132,9 +174,27 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_COSE_SIGNATURE {
+		fuzzedCoseSignature := fdoshared.Conf_Fuzz_CoseSignature(*helloAck)
+		helloAck = &fuzzedCoseSignature
+	}
+
 	helloAckBytes, _ := cbor.Marshal(helloAck)
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_HELLOACK_ENCODING {
+		helloAckBytes = fdoshared.Conf_RandomCborBufferFuzzing(helloAckBytes)
+	}
+
 	sessionIdToken := "Bearer " + string(sessionId)
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_MISSING_AUTHZ_HEADER {
+		sessionIdToken = ""
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
+		testcomListener.To2.CompleteCmd(fdoshared.TO2_60_HELLO_DEVICE)
+	}
+
 	w.Header().Set("Authorization", sessionIdToken)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
 	w.Header().Set("Message-Type", fdoshared.TO2_61_PROVE_OVHDR.ToString())

@@ -7,15 +7,29 @@ import (
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-do/dbs"
+	tdbs "github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/dgraph-io/badger/v3"
 )
 
 const MAX_NUM_OVENTRIES = 255
 const agreedWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 
 type DoTo2 struct {
-	Session *dbs.SessionDB
-	Voucher *dbs.VoucherDB
+	session    *dbs.SessionDB
+	voucher    *dbs.VoucherDB
+	listenerDB *tdbs.ListenerTestDB
+}
+
+func NewDoTo2(db *badger.DB) DoTo2 {
+	newListenerDb := tdbs.NewListenerTestDB(db)
+	sessionDb := dbs.NewSessionDB(db)
+	voucherDb := dbs.NewVoucherDB(db)
+	return DoTo2{
+		session:    sessionDb,
+		voucher:    voucherDb,
+		listenerDB: newListenerDb,
+	}
 }
 
 func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) error {
@@ -68,7 +82,7 @@ func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, current
 		return nil, []byte{}, "", []byte{}, fmt.Errorf("Error getting session header!")
 	}
 
-	session, err := h.Session.GetSessionEntry(sessionId)
+	session, err := h.session.GetSessionEntry(sessionId)
 	if err != nil {
 		log.Printf("%d: Can not find session... %s", currentCmd, err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Unauthorized", http.StatusUnauthorized)

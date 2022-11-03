@@ -25,7 +25,7 @@ func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck
 	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO0_20_HELLO, hello20Bytes, &h.rvEntry.AccessToken)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
-		return &helloAck21, &testState, nil
+		return nil, &testState, nil
 	}
 
 	if err != nil {

@@ -52,6 +52,27 @@ type SessionEntry struct {
 	OwnerSIMsSendCounter     uint16
 	OwnerSIMsFinishedSending bool
 	OwnerSIMs                []fdoshared.ServiceInfoKV
+
+	// Conformance testing
+	RequestedOVEntries []uint8
+}
+
+// Conformance
+func (h *SessionEntry) Conf_AddOVEntryNum(entryNum uint8) {
+	if !h.Conf_RequestedOVEntriesContain(entryNum) {
+		h.RequestedOVEntries = append(h.RequestedOVEntries, entryNum)
+	}
+}
+
+// Conformance
+func (h *SessionEntry) Conf_RequestedOVEntriesContain(entryNum uint8) bool {
+	for _, num := range h.RequestedOVEntries {
+		if num == entryNum {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {

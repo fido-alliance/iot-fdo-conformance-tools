@@ -66,32 +66,26 @@ func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHe
 func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDOTestID, httpStatusCode int) testcom.FDOTestState {
 	switch fdoTestID {
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_20, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
 	case testcom.FIDO_RVT_21_CHECK_RESP:
 		var helloAck21 fdoshared.HelloAck21
 		err := cbor.Unmarshal(bodyBytes, &helloAck21)
 		if err != nil {
-			return testcom.FDOTestState{
-				Passed: false,
-				Error:  "Error decoding HelloAck21. " + err.Error(),
-			}
+			return testcom.NewFailTestState(fdoTestID, "Error decoding HelloAck21. "+err.Error())
 		}
 
-		return testcom.FDOTestState{Passed: true}
+		return testcom.NewSuccessTestState(fdoTestID)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_20, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_22, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_VOUCHER, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 	}
 
-	return testcom.FDOTestState{
-		Passed: false,
-		Error:  "Unsupported test " + string(fdoTestID),
-	}
+	return testcom.NewFailTestState(fdoTestID, "Unsupported test "+string(fdoTestID))
 }
