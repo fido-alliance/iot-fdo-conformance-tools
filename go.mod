@@ -34,6 +34,5 @@ require (
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 )
 
-replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
-
-replace github.com/WebauthnWorks/fdo-fido-conformance-server v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-fido-conformance-server
+// replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
+// replace github.com/WebauthnWorks/fdo-fido-conformance-server v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-fido-conformance-server
