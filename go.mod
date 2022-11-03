@@ -39,7 +39,7 @@ require (
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 )
 
-// If you are doing local dev
+// For when you are doing local dev
 // replace github.com/WebauthnWorks/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-do
 // replace github.com/WebauthnWorks/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-rv
 // replace github.com/WebauthnWorks/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-device-implementation
