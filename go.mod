@@ -39,12 +39,9 @@ require (
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 )
 
-replace github.com/WebauthnWorks/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-do
-
-replace github.com/WebauthnWorks/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-rv
-
-replace github.com/WebauthnWorks/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-device-implementation
-
-replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
-
-replace github.com/WebauthnWorks/fdo-fido-conformance-server v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-fido-conformance-server
+// If you are doing local dev
+// replace github.com/WebauthnWorks/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-do
+// replace github.com/WebauthnWorks/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-rv
+// replace github.com/WebauthnWorks/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-device-implementation
+// replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
+// replace github.com/WebauthnWorks/fdo-fido-conformance-server v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-fido-conformance-server

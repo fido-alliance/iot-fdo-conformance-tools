@@ -50,8 +50,7 @@ The backend consists of five modules:
 - `go build` - Build code
 - `GOOS=linux GOARCH=amd64 go build` - Build for Linux x86 64bit architecture. More values here: https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
 
-
-## Structure
+### Structure
 
 - `/dbs` - Contains database structs and menthods. To see db entry structs see `*.structs.db.go`
 - `/externalapi` - User facing APIs
@@ -65,7 +64,6 @@ The backend consists of five modules:
 
 - `listener_tests_deps` - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
 - `req_tests_deps` - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
-
 
 - `/frontend` - Contains frontend git submodule. See https://github.com/WebauthnWorks/fdo-fido-conformance-frontend
 
