@@ -14,9 +14,10 @@ import (
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 	"github.com/gorilla/mux"
 )
 
@@ -24,7 +25,7 @@ const FdoDOSeedIDsBatchSize int = 50
 
 type DOTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB
-	ReqTDB    *dbs.RequestTestDB
+	ReqTDB    *testdbs.RequestTestDB
 	DevBaseDB *dbs.DeviceBaseDB
 	SessionDB *dbs.SessionDB
 	ConfigDB  *dbs.ConfigDB
@@ -235,7 +236,7 @@ func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var voucherList []fdodeviceimplementation.DeviceCredAndVoucher
+	var voucherList []fdoshared.DeviceCredAndVoucher
 	for _, v := range dotsInfoPayloadPtr.TestVouchers {
 		voucherList = append(voucherList, v...)
 	}

@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"log"
 
-	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
+	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )
 
 const TEST_POSITIVE_VOUCHERS int = 100
 const TEST_NEGATIVE_PER_TEST_VOUCHERS int = 5
 
 // TODO: Optimise // Parallelize
-func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB) (map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher, error) {
-	var vouchers map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher = map[testcom.FDOTestID][]fdodeviceimplementation.DeviceCredAndVoucher{}
+func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB) (map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher, error) {
+	var vouchers map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher = map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher{}
 
 	testsLen := len(testcom.FIDO_TEST_LIST_VOUCHER)
 	randomGuids := guidList.GetRandomSelection(testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS + TEST_POSITIVE_VOUCHERS)
@@ -24,7 +24,7 @@ func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB
 	randomPositiveTestGuids := randomGuids[testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS:]
 	randomNegativeTestGuids := randomGuids[0 : testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS]
 	for i, testId := range testcom.FIDO_TEST_LIST_VOUCHER {
-		vouchers[testId] = []fdodeviceimplementation.DeviceCredAndVoucher{}
+		vouchers[testId] = []fdoshared.DeviceCredAndVoucher{}
 		for j := 0; j < TEST_NEGATIVE_PER_TEST_VOUCHERS; j++ {
 			arrIndex := i*TEST_NEGATIVE_PER_TEST_VOUCHERS + j
 
@@ -40,7 +40,7 @@ func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB
 		}
 	}
 
-	vouchers[testcom.NULL_TEST] = []fdodeviceimplementation.DeviceCredAndVoucher{}
+	vouchers[testcom.NULL_TEST] = []fdoshared.DeviceCredAndVoucher{}
 	for i, guid := range randomPositiveTestGuids {
 		log.Printf("Generating positive voucher %d", i)
 
@@ -55,7 +55,7 @@ func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB
 	return vouchers, nil
 }
 
-func ExecuteDOTestsTo2(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB) {
+func ExecuteDOTestsTo2(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	executeTo2_60(reqte, reqtDB)

@@ -10,9 +10,10 @@ import (
 	"net/url"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 	"github.com/gorilla/mux"
 )
 
@@ -20,7 +21,7 @@ const FdoSeedIDsBatchSize int = 500
 
 type RVTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB
-	ReqTDB    *dbs.RequestTestDB
+	ReqTDB    *testdbs.RequestTestDB
 	DevBaseDB *dbs.DeviceBaseDB
 	SessionDB *dbs.SessionDB
 	ConfigDB  *dbs.ConfigDB

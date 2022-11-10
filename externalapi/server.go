@@ -4,17 +4,18 @@ import (
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/gorilla/mux"
 )
 
 func SetupServer(db *badger.DB) {
 	userDb := dbs.NewUserTestDB(db)
-	rvtDb := dbs.NewRequestTestDB(db)
+	rvtDb := testdbs.NewRequestTestDB(db)
 	sessionDb := dbs.NewSessionDB(db)
 	configDb := dbs.NewConfigDB(db)
 	devBaseDb := dbs.NewDeviceBaseDB(db)
-	listenerDb := dbs.NewListenerTestDB(db)
+	listenerDb := testdbs.NewListenerTestDB(db)
 
 	rvtApiHandler := RVTestMgmtAPI{
 		UserDB:    userDb,

@@ -4,13 +4,15 @@ import (
 	"log"
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
+	"github.com/WebauthnWorks/fdo-device-implementation/to1"
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
+	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )
 
-func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
+func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	// Generating voucher
@@ -54,7 +56,7 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTe
 		return
 	}
 
-	to1inst := fdodeviceimplementation.NewTo1Requestor(fdodeviceimplementation.SRVEntry{
+	to1inst := to1.NewTo1Requestor(fdodeviceimplementation.SRVEntry{
 		SrvURL: reqte.URL,
 	}, testCredV.WawDeviceCredential)
 

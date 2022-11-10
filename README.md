@@ -59,11 +59,11 @@ The backend consists of five modules:
     - `do.api.go`, `rv.api.go`, `device.api.go` - Contain DO/RV/Device conformance test, user facing APIs. 
     - `user.api.go` - Contain user management APIs. 
 
-- `testcom` - Contains common, shared, test registry.
-- `testexec` - Contains TO0 DO, TO1 Device, TO2 Device conformance testing methods.
+- `testexec` - Contains TO0 DO, TO1 Device, TO2 Device conformance testing execution.
 
-- `listener_tests_deps` - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
-- `req_tests_deps` - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
+- [FDO: Shared /testcom/](https://github.com/WebauthnWorks/fdo-shared/testcom/) - Contains common test methods, dbs, etc
+- [FDO: Shared /testcom/listener](https://github.com/WebauthnWorks/fdo-shared/testcom/listener) - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
+- [FDO: Shared /testcom/request](https://github.com/WebauthnWorks/fdo-shared/testcom/request) - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
 
 - `/frontend` - Contains frontend git submodule. See https://github.com/WebauthnWorks/fdo-fido-conformance-frontend
 

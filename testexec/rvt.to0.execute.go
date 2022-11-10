@@ -3,11 +3,13 @@ package testexec
 import (
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
+	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+
+	"github.com/WebauthnWorks/fdo-shared/testcom"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )
 
-func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
+func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	for _, rv20test := range testcom.FIDO_TEST_LIST_RVT_20 {

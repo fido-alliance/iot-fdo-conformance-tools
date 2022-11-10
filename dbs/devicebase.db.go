@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -76,7 +76,7 @@ func (h *DeviceBaseDB) Get(guid fdoshared.FdoGuid) (*fdoshared.WawDeviceCredBase
 	return &devBase, nil
 }
 
-func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID) (*fdodeviceimplementation.DeviceCredAndVoucher, error) {
+func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
 	storageId := append(h.prefix, guid[:]...)
 
 	dbtxn := h.db.NewTransaction(true)

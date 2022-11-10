@@ -4,20 +4,21 @@ import (
 	"log"
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
+	"github.com/WebauthnWorks/fdo-device-implementation/to2"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
+	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )
 
-func preExecuteTo2_68(reqte reqtestsdeps.RequestTestInst) (*fdodeviceimplementation.To2Requestor, error) {
+func preExecuteTo2_68(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, error) {
 	testCred, err := reqte.TestVouchers.GetVoucher(testcom.NULL_TEST)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generating TO0 handler
-	to2requestor := fdodeviceimplementation.NewTo2Requestor(fdodeviceimplementation.SRVEntry{
+	to2requestor := to2.NewTo2Requestor(fdodeviceimplementation.SRVEntry{
 		SrvURL: reqte.URL,
 	}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM) // TODO
 
@@ -69,7 +70,7 @@ func preExecuteTo2_68(reqte reqtestsdeps.RequestTestInst) (*fdodeviceimplementat
 
 }
 
-func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB) {
+func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB) {
 	for _, testId := range testcom.FIDO_TEST_LIST_DOT_68 {
 		to2requestor, err := preExecuteTo2_68(reqte)
 		if err != nil {

@@ -12,14 +12,16 @@ import (
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	listenertestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/listener_tests_deps"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	testcomdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
+
 	"github.com/gorilla/mux"
 )
 
 type DeviceTestMgmtAPI struct {
 	UserDB     *dbs.UserTestDB
-	ListenerDB *dbs.ListenerTestDB
+	ListenerDB *testcomdbs.ListenerTestDB
 	DevBaseDB  *dbs.DeviceBaseDB
 	SessionDB  *dbs.SessionDB
 	ConfigDB   *dbs.ConfigDB

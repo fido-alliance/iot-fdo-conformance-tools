@@ -1,7 +1,7 @@
 package externalapi
 
 import (
-	listenertestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/listener_tests_deps"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 )
 
 type Device_CreateTestCase struct {

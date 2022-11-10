@@ -1,8 +1,8 @@
 package externalapi
 
 import (
-	reqtestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/req_tests_deps"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )
 
 type RVT_CreateTestCase struct {
