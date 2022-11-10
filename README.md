@@ -38,6 +38,7 @@ The backend consists of five modules:
 - `make build_frontend` - will only regenerate static frontend
 
 ## Running
+- `./fdo-fido-conformance-server-OS seed` will generate testing config, and pre-seed testing device credentials. This will take just a minute to run. Need to be run only once
 - `./fdo-fido-conformance-server-OS serve` will serve testing frontend on port 8080 (http://localhost:8080/)[http://localhost:8080/]
 
 ## Development
