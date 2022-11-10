@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 
+	"github.com/WebauthnWorks/fdo-device-implementation/common"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
@@ -38,7 +39,7 @@ func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, 
 		}
 	}
 
-	rawResultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.SrvEntry, fdoshared.TO2_70_DONE, done70BytesEnc, &h.AuthzHeader)
+	rawResultBytes, authzHeader, httpStatusCode, err := common.SendCborPost(h.SrvEntry, fdoshared.TO2_70_DONE, done70BytesEnc, &h.AuthzHeader)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(rawResultBytes, fdoTestID, httpStatusCode)
 	}

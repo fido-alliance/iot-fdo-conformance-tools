@@ -3,6 +3,7 @@ package to2
 import (
 	"errors"
 
+	"github.com/WebauthnWorks/fdo-device-implementation/common"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
@@ -29,7 +30,7 @@ func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceS
 		}
 	}
 
-	rawResultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.SrvEntry, fdoshared.TO2_68_DEVICE_SERVICE_INFO, deviceServiceInfo68BytesEnc, &h.AuthzHeader)
+	rawResultBytes, authzHeader, httpStatusCode, err := common.SendCborPost(h.SrvEntry, fdoshared.TO2_68_DEVICE_SERVICE_INFO, deviceServiceInfo68BytesEnc, &h.AuthzHeader)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(rawResultBytes, fdoTestID, httpStatusCode)
 	}

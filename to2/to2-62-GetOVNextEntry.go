@@ -3,6 +3,7 @@ package to2
 import (
 	"errors"
 
+	"github.com/WebauthnWorks/fdo-device-implementation/common"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
@@ -21,7 +22,7 @@ func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTes
 		getOvNextEntryBytes = fdoshared.Conf_RandomCborBufferFuzzing(getOvNextEntryBytes)
 	}
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.SrvEntry, fdoshared.TO2_62_GET_OVNEXTENTRY, getOvNextEntryBytes, &h.AuthzHeader)
+	resultBytes, authzHeader, httpStatusCode, err := common.SendCborPost(h.SrvEntry, fdoshared.TO2_62_GET_OVNEXTENTRY, getOvNextEntryBytes, &h.AuthzHeader)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
 	}

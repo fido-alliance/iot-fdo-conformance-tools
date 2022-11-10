@@ -3,6 +3,7 @@ package to1
 import (
 	"errors"
 
+	"github.com/WebauthnWorks/fdo-device-implementation/common"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
@@ -34,7 +35,7 @@ func (h *To1Requestor) HelloRV30(fdoTestID testcom.FDOTestID) (*fdoshared.HelloR
 		helloRV30Bytes = fdoshared.Conf_RandomCborBufferFuzzing(helloRV30Bytes)
 	}
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO1_30_HELLO_RV, helloRV30Bytes, &h.rvEntry.AccessToken)
+	resultBytes, authzHeader, httpStatusCode, err := common.SendCborPost(h.rvEntry, fdoshared.TO1_30_HELLO_RV, helloRV30Bytes, &h.rvEntry.AccessToken)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
 	}

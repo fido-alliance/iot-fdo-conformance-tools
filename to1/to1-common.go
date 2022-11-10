@@ -1,17 +1,18 @@
 package to1
 
 import (
+	"github.com/WebauthnWorks/fdo-device-implementation/common"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 )
 
 type To1Requestor struct {
-	rvEntry     SRVEntry
+	rvEntry     common.SRVEntry
 	credential  fdoshared.WawDeviceCredential
 	authzHeader string
 }
 
-func NewTo1Requestor(srvEntry SRVEntry, credential fdoshared.WawDeviceCredential) To1Requestor {
+func NewTo1Requestor(srvEntry common.SRVEntry, credential fdoshared.WawDeviceCredential) To1Requestor {
 	return To1Requestor{
 		rvEntry:    srvEntry,
 		credential: credential,

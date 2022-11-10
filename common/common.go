@@ -1,4 +1,4 @@
-package fdodeviceimplementation
+package common
 
 import (
 	"bytes"

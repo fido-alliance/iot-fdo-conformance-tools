@@ -3,6 +3,7 @@ package to1
 import (
 	"errors"
 
+	"github.com/WebauthnWorks/fdo-device-implementation/common"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
@@ -55,7 +56,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 
 	var rvRedirect33 fdoshared.CoseSignature
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO1_32_PROVE_TO_RV, proveToRV32Bytes, &h.authzHeader)
+	resultBytes, authzHeader, httpStatusCode, err := common.SendCborPost(h.rvEntry, fdoshared.TO1_32_PROVE_TO_RV, proveToRV32Bytes, &h.authzHeader)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
 		return &rvRedirect33, &testState, nil
