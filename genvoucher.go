@@ -13,8 +13,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -148,12 +148,7 @@ func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashO
 	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
 }
 
-type DeviceCredAndVoucher struct {
-	VoucherDBEntry      fdoshared.VoucherDBEntry
-	WawDeviceCredential fdoshared.WawDeviceCredential
-}
-
-func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoTestID testcom.FDOTestID) (*DeviceCredAndVoucher, error) {
+func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
 	newDi, err := fdoshared.NewWawDeviceCredential(deviceCredBase)
 	if err != nil {
 		return nil, errors.New("Error generating new device credential. " + err.Error())
@@ -341,7 +336,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 		PrivateKeyX509: finalOvEntryPrivateKeyBytes,
 	}
 
-	newWDC := DeviceCredAndVoucher{
+	newWDC := fdoshared.DeviceCredAndVoucher{
 		VoucherDBEntry:      voucherDBEInst,
 		WawDeviceCredential: *newDi,
 	}
