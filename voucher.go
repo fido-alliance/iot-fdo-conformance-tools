@@ -285,3 +285,8 @@ type VoucherDBEntry struct {
 	Voucher        OwnershipVoucher
 	PrivateKeyX509 []byte
 }
+
+type DeviceCredAndVoucher struct {
+	VoucherDBEntry      VoucherDBEntry
+	WawDeviceCredential WawDeviceCredential
+}
