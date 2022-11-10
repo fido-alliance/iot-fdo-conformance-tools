@@ -3,8 +3,8 @@ package fdorv
 import (
 	"net/http"
 
-	listenertestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/listener_tests_deps"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 )
 
 func Conf_RespondFDOError(w http.ResponseWriter, r *http.Request, errorCode fdoshared.FdoErrorCode, prevMsgId fdoshared.FdoCmd, messageStr string, httpStatusCode int, testcomListener *listenertestsdeps.RequestListenerInst, fdoProtocol fdoshared.FdoToProtocol) {

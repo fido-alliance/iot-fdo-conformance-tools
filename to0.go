@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	tdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -15,6 +17,20 @@ const ServerWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 type RvTo0 struct {
 	session     *SessionDB
 	ownersignDB *OwnerSignDB
+	listenerDB  *tdbs.ListenerTestDB
+}
+
+func NewRvTo0(db *badger.DB) RvTo0 {
+	newListenerDb := tdbs.NewListenerTestDB(db)
+	return RvTo0{
+		session: &SessionDB{
+			db: db,
+		},
+		ownersignDB: &OwnerSignDB{
+			db: db,
+		},
+		listenerDB: newListenerDb,
+	}
 }
 
 func (h *RvTo0) Handle20Hello(w http.ResponseWriter, r *http.Request) {

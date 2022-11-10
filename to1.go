@@ -8,10 +8,10 @@ import (
 	"log"
 	"net/http"
 
-	tdbs "github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	listenertestsdeps "github.com/WebauthnWorks/fdo-fido-conformance-server/listener_tests_deps"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
+	tdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"
 )

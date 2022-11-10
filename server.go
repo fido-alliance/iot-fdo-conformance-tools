@@ -7,15 +7,7 @@ import (
 )
 
 func SetupServer(db *badger.DB) {
-	to0 := RvTo0{
-		session: &SessionDB{
-			db: db,
-		},
-		ownersignDB: &OwnerSignDB{
-			db: db,
-		},
-	}
-
+	to0 := NewRvTo0(db)
 	to1 := NewRvTo1(db)
 
 	http.HandleFunc("/fdo/101/msg/20", to0.Handle20Hello)
