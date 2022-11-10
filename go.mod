@@ -3,16 +3,19 @@ module github.com/WebauthnWorks/fdo-fido-conformance-server
 go 1.18
 
 require (
-	github.com/WebauthnWorks/fdo-device-implementation v0.0.0
-	github.com/WebauthnWorks/fdo-do v0.0.0
-	github.com/WebauthnWorks/fdo-rv v0.0.0
-	github.com/WebauthnWorks/fdo-shared v0.0.0
 	github.com/dgraph-io/badger/v3 v3.2103.4
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/urfave/cli/v2 v2.11.1
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
+)
+
+require (
+	github.com/WebauthnWorks/fdo-device-implementation v0.2.4
+	github.com/WebauthnWorks/fdo-do v0.2.3
+	github.com/WebauthnWorks/fdo-rv v0.2.3
+	github.com/WebauthnWorks/fdo-shared v0.9.3
 )
 
 require (
@@ -42,11 +45,6 @@ require (
 
 // For when you are doing local dev
 // replace github.com/WebauthnWorks/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-do
-
 // replace github.com/WebauthnWorks/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-rv
-
 // replace github.com/WebauthnWorks/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-device-implementation
-
 // replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
-
-// replace github.com/WebauthnWorks/fdo-fido-conformance-server v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-fido-conformance-server

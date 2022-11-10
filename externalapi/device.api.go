@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
-	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
+	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	testcomdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
@@ -84,7 +84,7 @@ func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newVand, err := fdodeviceimplementation.DecodePemVoucherAndKey(createTestCase.VoucherAndPrivateKey)
+	newVand, err := fdodocommon.DecodePemVoucherAndKey(createTestCase.VoucherAndPrivateKey)
 	if err != nil {
 		log.Println("Failed to decode voucher. " + err.Error())
 		RespondError(w, "Failed to decode voucher! "+err.Error(), http.StatusBadRequest)

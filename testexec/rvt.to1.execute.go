@@ -3,7 +3,7 @@ package testexec
 import (
 	"log"
 
-	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
+	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
 	"github.com/WebauthnWorks/fdo-device-implementation/to1"
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
@@ -56,7 +56,7 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 		return
 	}
 
-	to1inst := to1.NewTo1Requestor(fdodeviceimplementation.SRVEntry{
+	to1inst := to1.NewTo1Requestor(fdodocommon.SRVEntry{
 		SrvURL: reqte.URL,
 	}, testCredV.WawDeviceCredential)
 
