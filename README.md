@@ -26,3 +26,8 @@ A shared common module that hold all crypto, shared structs, and
 - `voucher.go` - All voucher related methods and structs
 
 - `conformance.go` - All conformance tests related methods and structs, mostly fuzzers.
+
+- `/testcom` - Common test methods
+- `/testcom/request` - Common request dependencies
+- `/testcom/listener` - Common listener dependencies
+- `/testcom/dbs` - Common test databases
