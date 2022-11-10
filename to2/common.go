@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-do/dbs"
-	tdbs "github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	tdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 	"github.com/dgraph-io/badger/v3"
 )
 

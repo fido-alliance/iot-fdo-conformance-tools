@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testcom"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
 )
 
