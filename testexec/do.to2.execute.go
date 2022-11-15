@@ -46,7 +46,6 @@ func GenerateTo2Vouchers_Thread(testId testcom.FDOTestID, guids fdoshared.FdoGui
 	resultChannel <- genVouchersResult
 }
 
-// TODO: Optimise // Parallelize
 func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB) (map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher, error) {
 	var vouchers map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher = map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher{}
 
