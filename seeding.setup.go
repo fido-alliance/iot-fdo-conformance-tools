@@ -52,12 +52,6 @@ func SeedRunInst(sgType fdoshared.DeviceSgType, wg *sync.WaitGroup, resultChanne
 		}
 
 		result.CredBases = append(result.CredBases, *newDeviceBase)
-
-		// err = devbasedb.Save(*newDeviceBase)
-		// if err != nil {
-		// 	return fmt.Errorf("Error saving device base. " + err.Error())
-		// }
-
 		result.Guids = append(result.Guids, newDeviceBase.FdoGuid)
 	}
 

@@ -3,6 +3,7 @@ package testexec
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
@@ -11,46 +12,83 @@ import (
 	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )
 
-const TEST_POSITIVE_VOUCHERS int = 100
+const TEST_POSITIVE_BATCH_SIZE int = 20
+const TEST_POSITIVE_BATCHES int = 5
+
 const TEST_NEGATIVE_PER_TEST_VOUCHERS int = 5
+
+type GenVouchersResult struct {
+	TestID                testcom.FDOTestID
+	DeviceCredAndVouchers []fdoshared.DeviceCredAndVoucher
+	Error                 error
+}
+
+func GenerateTo2Vouchers_Thread(testId testcom.FDOTestID, guids fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB, wg *sync.WaitGroup, resultChannel chan GenVouchersResult) {
+	log.Printf("Starting %s", testId)
+	defer wg.Done()
+	var genVouchersResult GenVouchersResult = GenVouchersResult{
+		TestID:                testId,
+		DeviceCredAndVouchers: []fdoshared.DeviceCredAndVoucher{},
+	}
+
+	for _, guid := range guids {
+		testCred, err := devDB.GetVANDV(guid, testId)
+		if err != nil {
+			genVouchersResult.Error = fmt.Errorf("Error generating voucher %s for test %s. %s", guid.GetFormatted(), testId, err.Error())
+			break
+		}
+
+		genVouchersResult.DeviceCredAndVouchers = append(genVouchersResult.DeviceCredAndVouchers, *testCred)
+	}
+
+	log.Printf("Done %s", testId)
+
+	resultChannel <- genVouchersResult
+}
 
 // TODO: Optimise // Parallelize
 func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB) (map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher, error) {
 	var vouchers map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher = map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher{}
 
+	totalThreads := len(testcom.FIDO_TEST_LIST_VOUCHER) + TEST_POSITIVE_BATCHES
+
+	var wg sync.WaitGroup
+
+	chn := make(chan GenVouchersResult, totalThreads)
+
 	testsLen := len(testcom.FIDO_TEST_LIST_VOUCHER)
-	randomGuids := guidList.GetRandomSelection(testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS + TEST_POSITIVE_VOUCHERS)
+	randomGuids := guidList.GetRandomSelection(testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS + TEST_POSITIVE_BATCHES*TEST_POSITIVE_BATCH_SIZE)
+
+	randomNegativeTestGuids := randomGuids[0 : testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS]
+
+	for i, testId := range testcom.FIDO_TEST_LIST_VOUCHER {
+		indexStart := i * TEST_NEGATIVE_PER_TEST_VOUCHERS
+		indexEnd := (i + 1) * TEST_NEGATIVE_PER_TEST_VOUCHERS
+
+		wg.Add(1)
+		go GenerateTo2Vouchers_Thread(testId, randomNegativeTestGuids[indexStart:indexEnd], devDB, &wg, chn)
+	}
 
 	randomPositiveTestGuids := randomGuids[testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS:]
-	randomNegativeTestGuids := randomGuids[0 : testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS]
-	for i, testId := range testcom.FIDO_TEST_LIST_VOUCHER {
-		vouchers[testId] = []fdoshared.DeviceCredAndVoucher{}
-		for j := 0; j < TEST_NEGATIVE_PER_TEST_VOUCHERS; j++ {
-			arrIndex := i*TEST_NEGATIVE_PER_TEST_VOUCHERS + j
+	for i := 0; i < TEST_POSITIVE_BATCHES; i++ {
+		indexStart := i * TEST_POSITIVE_BATCH_SIZE
+		indexEnd := (i + 1) * TEST_POSITIVE_BATCH_SIZE
 
-			log.Printf("Generating voucher %d for test %s", arrIndex, testId)
-			guid := randomNegativeTestGuids[arrIndex]
-
-			testCred, err := devDB.GetVANDV(guid, testId)
-			if err != nil {
-				return vouchers, fmt.Errorf("Error generating voucher %d %s for test %s. %s", arrIndex, guid.GetFormatted(), testId, err.Error())
-			}
-
-			vouchers[testId] = append(vouchers[testId], *testCred)
-		}
+		wg.Add(1)
+		go GenerateTo2Vouchers_Thread(testcom.NULL_TEST, randomPositiveTestGuids[indexStart:indexEnd], devDB, &wg, chn)
 	}
 
-	vouchers[testcom.NULL_TEST] = []fdoshared.DeviceCredAndVoucher{}
-	for i, guid := range randomPositiveTestGuids {
-		log.Printf("Generating positive voucher %d", i)
+	for i := 0; i < totalThreads; i++ {
+		result := <-chn
 
-		positiveTestCred, err := devDB.GetVANDV(guid, testcom.NULL_TEST)
-		if err != nil {
-			return vouchers, fmt.Errorf("Error generating voucher %d %s for test %s. %s", i, guid.GetFormatted(), testcom.NULL_TEST, err.Error())
+		if result.Error != nil {
+			return nil, result.Error
 		}
 
-		vouchers[testcom.NULL_TEST] = append(vouchers[testcom.NULL_TEST], *positiveTestCred)
+		vouchers[result.TestID] = append(vouchers[result.TestID], result.DeviceCredAndVouchers...)
 	}
+
+	wg.Wait()
 
 	return vouchers, nil
 }
