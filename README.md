@@ -28,6 +28,9 @@ The backend consists of five modules:
     - `make preconfig_conformance_server` - Will only configure golang dependencies
 
 ## Building
+- `make build_config_onprem` - Will updated build config to setup app for on-premises running
+- `make build_config_online` - Will configure app for online deployment
+
 - `make build` - will compile builds for Windows, Linux, and MacOS
 
 - `make compile_all` - will only generate binaries for Windows, Linux, and MacOS

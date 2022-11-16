@@ -17,6 +17,12 @@ preconfig_conformance_server:
 
 setup: preconfig_submodules preconfig_frontend preconfig_conformance_server
 
+build_config_onprem:
+	sed -i -e 's/const TOOLS_MODE.*/const TOOLS_MODE = fdoshared.CFG_MODE_ONPREM/' running.ctx.go
+
+build_config_online:
+	sed -i -e 's/const TOOLS_MODE.*/const TOOLS_MODE = fdoshared.CFG_MODE_ONLINE/' running.ctx.go
+
 # Compiling GO code
 compile_win:
 	echo "\n----- Building for Windows... -----\n"
