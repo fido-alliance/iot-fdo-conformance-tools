@@ -9,7 +9,7 @@ import (
 
 func ExpectFdoError(bodyBytes []byte, testId FDOTestID, expectedFdoError fdoshared.FdoErrorCode, httpStatus int) FDOTestState {
 	if httpStatus == http.StatusOK {
-		return NewFailTestState(testId, "Expected server to return HTTP error and not status 200 OK")
+		return NewFailTestState(testId, "Expected server to return HTTP error, and not status 200 OK")
 	}
 
 	fdoErrInst, err := fdoshared.DecodeErrorResponse(bodyBytes)
