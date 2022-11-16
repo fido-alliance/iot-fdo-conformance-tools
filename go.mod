@@ -15,11 +15,11 @@ require (
 	github.com/WebauthnWorks/fdo-device-implementation v0.2.4
 	github.com/WebauthnWorks/fdo-do v0.2.3
 	github.com/WebauthnWorks/fdo-rv v0.2.3
-	github.com/WebauthnWorks/fdo-shared v0.9.3
 )
 
 require (
 	github.com/WebauthnWorks/dhkx v0.3.3 // indirect
+	github.com/WebauthnWorks/fdo-shared v0.9.5 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect

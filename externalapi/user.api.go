@@ -12,8 +12,11 @@ import (
 	"strings"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"golang.org/x/crypto/scrypt"
 )
+
+const ONPREM_CONFIG string = "tester@fido.local"
 
 type UserAPI struct {
 	UserDB    *dbs.UserTestDB
@@ -50,6 +53,12 @@ func (h *UserAPI) verifyPasswordHash(password string, passwordHash []byte) (bool
 
 func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 	if !CheckHeaders(w, r) {
+		return
+	}
+
+	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
+		log.Println("Only allowed for on-line build!")
+		RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
@@ -120,7 +129,7 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 		Phone:        createUser.Phone,
 	}
 
-	err = h.UserDB.Save(createUser.Email, newUserInst)
+	err = h.UserDB.Save(newUserInst.Username, newUserInst)
 	if err != nil {
 		log.Println("Error saving user. " + err.Error())
 		RespondError(w, "Internal server error.", http.StatusInternalServerError)
@@ -140,6 +149,12 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 	if !CheckHeaders(w, r) {
+		return
+	}
+
+	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
+		log.Println("Only allowed for on-line build!")
+		RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
@@ -195,6 +210,42 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 	RespondSuccess(w)
 }
 
+func (h *UserAPI) LoginOnPremNoLogin(w http.ResponseWriter, r *http.Request) {
+	if !CheckHeaders(w, r) {
+		return
+	}
+
+	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONLINE {
+		log.Println("Only allowed for on-line build!")
+		RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	_, err := h.UserDB.Get(ONPREM_CONFIG)
+	if err != nil {
+		newUserInst := dbs.UserTestDBEntry{
+			Username: strings.ToLower(ONPREM_CONFIG),
+		}
+
+		err = h.UserDB.Save(newUserInst.Username, newUserInst)
+		if err != nil {
+			log.Println("Error saving user. " + err.Error())
+			RespondError(w, "Internal server error.", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Username: ONPREM_CONFIG})
+	if err != nil {
+		log.Println("Error creating session. " + err.Error())
+		RespondError(w, "Internal server error. ", http.StatusBadRequest)
+		return
+	}
+
+	http.SetCookie(w, GenerateCookie(sessionDbId))
+	RespondSuccess(w)
+}
+
 func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
@@ -229,6 +280,17 @@ func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RespondSuccess(w)
+}
+
+func (h *UserAPI) Config(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	RespondSuccessStruct(w, User_Config{
+		Mode: r.Context().Value(fdoshared.CFG_MODE).(fdoshared.CONFIG_MODE_TYPE),
+	})
 }
 
 func (h *UserAPI) Logout(w http.ResponseWriter, r *http.Request) {

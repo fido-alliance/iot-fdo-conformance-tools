@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	fdodo "github.com/WebauthnWorks/fdo-do"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdorv "github.com/WebauthnWorks/fdo-rv"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/dgraph-io/badger/v3"
@@ -17,8 +17,6 @@ import (
 )
 
 const PORT = 8080
-
-const RSAKEYS_LOCATION string = "./_randomKeys/"
 
 func main() {
 	options := badger.DefaultOptions("./badger.local.db")
@@ -36,10 +34,14 @@ func main() {
 				Name:  "serve",
 				Usage: "Starts conformance server",
 				Action: func(c *cli.Context) error {
+					ctx := context.Background()
+					ctx = context.WithValue(ctx, fdoshared.CFG_RESULTS_API_KEY, RESULT_SUBMISSION_API_KEY)
+					ctx = context.WithValue(ctx, fdoshared.CFG_MODE, TOOLS_MODE)
+
 					// Setup FDO listeners
 					fdodo.SetupServer(db)
 					fdorv.SetupServer(db)
-					externalapi.SetupServer(db)
+					externalapi.SetupServer(db, ctx)
 
 					log.Printf("Starting server at port %d... \n", PORT)
 
@@ -47,6 +49,7 @@ func main() {
 					if err != nil {
 						log.Panicln("Error starting HTTP server. " + err.Error())
 					}
+
 					return nil
 				},
 			},
@@ -59,33 +62,6 @@ func main() {
 					configdb := dbs.NewConfigDB(db)
 
 					return PreSeed(configdb, devbasedb)
-				},
-			},
-			{
-				Name:      "testbatchgen",
-				Usage:     "Seed FDO Cred Base",
-				UsageText: "Generates one hundred thousand cred bases to be used in testing",
-				Action: func(c *cli.Context) error {
-					devbasedb := dbs.NewDeviceBaseDB(db)
-					configdb := dbs.NewConfigDB(db)
-
-					mainConfig, _ := configdb.Get()
-					voucherTestBatch := mainConfig.SeededGuids.GetTestBatch(10000)
-
-					var allTestIds fdoshared.FdoGuidList
-					for _, v := range voucherTestBatch {
-						allTestIds = append(allTestIds, v...)
-					}
-
-					log.Println(len(allTestIds))
-
-					_, err := testexec.GenerateTo2Vouchers(allTestIds, devbasedb)
-					if err != nil {
-						log.Println("Generate vouchers. " + err.Error())
-						return nil
-					}
-
-					return nil
 				},
 			},
 			{

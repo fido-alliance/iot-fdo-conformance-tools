@@ -1,15 +1,25 @@
 package externalapi
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/gorilla/mux"
 )
 
-func SetupServer(db *badger.DB) {
+func AddContext(next http.Handler, ctx context.Context) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func SetupServer(db *badger.DB, ctx context.Context) {
+	log.Println(ctx.Value(fdoshared.CFG_MODE))
 	userDb := dbs.NewUserTestDB(db)
 	rvtDb := testdbs.NewRequestTestDB(db)
 	sessionDb := dbs.NewSessionDB(db)
@@ -66,13 +76,14 @@ func SetupServer(db *badger.DB) {
 
 	r.HandleFunc("/api/user/register", userApiHandler.Register)
 	r.HandleFunc("/api/user/login", userApiHandler.Login)
+	r.HandleFunc("/api/user/login/onprem", userApiHandler.LoginOnPremNoLogin)
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
 	r.HandleFunc("/api/user/logout", userApiHandler.Logout)
 	r.HandleFunc("/api/user/purgetests", userApiHandler.PurgeTests)
+	r.HandleFunc("/api/user/config", userApiHandler.Config)
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
-	// r.PathPrefix("/").HandlerFunc(ProxyDevUI)
+	// r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
+	r.PathPrefix("/").HandlerFunc(ProxyDevUI)
 
-	http.Handle("/", r)
-
+	http.Handle("/", AddContext(r, ctx))
 }
