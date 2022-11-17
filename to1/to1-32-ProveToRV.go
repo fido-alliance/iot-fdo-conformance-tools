@@ -25,7 +25,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 		return nil, nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
 	}
 
-	if fdoTestID == testcom.FIDO_DEVT_32_BAD_ENCODING {
+	if fdoTestID == testcom.FIDO_DEVT_32_BAD_PROVE_TO_RV_PAYLOAD_ENCODING {
 		proveToRV32PayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(proveToRV32PayloadBytes)
 	}
 
