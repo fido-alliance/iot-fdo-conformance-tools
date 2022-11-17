@@ -2,9 +2,11 @@ package to0
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -33,12 +35,14 @@ type RVEntry struct {
 	AccessToken string
 }
 
-func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, int, error) {
+func SendCborPost(fdoTestID testcom.FDOTestID, rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, int, error) {
 	url := rvEntry.RVURL + fdoshared.FDO_101_URL_BASE + cmd.ToString()
 
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
+
+	log.Printf("--- %d %s. Sending buffer %s", cmd, fdoTestID, hex.EncodeToString(payload))
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, "", 0, errors.New("Error creating new request. " + err.Error())
@@ -59,18 +63,26 @@ func SendCborPost(rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHe
 	if err != nil {
 		return nil, "", 0, fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
 	}
+	log.Printf("--- %d %s. HTTP %d Receiving buffer %s \n\n", cmd, fdoTestID, resp.StatusCode, hex.EncodeToString(bodyBytes))
 
 	return bodyBytes, resp.Header.Get("Authorization"), resp.StatusCode, nil
 }
 
 func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDOTestID, httpStatusCode int) testcom.FDOTestState {
-	switch fdoTestID {
-	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_20, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+	expectedErrorCode, ok := testcom.FIDO_TEST_TO_FDO_ERROR_CODE[fdoTestID]
+	if !ok {
+		expectedErrorCode = fdoshared.MESSAGE_BODY_ERROR
+	}
 
+	switch fdoTestID {
 	case testcom.FIDO_RVT_21_CHECK_RESP:
+		fdoErrInst, err := fdoshared.DecodeErrorResponse(bodyBytes)
+		if err == nil {
+			return testcom.NewFailTestState(fdoTestID, fmt.Sprintf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode))
+		}
+
 		var helloAck21 fdoshared.HelloAck21
-		err := cbor.Unmarshal(bodyBytes, &helloAck21)
+		err = cbor.Unmarshal(bodyBytes, &helloAck21)
 		if err != nil {
 			return testcom.NewFailTestState(fdoTestID, "Error decoding HelloAck21. "+err.Error())
 		}
@@ -78,13 +90,13 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 		return testcom.NewSuccessTestState(fdoTestID)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_20, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_22, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_VOUCHER, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+		return testcom.ExpectFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
 	}
 
 	return testcom.NewFailTestState(fdoTestID, "Unsupported test "+string(fdoTestID))

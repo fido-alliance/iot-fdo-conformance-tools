@@ -2,6 +2,7 @@ package to0
 
 import (
 	"errors"
+	"fmt"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
@@ -21,7 +22,7 @@ func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck
 		hello20Bytes = fdoshared.Conf_RandomCborBufferFuzzing(hello20Bytes)
 	}
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO0_20_HELLO, hello20Bytes, &h.rvEntry.AccessToken)
+	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(fdoTestID, h.rvEntry, fdoshared.TO0_20_HELLO, hello20Bytes, &h.rvEntry.AccessToken)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
 		return nil, &testState, nil
@@ -32,6 +33,11 @@ func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck
 	}
 
 	h.authzHeader = authzHeader
+
+	fdoErrInst, err := fdoshared.DecodeErrorResponse(resultBytes)
+	if err == nil {
+		return nil, nil, fmt.Errorf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
+	}
 
 	err = cbor.Unmarshal(resultBytes, &helloAck21)
 	if err != nil {

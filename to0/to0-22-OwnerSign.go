@@ -2,6 +2,7 @@ package to0
 
 import (
 	"errors"
+	"fmt"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
@@ -90,6 +91,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		To0d: to0dBytes,
 		To1d: *to1d,
 	}
+
 	ownerSign22Bytes, err := cbor.Marshal(ownerSign)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
@@ -99,9 +101,10 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		ownerSign22Bytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerSign22Bytes)
 	}
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
+	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(fdoTestID, h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
+		return nil, &testState, nil
 	}
 
 	if err != nil {
@@ -109,6 +112,11 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 	}
 
 	h.authzHeader = authzHeader
+
+	fdoErrInst, err := fdoshared.DecodeErrorResponse(resultBytes)
+	if err == nil {
+		return nil, nil, fmt.Errorf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
+	}
 
 	err = cbor.Unmarshal(resultBytes, &acceptOwner23)
 	if err != nil {
