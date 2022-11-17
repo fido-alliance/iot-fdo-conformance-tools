@@ -49,7 +49,7 @@ const (
 
 	// All
 	// Message Body is structurally unsound:
-	// JSON parse error, or valid JSON, but is not mapping to the expected Secure Device Onboard type (see ‎4.6)
+	// CBOR parse error, or valid CBOR, but is not mapping to the expected Secure Device Onboard type (see ‎4.6)
 	MESSAGE_BODY_ERROR FdoErrorCode = 100
 
 	// All
