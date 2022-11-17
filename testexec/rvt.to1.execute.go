@@ -1,8 +1,6 @@
 package testexec
 
 import (
-	"log"
-
 	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
 	"github.com/WebauthnWorks/fdo-device-implementation/to1"
 	"github.com/WebauthnWorks/fdo-do/to0"
@@ -63,18 +61,6 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	// Starting tests
 	for _, rv30test := range testcom.FIDO_TEST_LIST_DEVT_30 {
 		switch rv30test {
-		case testcom.FIDO_DEVT_30_BAD_ENCODING, testcom.FIDO_DEVT_30_BAD_UNKNOWN_GUID, testcom.FIDO_DEVT_30_BAD_SIGINFO:
-			_, rvtTestState, err := to1inst.HelloRV30(rv30test)
-			if rvtTestState == nil && err != nil {
-				errTestState := testcom.FDOTestState{
-					Passed: false,
-					Error:  err.Error(),
-				}
-
-				rvtTestState = &errTestState
-			}
-
-			reqtDB.ReportTest(reqte.Uuid, rv30test, *rvtTestState)
 
 		case testcom.FIDO_DEVT_30_POSITIVE:
 			var errTestState testcom.FDOTestState
@@ -95,15 +81,7 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 			}
 
 		default:
-			log.Printf("Skipping \"%s\" test...", rv30test)
-
-		}
-	}
-
-	for _, rv32test := range testcom.FIDO_TEST_LIST_DEVT_32 {
-		switch rv32test {
-		case testcom.FIDO_DEVT_32_BAD_PROVE_TO_RV_PAYLOAD_ENCODING, testcom.FIDO_DEVT_32_BAD_ENCODING, testcom.FIDO_DEVT_32_BAD_SIGNATURE, testcom.FIDO_DEVT_33_CHECK_RESP, testcom.FIDO_DEVT_32_BAD_TO1PROOF_NONCE:
-			_, rvtTestState, err := to1inst.HelloRV30(rv32test)
+			_, rvtTestState, err := to1inst.HelloRV30(rv30test)
 			if rvtTestState == nil && err != nil {
 				errTestState := testcom.FDOTestState{
 					Passed: false,
@@ -113,11 +91,26 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 				rvtTestState = &errTestState
 			}
 
-			reqtDB.ReportTest(reqte.Uuid, rv32test, *rvtTestState)
+			reqtDB.ReportTest(reqte.Uuid, rv30test, *rvtTestState)
+		}
+	}
+
+	for _, rv32test := range testcom.FIDO_TEST_LIST_DEVT_32 {
+		helloRvAck31, _, err := to1inst.HelloRV30(testcom.NULL_TEST)
+		if err != nil {
+			errTestState = testcom.FDOTestState{
+				Passed: false,
+				Error:  "Error running test. Hello RV30 failed!" + err.Error(),
+			}
+			reqtDB.ReportTest(reqte.Uuid, rv32test, errTestState)
+			continue
+		}
+
+		switch rv32test {
 
 		case testcom.FIDO_DEVT_33_POSITIVE:
 			var errTestState testcom.FDOTestState
-			_, _, err := to1inst.HelloRV30(rv32test)
+			_, _, err := to1inst.ProveToRV32(*helloRvAck31, rv32test)
 
 			if err != nil {
 				errTestState = testcom.FDOTestState{
@@ -134,8 +127,17 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 			}
 
 		default:
-			log.Printf("Skipping \"%s\" test...", rv32test)
+			_, rvtTestState, err := to1inst.ProveToRV32(*helloRvAck31, rv32test)
+			if rvtTestState == nil && err != nil {
+				errTestState := testcom.FDOTestState{
+					Passed: false,
+					Error:  err.Error(),
+				}
 
+				rvtTestState = &errTestState
+			}
+
+			reqtDB.ReportTest(reqte.Uuid, rv32test, *rvtTestState)
 		}
 	}
 

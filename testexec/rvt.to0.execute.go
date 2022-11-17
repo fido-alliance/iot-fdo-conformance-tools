@@ -40,7 +40,7 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 					Error:  err.Error(),
 				}
 				reqtDB.ReportTest(reqte.Uuid, rv20test, errTestState)
-				return
+				continue
 			} else {
 				errTestState = testcom.FDOTestState{
 					Passed: true,
@@ -92,7 +92,6 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 
 		switch rv22test {
 		case testcom.FIDO_RVT_23_POSITIVE:
-
 			_, _, err = to0inst.OwnerSign22(helloAck.NonceTO0Sign, testcom.NULL_TEST)
 			if err != nil {
 				errTestState = testcom.FDOTestState{
@@ -100,7 +99,7 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 					Error:  err.Error(),
 				}
 				reqtDB.ReportTest(reqte.Uuid, rv22test, errTestState)
-				return
+				continue
 			} else {
 				errTestState = testcom.FDOTestState{
 					Passed: true,
@@ -109,7 +108,7 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 			}
 
 		default:
-			_, rvtTestState, err := to0inst.OwnerSign22(helloAck.NonceTO0Sign, testcom.NULL_TEST)
+			_, rvtTestState, err := to0inst.OwnerSign22(helloAck.NonceTO0Sign, rv22test)
 			if rvtTestState == nil && err != nil {
 				errTestState := testcom.FDOTestState{
 					Passed: false,
@@ -126,7 +125,6 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	for _, rv22VoucherTest := range testcom.FIDO_TEST_LIST_VOUCHER {
 		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
 		testCredV, err := devDB.GetVANDV(randomGuid, rv22VoucherTest)
-
 		if err != nil {
 			errTestState := testcom.FDOTestState{
 				Passed: false,
