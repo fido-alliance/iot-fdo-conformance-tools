@@ -224,8 +224,6 @@ func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	log.Println(len(reqListInst.To1.TestRunHistory))
-
 	RespondSuccess(w)
 }
 

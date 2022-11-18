@@ -2,11 +2,9 @@ package externalapi
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/gorilla/mux"
@@ -19,7 +17,6 @@ func AddContext(next http.Handler, ctx context.Context) http.Handler {
 }
 
 func SetupServer(db *badger.DB, ctx context.Context) {
-	log.Println(ctx.Value(fdoshared.CFG_MODE))
 	userDb := dbs.NewUserTestDB(db)
 	rvtDb := testdbs.NewRequestTestDB(db)
 	sessionDb := dbs.NewSessionDB(db)
