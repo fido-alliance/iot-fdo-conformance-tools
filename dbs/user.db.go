@@ -82,7 +82,7 @@ func (h *UserTestDB) ResetUsers() error {
 	iterTxn := dbtxn.NewIterator(badger.IteratorOptions{
 		Prefix: h.prefix,
 	})
-
+	defer iterTxn.Close()
 	for iterTxn.Rewind(); iterTxn.Valid(); iterTxn.Next() {
 		item := iterTxn.Item()
 		k := item.Key()
@@ -99,8 +99,6 @@ func (h *UserTestDB) ResetUsers() error {
 			log.Println("Failed to commit delete req... " + hex.EncodeToString(k))
 		}
 	}
-
-	iterTxn.Close()
 
 	return nil
 }
