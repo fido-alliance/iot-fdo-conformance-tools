@@ -8,8 +8,6 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-const OWNERSHIP_VOUCHER_PEM_TYPE string = "OWNERSHIP VOUCHER"
-
 type RVMediumValue uint8
 
 const (
