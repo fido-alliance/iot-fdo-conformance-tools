@@ -81,7 +81,19 @@ func (h *RequestListenerRunnerInst) StartNewTestRun() {
 	}
 
 	h.Running = true
+
 	h.CurrentTestRun = NewListenerTestRun(h.Protocol)
+	h.CurrentTestIndex = 0
+	h.CompletedCmds = []fdoshared.FdoCmd{}
+
+	switch h.Protocol {
+	case fdoshared.To0:
+		h.ExpectedCmd = fdoshared.TO0_20_HELLO
+	case fdoshared.To1:
+		h.ExpectedCmd = fdoshared.TO1_30_HELLO_RV
+	case fdoshared.To2:
+		h.ExpectedCmd = fdoshared.TO2_60_HELLO_DEVICE
+	}
 }
 
 func (h *RequestListenerRunnerInst) RemoveTestRun(id string) error {
