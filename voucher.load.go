@@ -15,7 +15,6 @@ import (
 )
 
 const TEST_VOUCHER_LOC string = "./_test_vouchers/"
-const OWNERSHIP_VOUCHER_PEM_TYPE string = "OWNERSHIP VOUCHER"
 
 func GetVoucherFileList() ([]string, error) {
 	var voucherFiles []string
@@ -60,7 +59,7 @@ func LoadLocalVouchers() ([]fdoshared.VoucherDBEntry, error) {
 			return vouchers, fmt.Errorf("%s: Could not find voucher PEM data!", fileLoc)
 		}
 
-		if voucherBlock.Type != OWNERSHIP_VOUCHER_PEM_TYPE {
+		if voucherBlock.Type != fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE {
 			return vouchers, fmt.Errorf("%s: Failed to decode PEM voucher. Unexpected type: %s", fileLoc, voucherBlock.Type)
 		}
 
