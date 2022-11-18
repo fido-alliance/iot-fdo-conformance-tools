@@ -14,7 +14,6 @@ import (
 )
 
 const DEVICE_CREDENTIAL_LOC string = "./_dis/"
-const CREDENTIAL_PEM_TYPE string = "WAW FDO DEVICE CREDENTIAL"
 
 func GetCredentials() ([]string, error) {
 	var credentialFiles []string
@@ -59,7 +58,7 @@ func LoadLocalCredentials() (fdoshared.WawDeviceCredential, error) {
 			return credential, fmt.Errorf("%s: Could not find voucher PEM data!", fileLoc)
 		}
 
-		if credentialBlock.Type != CREDENTIAL_PEM_TYPE {
+		if credentialBlock.Type != fdoshared.CREDENTIAL_PEM_TYPE {
 			return credential, fmt.Errorf("%s: Failed to decode PEM voucher. Unexpected type: %s", fileLoc, credentialBlock.Type)
 		}
 

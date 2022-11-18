@@ -91,7 +91,6 @@ func GenerateVoucherKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdosha
 	default:
 		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
 	}
-
 }
 
 func MarshalPrivateKey(privKey interface{}, sgType fdoshared.DeviceSgType) ([]byte, error) {
@@ -357,10 +356,10 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 	if err != nil {
 		return errors.New("Error marshaling voucher bytes. " + err.Error())
 	}
-	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: "OWNERSHIP VOUCHER", Bytes: voucherBytes})
+	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE, Bytes: voucherBytes})
 
 	// LastOVEntry private key to PEM
-	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: vdandv.VoucherDBEntry.PrivateKeyX509})
+	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.PRIVATE_KEY_PEM_TYPE, Bytes: vdandv.VoucherDBEntry.PrivateKeyX509})
 
 	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
 
@@ -376,7 +375,7 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 		return errors.New("Error marshaling voucher bytes. " + err.Error())
 	}
 
-	diBytesPem := pem.EncodeToMemory(&pem.Block{Type: "WAW FDO DEVICE CREDENTIAL", Bytes: diBytes})
+	diBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.CREDENTIAL_PEM_TYPE, Bytes: diBytes})
 	disWriteLocation := fmt.Sprintf("%s%s.dis.pem", DIS_LOCATION, hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:]))
 	err = os.WriteFile(disWriteLocation, diBytesPem, 0644)
 	if err != nil {
@@ -394,10 +393,10 @@ func MarshalVoucherAndPrivateKey(vdbEntry fdoshared.VoucherDBEntry) ([]byte, err
 	if err != nil {
 		return []byte{}, errors.New("Error marshaling voucher bytes. " + err.Error())
 	}
-	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: "OWNERSHIP VOUCHER", Bytes: voucherBytes})
+	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE, Bytes: voucherBytes})
 
 	// LastOVEntry private key to PEM
-	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: vdbEntry.PrivateKeyX509})
+	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.PRIVATE_KEY_PEM_TYPE, Bytes: vdbEntry.PrivateKeyX509})
 
 	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
 

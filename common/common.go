@@ -13,8 +13,6 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-const OWNERSHIP_VOUCHER_PEM_TYPE string = "OWNERSHIP VOUCHER"
-
 type SRVEntry struct { // TODO: Unify type with DO
 	SrvURL      string
 	AccessToken string // FUTURE
@@ -62,7 +60,7 @@ func DecodePemVoucherAndKey(vandvpem string) (*fdoshared.VoucherDBEntry, error) 
 		return nil, errors.New("Could not find voucher PEM data!")
 	}
 
-	if voucherBlock.Type != OWNERSHIP_VOUCHER_PEM_TYPE {
+	if voucherBlock.Type != fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE {
 		return nil, fmt.Errorf("Failed to decode PEM voucher. Unexpected type: %s", voucherBlock.Type)
 	}
 
