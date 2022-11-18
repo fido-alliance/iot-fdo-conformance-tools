@@ -47,6 +47,40 @@ export const isLoggedIn = async(): Promise<Boolean> => {
     return true
 }
 
+export const getConfig = async(): Promise<any> => {
+    let result = await fetch("/api/user/config", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    let resultJson = await result.json()
+
+    return resultJson
+}
+
+export const loginOnprem = async (): Promise<any> => {
+    let result = await fetch("/api/user/login/onprem", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    let resultJson = await result.json()
+
+    if (result.status !== 200) {
+        let statusText = result.statusText
+
+        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
+            statusText = resultJson.errorMessage
+        }
+
+        throw new Error(`Error sending request: ${statusText}`);
+    }
+}
+
 export const ensureUserIsLoggedIn = async(): Promise<any> => {
     return isLoggedIn()
     .then(isActually => {

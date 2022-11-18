@@ -3,7 +3,7 @@
     import Register from './routes/Register.svelte'
     import NotFound from './routes/NotFound.svelte'
     import Dashboard from './routes/Dashboard.svelte';
-    import {logout} from './lib/User.api'
+    import {getConfig, logout} from './lib/User.api'
     import Router, {location, push} from "svelte-spa-router"
     import Rv from './routes/RV.fdo.svelte';
     import Do from './routes/DO.fdo.svelte';
@@ -20,11 +20,17 @@
         "*": NotFound,
     }
 
+    let mode: string = ""
+    
     const handleLogout = async () => {
         await logout()
-
         push('/login')
     }
+
+    getConfig()
+    .then((conf) => {
+        mode = conf.mode;
+    })
 </script>
 
 
@@ -32,7 +38,7 @@
 
   <!-- Header -->
     <header id="header" class="alt">
-      <h1>FDO Conformance Tools</h1>
+      <!-- <h1>FDO Conformance Tools</h1> -->
     </header>
 
   <!-- Nav -->
@@ -44,7 +50,9 @@
         {/if}
 
         {#if $location === "/login" || $location === "/"}
-            <li><a href="/#/register" class="button primary">Register</a></li>
+            {#if mode !== "onprem"}
+                <li><a href="/#/register" class="button primary">Register</a></li>
+            {/if}
         {:else if $location === "/register"}
             <li><a href="/#/login" class="button primary">Login</a></li>
         {:else}

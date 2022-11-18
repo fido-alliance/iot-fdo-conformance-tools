@@ -34,10 +34,7 @@
                 } else {
                     entry.to2 = []
                 }
-
             }
-
-            
         } catch(err) {
             errorMsg = err; // TypeError: failed to fetch
         }
@@ -198,6 +195,7 @@
                                     <a href="#" on:click|preventDefault={() => {handleNewTestRun(2)}} class="button primary fit small exec">New Test Run</a>
                                 </div>
                             </div>
+
                             {#if devTestInstMap[entryKey].to2.length > 0}
                                 {#each devTestInstMap[entryKey].to2 as run}
                                 <div class="row">
@@ -216,11 +214,8 @@
                                     </div>
                                 </div>
                             {/if}
-
-                           
                         </section>
                         {/if}
-
                     </div>
                 </div>
             {/each}
