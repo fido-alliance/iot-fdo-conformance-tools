@@ -58,7 +58,7 @@ func (h *VoucherDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.VoucherDBEntry
 
 	item, err := dbtxn.Get(h.getEntryID(deviceGuid))
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, fmt.Errorf("The entry with id %s does not exist", hex.EncodeToString(deviceGuid[:]))
+		return nil, fmt.Errorf("The voucher entry for GUID(%s) does not exist", hex.EncodeToString(deviceGuid[:]))
 	} else if err != nil {
 		return nil, errors.New("Failed locating voucher entry. " + err.Error())
 	}
