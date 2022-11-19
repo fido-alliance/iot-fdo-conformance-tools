@@ -11,8 +11,10 @@ import (
 	"strconv"
 
 	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
+	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/WebauthnWorks/fdo-shared/testcom"
 	testcomdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 
@@ -25,6 +27,24 @@ type DeviceTestMgmtAPI struct {
 	DevBaseDB  *dbs.DeviceBaseDB
 	SessionDB  *dbs.SessionDB
 	ConfigDB   *dbs.ConfigDB
+}
+
+func (h *DeviceTestMgmtAPI) submitOwnerSign(voucherdbe *fdoshared.VoucherDBEntry) error {
+	to0client := to0.NewTo0Requestor(to0.RVEntry{
+		RVURL: "http://localhost:8080", //TODO: Inject from context
+	}, *voucherdbe)
+
+	helloAck21, _, err := to0client.Hello20(testcom.NULL_TEST)
+	if err != nil {
+		return fmt.Errorf("Error submitting OwnerSign. %s", err.Error())
+	}
+
+	_, _, err = to0client.OwnerSign22(helloAck21.NonceTO0Sign, testcom.NULL_TEST)
+	if err != nil {
+		return fmt.Errorf("Error submitting OwnerSign. %s", err.Error())
+	}
+
+	return nil
 }
 
 func (h *DeviceTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEntry, error) {
@@ -88,6 +108,13 @@ func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Failed to decode voucher. " + err.Error())
 		RespondError(w, "Failed to decode voucher! "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.submitOwnerSign(newVand)
+	if err != nil {
+		log.Println("Failed submit owner sign to RV! " + err.Error())
+		RespondError(w, "Failed submit owner sign to RV! "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
