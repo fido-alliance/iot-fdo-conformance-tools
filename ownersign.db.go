@@ -54,7 +54,7 @@ func (h *OwnerSignDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.OwnerSign22,
 
 	item, err := dbtxn.Get(ownerSignStorageId)
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, fmt.Errorf("The entry with id %s does not exist", hex.EncodeToString(deviceGuid[:]))
+		return nil, fmt.Errorf("The owner sign entry with id %s does not exist", hex.EncodeToString(deviceGuid[:]))
 	} else if err != nil {
 		return nil, errors.New("Failed locating entry. The error is: " + err.Error())
 	}
