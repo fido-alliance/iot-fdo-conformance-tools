@@ -17,7 +17,7 @@ const (
 
 type RequestListenerRunnerInst struct {
 	Protocol      fdoshared.FdoToProtocol `cbor:"protocol,omitempty"`
-	LastTestID    testcom.FDOTestID       `cbor:"expectedCmd,omitempty"`
+	LastTestID    testcom.FDOTestID       `cbor:"lastTestID,omitempty"`
 	ExpectedCmd   fdoshared.FdoCmd        `cbor:"expectedCmd,omitempty"`
 	CompletedCmds []fdoshared.FdoCmd      `cbor:"completedCmds,omitempty"`
 

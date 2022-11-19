@@ -65,7 +65,7 @@ func (h *ListenerTestDB) Save(reqListener listenertestsdeps.RequestListenerInst)
 	return nil
 }
 
-func (h *ListenerTestDB) Update(reqListener listenertestsdeps.RequestListenerInst) error {
+func (h *ListenerTestDB) Update(reqListener *listenertestsdeps.RequestListenerInst) error {
 	structBytes, err := cbor.Marshal(reqListener)
 	if err != nil {
 		return errors.New("Failed to marshal listener entry." + err.Error())
