@@ -56,7 +56,7 @@ func (h *UserTestDB) Get(username string) (*UserTestDBEntry, error) {
 
 	item, err := dbtxn.Get(userEStorageId)
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, fmt.Errorf("The entry with id %s does not exist", username)
+		return nil, fmt.Errorf("The user entry with id %s does not exist", username)
 	} else if err != nil {
 		return nil, errors.New("Failed locating entry. The error is: " + err.Error())
 	}

@@ -218,7 +218,7 @@ func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Reque
 
 	runnerInst.StartNewTestRun()
 
-	err = h.ListenerDB.Update(*reqListInst)
+	err = h.ListenerDB.Update(reqListInst)
 	if err != nil {
 		RespondError(w, err.Error(), http.StatusBadRequest)
 		return

@@ -89,7 +89,7 @@ func (h *SessionDB) GetSessionEntry(entryId []byte) (*SessionEntry, error) {
 
 	item, err := dbtxn.Get(sessionEntryId)
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, fmt.Errorf("The entry with id %s does not exist", hex.EncodeToString(entryId))
+		return nil, fmt.Errorf("The session entry with id %s does not exist", hex.EncodeToString(entryId))
 	} else if err != nil {
 		return nil, errors.New("Failed locating entry. The error is: " + err.Error())
 	}
