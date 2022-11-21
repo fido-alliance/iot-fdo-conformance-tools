@@ -92,6 +92,15 @@
     }
 
 
+
+    const formatGuidForLeftPanel = (guid) => {
+        return `${guid.slice(0,6)}...${guid.slice(-6)}`
+    }
+
+    const leftPanelName = (entryObj) => {
+        return `${entryObj.name} GUID(${formatGuidForLeftPanel(entryObj.guid)})`
+    }
+
 /* ----- Handle New Device ----- */
     let newDoErrorMessage = ""
     let newDeviceName = ""
@@ -150,13 +159,12 @@
         <div class="col-4 col-12-xsmall">
             <h2>Available Devices for testing</h2>
             <p>{doTestExecuteErrorMessage}</p>
-            <!-- {selectedRVT}
-            {selectedTestRunUuid} -->
+
             {#each Object.keys(devTestInstMap) as entryKey}
                 <div class="row">
                     <div class="col-12 col-12-xsmall">
                         <input type="radio" id="rvt-radio-{devTestInstMap[entryKey].id}" on:click={handleSelect} value="{devTestInstMap[entryKey].id}" name="rvts-radio" bind:group={selectedDeviceTestUuid}>
-                        <label for="rvt-radio-{devTestInstMap[entryKey].id}">{devTestInstMap[entryKey].name}</label>
+                        <label for="rvt-radio-{devTestInstMap[entryKey].id}">{leftPanelName(devTestInstMap[entryKey])}</label>
 
                         {#if selectedDeviceTestUuid === devTestInstMap[entryKey].id}
                         <section class="rvt-mgmt">
@@ -261,7 +269,10 @@
         </div>
         <div class="col-8 col-12-xsmall">
             {#if selectedTestRunUuid !== ""}
-                <h2>TO{testRunMap[selectedTestRunUuid].protocol} Tests info for <b>{devTestInstMap[selectedDeviceTestUuid].name}</b> at {(new Date(testRunMap[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h2>
+                <h3><b><u>TO{testRunMap[selectedTestRunUuid].protocol} Test results</u></b>
+                    <br>Device nickname: <b>{devTestInstMap[selectedDeviceTestUuid].name}</b> 
+                    <br>Guid: <b>{devTestInstMap[selectedDeviceTestUuid].guid}</b> 
+                    <br>Date: {(new Date(testRunMap[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h3>
 
                 {#if testRunMap[selectedTestRunUuid].tests.length > 0}
                     {#each testRunMap[selectedTestRunUuid].tests as devtest}
