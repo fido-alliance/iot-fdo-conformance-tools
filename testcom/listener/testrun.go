@@ -14,6 +14,7 @@ type ListenerTestRun struct {
 	Timestamp int64                   `json:"timestamp"`
 	TestRuns  []testcom.FDOTestState  `json:"tests"`
 	Protocol  fdoshared.FdoToProtocol `json:"protocol"`
+	Completed bool                    `json:"completed"`
 }
 
 func NewListenerTestRun(protocol fdoshared.FdoToProtocol) ListenerTestRun {
@@ -27,4 +28,8 @@ func NewListenerTestRun(protocol fdoshared.FdoToProtocol) ListenerTestRun {
 	}
 
 	return newRVTestRun
+}
+
+func (h *ListenerTestRun) Complete() {
+	h.Completed = true
 }

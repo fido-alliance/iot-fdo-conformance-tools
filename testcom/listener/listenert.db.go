@@ -23,7 +23,8 @@ type RequestListenerRunnerInst struct {
 
 	CurrentTestIndex int                                      `cbor:"currentTestIndex,omitempty"`
 	Tests            map[fdoshared.FdoCmd][]testcom.FDOTestID `cbor:"tests,omitempty"`
-	Running          bool                                     `cbor:"started,omitempty"`
+	Running          bool                                     `cbor:"running,omitempty"`
+	Completed        bool                                     `cbor:"completed,omitempty"`
 	CurrentTestRun   ListenerTestRun                          `cbor:"currentTestRun,omitempty"`
 	TestRunHistory   []ListenerTestRun                        `cbor:"testRunHistory,omitempty"`
 }
@@ -81,6 +82,7 @@ func (h *RequestListenerRunnerInst) StartNewTestRun() {
 	}
 
 	h.Running = true
+	h.Completed = false
 
 	h.CurrentTestRun = NewListenerTestRun(h.Protocol)
 	h.CurrentTestIndex = 0
@@ -137,6 +139,15 @@ func (h *RequestListenerRunnerInst) CompleteCmd(nextCMD fdoshared.FdoCmd) {
 	h.CompletedCmds = append(h.CompletedCmds, h.ExpectedCmd)
 	h.ExpectedCmd = nextCMD
 	h.CurrentTestIndex = 0
+}
+
+func (h *RequestListenerRunnerInst) CompleteTestRun() {
+	h.CompletedCmds = append(h.CompletedCmds, h.ExpectedCmd)
+	h.Running = false
+	h.Completed = true
+
+	h.CurrentTestRun.Complete()
+	h.TestRunHistory = append(h.TestRunHistory, h.CurrentTestRun)
 }
 
 func (h *RequestListenerRunnerInst) PushFail(errorMsg string) {
