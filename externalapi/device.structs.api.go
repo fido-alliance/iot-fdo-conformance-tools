@@ -12,6 +12,7 @@ type Device_CreateTestCase struct {
 type Device_Item struct {
 	Id   string                              `json:"id"`
 	Name string                              `json:"name"`
+	Guid string                              `json:"guid"`
 	To1  []listenertestsdeps.ListenerTestRun `json:"to1"`
 	To2  []listenertestsdeps.ListenerTestRun `json:"to2"`
 }

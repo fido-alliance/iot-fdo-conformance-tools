@@ -180,7 +180,8 @@ func (h *DeviceTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 
 		listDeviceRuns.DeviceItems = append(listDeviceRuns.DeviceItems, Device_Item{
 			Id:   hex.EncodeToString(reqListener.Uuid),
-			Name: fmt.Sprintf("%s GUID(%s)", devInsts.Name, hex.EncodeToString(devInsts.DeviceGuid[:])),
+			Name: devInsts.Name,
+			Guid: hex.EncodeToString(devInsts.DeviceGuid[:]),
 			To1:  to1testRunHistory,
 			To2:  to2testRunHistory,
 		})
