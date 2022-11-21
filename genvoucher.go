@@ -1,11 +1,6 @@
 package fdodeviceimplementation
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
@@ -21,95 +16,10 @@ import (
 const DIS_LOCATION string = "./_dis/"
 const VOUCHERS_LOCATION string = "./_vouchers/"
 
-func GeneratePKIXECKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdoshared.FdoPublicKey, error) {
-	var curve elliptic.Curve
-	var pkType fdoshared.FdoPkType
-
-	if sgType == fdoshared.StSECP256R1 {
-		curve = elliptic.P256()
-		pkType = fdoshared.SECP256R1
-	} else if sgType == fdoshared.StSECP384R1 {
-		curve = elliptic.P384()
-		pkType = fdoshared.SECP384R1
-	} else {
-		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
-	}
-
-	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
-	if err != nil {
-		return nil, nil, errors.New("Error generating new private key. " + err.Error())
-	}
-
-	publicKeyPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
-	if err != nil {
-		return nil, nil, errors.New("Error marshaling public key. " + err.Error())
-	}
-
-	return privateKey, &fdoshared.FdoPublicKey{
-		PkType: pkType,
-		PkEnc:  fdoshared.X509,
-		PkBody: publicKeyPkix,
-	}, nil
-}
-
-func GeneratePKIXRSAKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdoshared.FdoPublicKey, error) {
-	var pkType fdoshared.FdoPkType = fdoshared.RSAPKCS
-	var rsaKeySize int
-
-	if sgType == fdoshared.StRSA2048 {
-		rsaKeySize = 2048
-	} else if sgType == fdoshared.StRSA3072 {
-		rsaKeySize = 3072
-	} else {
-		return nil, nil, fmt.Errorf("%d is an unsupported RSA SgType!", sgType)
-	}
-
-	privatekey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
-	if err != nil {
-		return nil, nil, errors.New("Error generating new RSA private key. " + err.Error())
-	}
-	publickey := &privatekey.PublicKey
-
-	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publickey)
-	if err != nil {
-		return nil, nil, errors.New("Error marshaling RSA public key. " + err.Error())
-	}
-
-	return privatekey, &fdoshared.FdoPublicKey{
-		PkType: pkType,
-		PkEnc:  fdoshared.X509,
-		PkBody: publicKeyBytes,
-	}, nil
-}
-
-func GenerateVoucherKeypair(sgType fdoshared.DeviceSgType) (interface{}, *fdoshared.FdoPublicKey, error) {
-	switch sgType {
-	case fdoshared.StSECP256R1, fdoshared.StSECP384R1:
-		return GeneratePKIXECKeypair(sgType)
-	case fdoshared.StRSA2048, fdoshared.StRSA3072:
-		return GeneratePKIXRSAKeypair(sgType)
-	default:
-		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
-	}
-}
-
-func MarshalPrivateKey(privKey interface{}, sgType fdoshared.DeviceSgType) ([]byte, error) {
-	switch sgType {
-	case fdoshared.StSECP256R1, fdoshared.StSECP384R1:
-		return x509.MarshalECPrivateKey(privKey.(*ecdsa.PrivateKey))
-
-	case fdoshared.StRSA2048, fdoshared.StRSA3072:
-		return x509.MarshalPKCS1PrivateKey(privKey.(*rsa.PrivateKey)), nil
-
-	default:
-		return []byte{}, fmt.Errorf("%d is an unsupported SgType!", sgType)
-	}
-}
-
 func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashOrHmac, mfgPrivateKey interface{}, prevEntrySgType fdoshared.DeviceSgType, newEntrySgType fdoshared.DeviceSgType, testId testcom.FDOTestID) (interface{}, []byte, *fdoshared.CoseSignature, error) {
 
 	// Generate manufacturer private key.
-	newOVEPrivateKey, newOVEPublicKey, err := GenerateVoucherKeypair(newEntrySgType)
+	newOVEPrivateKey, _, newOVEPublicKey, err := fdoshared.GenerateVoucherKeypair(newEntrySgType)
 	if err != nil {
 		return nil, []byte{}, nil, err
 	}
@@ -139,7 +49,7 @@ func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashO
 		return nil, []byte{}, nil, errors.New("Error generating OVEntry. " + err.Error())
 	}
 
-	marshaledPrivateKey, err := MarshalPrivateKey(newOVEPrivateKey, newEntrySgType)
+	marshaledPrivateKey, err := fdoshared.MarshalPrivateKey(newOVEPrivateKey, newEntrySgType)
 	if err != nil {
 		return nil, []byte{}, nil, errors.New("Error mashaling private key. " + err.Error())
 	}
@@ -154,7 +64,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 	}
 
 	// Generate manufacturer private key.
-	mfgPrivateKey, mfgPublicKey, err := GenerateVoucherKeypair(deviceCredBase.DCSgType)
+	mfgPrivateKey, _, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(deviceCredBase.DCSgType)
 	if err != nil {
 		return nil, errors.New("Error generating new manufacturer private key. " + err.Error())
 	}
