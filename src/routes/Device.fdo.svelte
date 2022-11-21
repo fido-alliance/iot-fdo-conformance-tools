@@ -268,7 +268,7 @@
                         <div class="row rvt-test-case">
                 
                             <div class="col-9 col-12-xsmall">
-                                <p>{devtest.testid}</p>
+                                <p>{devtest.testId}</p>
                             </div>
                             <div class="col-3 col-12-xsmall">
                                 {#if devtest.passed}
