@@ -91,14 +91,21 @@
         }
     }
 
-
-
-    const formatGuidForLeftPanel = (guid) => {
-        return `${guid.slice(0,6)}...${guid.slice(-6)}`
+    const formatLeftPanelDeviceName = (entryObj) => {
+        let formatedGuid = `${entryObj.guid.slice(0,6)}...${entryObj.guid.slice(-6)}`
+        return `${entryObj.name} GUID(${formatedGuid})`
     }
 
-    const leftPanelName = (entryObj) => {
-        return `${entryObj.name} GUID(${formatGuidForLeftPanel(entryObj.guid)})`
+    const getRunDate = (run) => {
+        return (new Date(run.timestamp * 1000)).toLocaleString()
+    }
+
+    const getRunState = (run) => {
+        if(run.completed) {
+            return "Completed"
+        }
+
+        return "Running"
     }
 
 /* ----- Handle New Device ----- */
@@ -154,17 +161,25 @@
     <header>
         <p>{errorMsg}</p>
     </header>
-
+    
     <div class="row gtr-uniform">
         <div class="col-4 col-12-xsmall">
-            <h2>Available Devices for testing</h2>
-            <p>{doTestExecuteErrorMessage}</p>
+
+            <div class="row">
+                <div class="col-12 col-12-xsmall">
+                    <h3>Your devices</h3>
+
+                    {#if !!doTestExecuteErrorMessage}
+                        <p>{doTestExecuteErrorMessage}</p>
+                    {/if}
+                </div>
+            </div>
 
             {#each Object.keys(devTestInstMap) as entryKey}
                 <div class="row">
                     <div class="col-12 col-12-xsmall">
                         <input type="radio" id="rvt-radio-{devTestInstMap[entryKey].id}" on:click={handleSelect} value="{devTestInstMap[entryKey].id}" name="rvts-radio" bind:group={selectedDeviceTestUuid}>
-                        <label for="rvt-radio-{devTestInstMap[entryKey].id}">{leftPanelName(devTestInstMap[entryKey])}</label>
+                        <label for="rvt-radio-{devTestInstMap[entryKey].id}">{formatLeftPanelDeviceName(devTestInstMap[entryKey])}</label>
 
                         {#if selectedDeviceTestUuid === devTestInstMap[entryKey].id}
                         <section class="rvt-mgmt">
@@ -181,7 +196,8 @@
                                 <div class="row">
                                     <div class="col-12 col-12-xsmall">
                                         <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
-                                        <label for="trun-radio-{run.uuid}">{(new Date(run.timestamp * 1000)).toLocaleString()} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)} value="{run.uuid}">X</a></label>
+                                        <label for="trun-radio-{run.uuid}"><b>{getRunState(run)}</b>: {getRunDate(run)}
+                                            <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)} value="{run.uuid}">X</a></label>
                                     </div>
                                 </div>
                                 {/each}
@@ -209,7 +225,7 @@
                                 <div class="row">
                                     <div class="col-12 col-12-xsmall">
                                         <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
-                                        <label for="trun-radio-{run.uuid}">{(new Date(run.timestamp * 1000)).toLocaleString()} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)} value="{run.uuid}">X</a></label>
+                                        <label for="trun-radio-{run.uuid}">{getRunDate(run)} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)} value="{run.uuid}">X</a></label>
                                     </div>
                                 </div>
                                 {/each}
@@ -228,6 +244,13 @@
                 </div>
             {/each}
 
+            <div class="row ">
+                <div class="col-12 col-12-xsmall">
+                    <h4>RV / DO Base URL</h4>
+                    <p>{location.origin}</p>
+                </div>
+            </div>
+
 
             <div class="row paddtobbottom">
                 <div class="col-12 col-12-xsmall">
@@ -244,7 +267,7 @@
                     <div class="col-12 col-12-xsmall">
                         <div class="row">
                             <div class="col-12 col-12-xsmall">
-                                <input type="text" name="demo-name" bind:value={newDeviceName} id="demo-name" placeholder="Device friendly name">
+                                <input type="text" name="demo-name" bind:value={newDeviceName} id="demo-name" placeholder="Device nickname">
                             </div>
                         </div>
                         <div class="row">
@@ -267,12 +290,16 @@
             {/if}
             
         </div>
+
+
+        <!-- Results pane -->
         <div class="col-8 col-12-xsmall">
             {#if selectedTestRunUuid !== ""}
-                <h3><b><u>TO{testRunMap[selectedTestRunUuid].protocol} Test results</u></b>
+               <h3>TO{testRunMap[selectedTestRunUuid].protocol} test results</h3>
+               <h4> Status: <b>{getRunState(testRunMap[selectedTestRunUuid])}</b>
                     <br>Device nickname: <b>{devTestInstMap[selectedDeviceTestUuid].name}</b> 
                     <br>Guid: <b>{devTestInstMap[selectedDeviceTestUuid].guid}</b> 
-                    <br>Date: {(new Date(testRunMap[selectedTestRunUuid].timestamp * 1000)).toLocaleString()}</h3>
+                    <br>Date: {getRunDate(testRunMap[selectedTestRunUuid])}</h4>
 
                 {#if testRunMap[selectedTestRunUuid].tests.length > 0}
                     {#each testRunMap[selectedTestRunUuid].tests as devtest}
