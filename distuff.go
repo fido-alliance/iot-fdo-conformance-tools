@@ -1,8 +1,6 @@
 package fdoshared
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -194,35 +192,30 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 		BasicConstraintsValid: false,
 	}
 
-	var certPrivKey *ecdsa.PrivateKey
-	deviceHashAlg := HmacToHashAlg[hmacAlgorithm]
-	if deviceHashAlg == HASH_SHA256 {
-		certPrivKey, _ = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	} else if deviceHashAlg == HASH_SHA384 {
-		certPrivKey, _ = ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-	} else {
-		return nil, fmt.Errorf("%d is unsupported hashing algorithm", deviceHashAlg)
+	newPrivateKeyInst, newPublicKeyInst, _, err := GenerateVoucherKeypair(sgType)
+	if err != nil {
+		return nil, err
 	}
 
-	newCertBytes, err := x509.CreateCertificate(rand.Reader, newCertificate, intermCertInst, &certPrivKey.PublicKey, intermPrivKey)
+	newCertBytes, err := x509.CreateCertificate(rand.Reader, newCertificate, intermCertInst, newPublicKeyInst, intermPrivKey)
 	if err != nil {
 		return nil, errors.New("Error generating new x509 certificate! " + err.Error())
 	}
 
-	privateKeyDerBytes, err := x509.MarshalECPrivateKey(certPrivKey)
+	marshaledPrivateKey, err := MarshalPrivateKey(newPrivateKeyInst, sgType)
 	if err != nil {
-		return nil, errors.New("Error marshaling new certificate private key." + err.Error())
+		return nil, errors.New("Error mashaling private key. " + err.Error())
 	}
 
 	dcCertificateChain := []X509CertificateBytes{
 		newCertBytes, intermCert.Bytes, rootCert.Bytes,
 	}
 
-	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, deviceHashAlg)
+	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, HmacToHashAlg[hmacAlgorithm])
 
 	return &WawDeviceCredBase{
 		DCCertificateChain:     dcCertificateChain,
-		DCPrivateKeyDer:        privateKeyDerBytes,
+		DCPrivateKeyDer:        marshaledPrivateKey,
 		DCHmacAlg:              hmacAlgorithm,
 		DCSgType:               sgType,
 		DCCertificateChainHash: dcCertificateChainHash,
