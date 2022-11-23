@@ -43,7 +43,7 @@ func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *
 		if i != 0 && i%(seedSize/10) == 0 {
 			log.Printf("[%d] %d. %d%% completed\n", threadID, sgType, int(math.Floor(float64(i/(seedSize/10))))*10)
 		}
-		// log.Printf("No %d: Generating device base %d... ", i, sgType)
+
 		newDeviceBase, err := fdoshared.NewWawDeviceCredBase(getSgAlgInfo.HmacType, sgType)
 		if err != nil {
 			result.Error = fmt.Errorf("[%d] Error generating device base for sgType %d. %s ", threadID, sgType, err.Error())
