@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	dodbs "github.com/WebauthnWorks/fdo-do/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+
 	"github.com/dgraph-io/badger/v3"
 	"github.com/gorilla/mux"
 )
@@ -23,6 +25,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	configDb := dbs.NewConfigDB(db)
 	devBaseDb := dbs.NewDeviceBaseDB(db)
 	listenerDb := testdbs.NewListenerTestDB(db)
+	doVoucherDb := dodbs.NewVoucherDB(db)
 
 	rvtApiHandler := RVTestMgmtAPI{
 		UserDB:    userDb,
@@ -41,11 +44,12 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	}
 
 	deviceApiHandler := DeviceTestMgmtAPI{
-		UserDB:     userDb,
-		ListenerDB: listenerDb,
-		SessionDB:  sessionDb,
-		ConfigDB:   configDb,
-		DevBaseDB:  devBaseDb,
+		UserDB:       userDb,
+		ListenerDB:   listenerDb,
+		SessionDB:    sessionDb,
+		ConfigDB:     configDb,
+		DevBaseDB:    devBaseDb,
+		DOVouchersDB: doVoucherDb,
 	}
 
 	userApiHandler := UserAPI{

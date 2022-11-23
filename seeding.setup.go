@@ -11,7 +11,8 @@ import (
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
-const SeedingSize = 100000
+const SeedingSize = 10000
+const ThreadsPerAlg = 10
 
 type SeedRunResult struct {
 	DeviceSgType fdoshared.DeviceSgType
@@ -20,7 +21,7 @@ type SeedRunResult struct {
 	Error        error
 }
 
-func SeedRunInst(sgType fdoshared.DeviceSgType, wg *sync.WaitGroup, resultChannel chan SeedRunResult) {
+func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *sync.WaitGroup, resultChannel chan SeedRunResult) {
 	var result = SeedRunResult{
 		DeviceSgType: sgType,
 		Guids:        []fdoshared.FdoGuid{},
@@ -29,24 +30,24 @@ func SeedRunInst(sgType fdoshared.DeviceSgType, wg *sync.WaitGroup, resultChanne
 
 	defer wg.Done()
 
-	log.Printf("----- Starting SgType %d. -----\n", sgType)
+	log.Printf("----- [%d] Starting SgType %d. -----\n", threadID, sgType)
 	getSgAlgInfo, err := fdoshared.GetAlgInfoFromSgType(sgType)
 	if err != nil {
 		result.Error = errors.New("Error getting AlgInfo. " + err.Error())
-
+		log.Println(result.Error.Error())
 		resultChannel <- result
 		return
 	}
 
-	for i := 0; i < SeedingSize; i++ {
-		if i != 0 && i%(SeedingSize/10) == 0 {
-			log.Printf("%d. %d%% completed\n", sgType, int(math.Floor(float64(i/(SeedingSize/10))))*10)
+	for i := 0; i < seedSize; i++ {
+		if i != 0 && i%(seedSize/10) == 0 {
+			log.Printf("[%d] %d. %d%% completed\n", threadID, sgType, int(math.Floor(float64(i/(seedSize/10))))*10)
 		}
 		// log.Printf("No %d: Generating device base %d... ", i, sgType)
 		newDeviceBase, err := fdoshared.NewWawDeviceCredBase(getSgAlgInfo.HmacType, sgType)
 		if err != nil {
-			result.Error = fmt.Errorf("Error generating device base for sgType %d. " + err.Error())
-
+			result.Error = fmt.Errorf("[%d] Error generating device base for sgType %d. %s ", threadID, sgType, err.Error())
+			log.Println(result.Error.Error())
 			resultChannel <- result
 			return
 		}
@@ -61,7 +62,9 @@ func SeedRunInst(sgType fdoshared.DeviceSgType, wg *sync.WaitGroup, resultChanne
 func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 	var wg sync.WaitGroup
 
-	chn := make(chan SeedRunResult, len(fdoshared.DeviceSgTypeList))
+	totalChannels := len(fdoshared.DeviceSgTypeList) * ThreadsPerAlg
+	chn := make(chan SeedRunResult, totalChannels)
+	var batchSize int = SeedingSize / ThreadsPerAlg
 
 	for _, sgType := range fdoshared.DeviceSgTypeList {
 		if sgType == fdoshared.StEPID10 || sgType == fdoshared.StEPID11 {
@@ -69,9 +72,10 @@ func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 			continue
 		}
 
-		wg.Add(1)
-
-		go SeedRunInst(sgType, &wg, chn)
+		for i := 0; i < ThreadsPerAlg; i++ {
+			wg.Add(1)
+			go SeedRunInst(i, batchSize, sgType, &wg, chn)
+		}
 	}
 
 	wg.Wait()
@@ -81,7 +85,7 @@ func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 	}
 
 	var results []SeedRunResult = []SeedRunResult{}
-	for i := 0; i < len(fdoshared.DeviceSgTypeList); i++ {
+	for i := 0; i < totalChannels; i++ {
 		result := <-chn
 		results = append(results, result)
 
@@ -96,8 +100,7 @@ func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 			}
 		}
 
-		newConfig.SeededGuids[result.DeviceSgType] = result.Guids
-		log.Println(len(newConfig.SeededGuids[result.DeviceSgType]))
+		newConfig.SeededGuids[result.DeviceSgType] = append(newConfig.SeededGuids[result.DeviceSgType], result.Guids...)
 	}
 
 	err := configdb.Save(newConfig)

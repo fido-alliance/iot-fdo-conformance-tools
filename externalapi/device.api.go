@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
+	dodbs "github.com/WebauthnWorks/fdo-do/dbs"
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
@@ -22,14 +23,15 @@ import (
 )
 
 type DeviceTestMgmtAPI struct {
-	UserDB     *dbs.UserTestDB
-	ListenerDB *testcomdbs.ListenerTestDB
-	DevBaseDB  *dbs.DeviceBaseDB
-	SessionDB  *dbs.SessionDB
-	ConfigDB   *dbs.ConfigDB
+	UserDB       *dbs.UserTestDB
+	ListenerDB   *testcomdbs.ListenerTestDB
+	DevBaseDB    *dbs.DeviceBaseDB
+	SessionDB    *dbs.SessionDB
+	ConfigDB     *dbs.ConfigDB
+	DOVouchersDB *dodbs.VoucherDB
 }
 
-func (h *DeviceTestMgmtAPI) submitOwnerSign(voucherdbe *fdoshared.VoucherDBEntry) error {
+func (h *DeviceTestMgmtAPI) submitToRvOwnerSign(voucherdbe *fdoshared.VoucherDBEntry) error {
 	to0client := to0.NewTo0Requestor(to0.RVEntry{
 		RVURL: "http://localhost:8080", //TODO: Inject from context
 	}, *voucherdbe)
@@ -45,6 +47,10 @@ func (h *DeviceTestMgmtAPI) submitOwnerSign(voucherdbe *fdoshared.VoucherDBEntry
 	}
 
 	return nil
+}
+
+func (h *DeviceTestMgmtAPI) submitVoucherToDO(voucherDBEntry *fdoshared.VoucherDBEntry) error {
+	return h.DOVouchersDB.Save(*voucherDBEntry)
 }
 
 func (h *DeviceTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEntry, error) {
@@ -111,10 +117,17 @@ func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.submitOwnerSign(newVand)
+	err = h.submitToRvOwnerSign(newVand)
 	if err != nil {
 		log.Println("Failed submit owner sign to RV! " + err.Error())
-		RespondError(w, "Failed submit owner sign to RV! "+err.Error(), http.StatusBadRequest)
+		RespondError(w, "Failed submit owner sign to RV! "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = h.submitVoucherToDO(newVand)
+	if err != nil {
+		log.Println("Error submitting voucher to DO " + err.Error())
+		RespondError(w, "Error submitting voucher to DO! "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

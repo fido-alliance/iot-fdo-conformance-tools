@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const FdoDOSeedIDsBatchSize int = 50
+const DOSeedIDsBatchSize int = 20
 
 type DOTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB
@@ -125,7 +125,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newDOTTestTo2.TestVouchers = voucherTestMap
-	newDOTTestTo2.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
+	newDOTTestTo2.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(DOSeedIDsBatchSize)
 
 	// Saving stuff
 	err = h.ReqTDB.Save(newDOTTestTo2)

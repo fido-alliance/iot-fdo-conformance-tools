@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
@@ -100,11 +101,24 @@ func main() {
 				Usage:     "Seed FDO Cred Base",
 				UsageText: "Generates one hundred thousand cred bases to be used in testing",
 				Action: func(c *cli.Context) error {
+					log.Println("---------- NOTE ----------")
+					log.Println("\nPlease wait while tools pre-generate testing private keys. This may take up to five minutes...\n")
+					log.Println("---------- NOTE ENDS ----------")
+
+					time.Sleep(4 * time.Second)
+
 					db := InitBadgerDB()
 					defer db.Close()
 
 					devbasedb := dbs.NewDeviceBaseDB(db)
 					configdb := dbs.NewConfigDB(db)
+
+					conf, _ := configdb.Get()
+
+					log.Println(len(conf.SeededGuids))
+					for _, val := range conf.SeededGuids {
+						log.Println(len(val))
+					}
 
 					return PreSeed(configdb, devbasedb)
 				},
@@ -134,7 +148,7 @@ func main() {
 					{
 						Name:      "to1",
 						Usage:     "Generate test credentials",
-						UsageText: "[FDO Server URL]",
+						UsageText: "[FDO Server URL] [Path to DI file]",
 						Action: func(c *cli.Context) error {
 							if c.Args().Len() != 2 {
 								log.Println("Missing URL or Filename")
@@ -159,11 +173,19 @@ func main() {
 								return nil
 							}
 
-							_, _, err = to1inst.ProveToRV32(*helloRvAck31, testcom.NULL_TEST)
+							to1d, _, err := to1inst.ProveToRV32(*helloRvAck31, testcom.NULL_TEST)
 							if err != nil {
 								log.Printf("Error running ProveToRV32. %s", err.Error())
 								return nil
 							}
+
+							var to1dPayload fdoshared.To1dBlobPayload
+							err = cbor.Unmarshal(to1d.Payload, &to1dPayload)
+							if err != nil {
+								return fmt.Errorf("Error decoding TO1D payload! %s", err.Error())
+							}
+
+							log.Println(to1dPayload.To1dRV)
 
 							return nil
 						},

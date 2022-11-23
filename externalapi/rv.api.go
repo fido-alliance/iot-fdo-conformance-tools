@@ -17,7 +17,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const FdoSeedIDsBatchSize int = 500
+const RVSeedIDsBatchSize int = 20
 
 type RVTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB
@@ -101,7 +101,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newRVTestTo0 := reqtestsdeps.NewRequestTestInst(rvUrl, 0)
-	newRVTestTo0.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
+	newRVTestTo0.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(RVSeedIDsBatchSize)
 	err = h.ReqTDB.Save(newRVTestTo0)
 	if err != nil {
 		log.Println("Failed to save rvte. " + err.Error())
@@ -110,7 +110,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newRVTestTo1 := reqtestsdeps.NewRequestTestInst(rvUrl, 1)
-	newRVTestTo1.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(FdoSeedIDsBatchSize)
+	newRVTestTo1.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(RVSeedIDsBatchSize)
 	err = h.ReqTDB.Save(newRVTestTo1)
 	if err != nil {
 		log.Println("Failed to save rvte. " + err.Error())
