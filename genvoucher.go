@@ -19,7 +19,7 @@ const VOUCHERS_LOCATION string = "./_vouchers/"
 func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashOrHmac, mfgPrivateKey interface{}, prevEntrySgType fdoshared.DeviceSgType, newEntrySgType fdoshared.DeviceSgType, testId testcom.FDOTestID) (interface{}, []byte, *fdoshared.CoseSignature, error) {
 
 	// Generate manufacturer private key.
-	newOVEPrivateKey, _, newOVEPublicKey, err := fdoshared.GenerateVoucherKeypair(newEntrySgType)
+	newOVEPrivateKey, newOVEPublicKey, err := fdoshared.GenerateVoucherKeypair(newEntrySgType)
 	if err != nil {
 		return nil, []byte{}, nil, err
 	}
@@ -64,7 +64,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 	}
 
 	// Generate manufacturer private key.
-	mfgPrivateKey, _, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(deviceCredBase.DCSgType)
+	mfgPrivateKey, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(deviceCredBase.DCSgType)
 	if err != nil {
 		return nil, errors.New("Error generating new manufacturer private key. " + err.Error())
 	}
