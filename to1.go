@@ -36,8 +36,9 @@ func NewRvTo1(db *badger.DB) RvTo1 {
 }
 
 func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
-	var testcomListener *listenertestsdeps.RequestListenerInst
 	log.Println("Receiving HelloRV30...")
+
+	var testcomListener *listenertestsdeps.RequestListenerInst
 	if !fdoshared.CheckHeaders(w, r, fdoshared.TO1_30_HELLO_RV) {
 		return
 	}
@@ -51,8 +52,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	var helloRV30 fdoshared.HelloRV30
 	err = cbor.Unmarshal(bodyBytes, &helloRV30)
 	if err != nil {
-		log.Println(err)
-		Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_30_HELLO_RV, "Failed to read body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_30_HELLO_RV, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -63,19 +63,26 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloRV30.Guid[:]), err.Error())
 	}
 
-	if testcomListener != nil {
-		if !testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_30_HELLO_RV) {
+	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_30_HELLO_RV) {
+		if !testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_30_HELLO_RV) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
 			testcomListener.To1.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To1.ExpectedCmd, fdoshared.TO1_30_HELLO_RV))
+		} else if testcomListener.To1.CurrentTestIndex != 0 {
+			testcomListener.To1.PushSuccess()
 		}
 
 		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_30_HELLO_RV) {
 			fdoTestId = testcomListener.To1.GetNextTestID()
 		}
+
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_30_HELLO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			return
+		}
 	}
 
 	_, err = h.ownersignDB.Get(helloRV30.Guid)
 	if err != nil {
-		log.Println(err)
 		Conf_RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, fdoshared.TO1_30_HELLO_RV, "Could not find guid!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
@@ -105,8 +112,14 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		helloRVAckBytes = fdoshared.Conf_RandomCborBufferFuzzing(helloRVAckBytes)
 	}
 
-	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_30_HELLO_RV) {
+		testcomListener.To1.PushSuccess()
 		testcomListener.To1.CompleteCmd(fdoshared.TO1_32_PROVE_TO_RV)
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_30_HELLO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			return
+		}
 	}
 
 	sessionIdToken := "Bearer " + string(sessionId)
@@ -118,9 +131,9 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
-	var testcomListener *listenertestsdeps.RequestListenerInst
-
 	log.Println("Receiving ProveToRV32...")
+
+	var testcomListener *listenertestsdeps.RequestListenerInst
 	if !fdoshared.CheckHeaders(w, r, fdoshared.TO1_32_PROVE_TO_RV) {
 		return
 	}
@@ -154,13 +167,21 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
 	}
 
-	if testcomListener != nil {
-		if !testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_32_PROVE_TO_RV) {
+	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_32_PROVE_TO_RV) {
+		if !testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_32_PROVE_TO_RV) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
 			testcomListener.To1.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To1.ExpectedCmd, fdoshared.TO1_32_PROVE_TO_RV))
+		} else if testcomListener.To1.CurrentTestIndex != 0 {
+			testcomListener.To1.PushSuccess()
 		}
 
 		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_32_PROVE_TO_RV) {
 			fdoTestId = testcomListener.To1.GetNextTestID()
+		}
+
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			return
 		}
 	}
 
@@ -225,6 +246,16 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	rvRedirectBytes, _ := cbor.Marshal(to1d)
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_32_BAD_ENCODING {
 		rvRedirectBytes = fdoshared.Conf_RandomCborBufferFuzzing(rvRedirectBytes)
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
+		testcomListener.To1.PushSuccess()
+		testcomListener.To1.CompleteTestRun()
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			return
+		}
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)
