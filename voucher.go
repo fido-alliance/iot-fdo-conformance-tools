@@ -295,7 +295,7 @@ type DeviceCredAndVoucher struct {
 	WawDeviceCredential WawDeviceCredential
 }
 
-func GeneratePKIXECKeypair(sgType DeviceSgType) (interface{}, interface{}, *FdoPublicKey, error) {
+func GeneratePKIXECKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, error) {
 	var curve elliptic.Curve
 	var pkType FdoPkType
 
@@ -306,27 +306,27 @@ func GeneratePKIXECKeypair(sgType DeviceSgType) (interface{}, interface{}, *FdoP
 		curve = elliptic.P384()
 		pkType = SECP384R1
 	} else {
-		return nil, nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
+		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
 	}
 
 	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
-		return nil, nil, nil, errors.New("Error generating new private key. " + err.Error())
+		return nil, nil, errors.New("Error generating new private key. " + err.Error())
 	}
 
 	publicKeyPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
 	if err != nil {
-		return nil, nil, nil, errors.New("Error marshaling public key. " + err.Error())
+		return nil, nil, errors.New("Error marshaling public key. " + err.Error())
 	}
 
-	return privateKey, privateKey.PublicKey, &FdoPublicKey{
+	return privateKey, &FdoPublicKey{
 		PkType: pkType,
 		PkEnc:  X509,
 		PkBody: publicKeyPkix,
 	}, nil
 }
 
-func GeneratePKIXRSAKeypair(sgType DeviceSgType) (interface{}, interface{}, *FdoPublicKey, error) {
+func GeneratePKIXRSAKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, error) {
 	var pkType FdoPkType = RSAPKCS
 	var rsaKeySize int
 
@@ -335,35 +335,35 @@ func GeneratePKIXRSAKeypair(sgType DeviceSgType) (interface{}, interface{}, *Fdo
 	} else if sgType == StRSA3072 {
 		rsaKeySize = 3072
 	} else {
-		return nil, nil, nil, fmt.Errorf("%d is an unsupported RSA SgType!", sgType)
+		return nil, nil, fmt.Errorf("%d is an unsupported RSA SgType!", sgType)
 	}
 
 	privatekey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
 	if err != nil {
-		return nil, nil, nil, errors.New("Error generating new RSA private key. " + err.Error())
+		return nil, nil, errors.New("Error generating new RSA private key. " + err.Error())
 	}
 	publickey := &privatekey.PublicKey
 
 	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publickey)
 	if err != nil {
-		return nil, nil, nil, errors.New("Error marshaling RSA public key. " + err.Error())
+		return nil, nil, errors.New("Error marshaling RSA public key. " + err.Error())
 	}
 
-	return privatekey, publickey, &FdoPublicKey{
+	return privatekey, &FdoPublicKey{
 		PkType: pkType,
 		PkEnc:  X509,
 		PkBody: publicKeyBytes,
 	}, nil
 }
 
-func GenerateVoucherKeypair(sgType DeviceSgType) (interface{}, interface{}, *FdoPublicKey, error) {
+func GenerateVoucherKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, error) {
 	switch sgType {
 	case StSECP256R1, StSECP384R1:
 		return GeneratePKIXECKeypair(sgType)
 	case StRSA2048, StRSA3072:
 		return GeneratePKIXRSAKeypair(sgType)
 	default:
-		return nil, nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
+		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
 	}
 }
 

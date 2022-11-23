@@ -1,7 +1,10 @@
 package fdoshared
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -158,6 +161,19 @@ type WawDeviceCredBase struct {
 	FdoGuid                FdoGuid
 }
 
+func CastPublicFromPrivate(priv interface{}) interface{} {
+	switch k := priv.(type) {
+	case *rsa.PrivateKey:
+		return &k.PublicKey
+	case *ecdsa.PrivateKey:
+		return &k.PublicKey
+	case ed25519.PrivateKey:
+		return k.Public().(ed25519.PublicKey)
+	default:
+		return nil
+	}
+}
+
 func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDeviceCredBase, error) {
 	newGuid := NewFdoGuid_FIDO()
 
@@ -192,12 +208,12 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 		BasicConstraintsValid: false,
 	}
 
-	newPrivateKeyInst, newPublicKeyInst, _, err := GenerateVoucherKeypair(sgType)
+	newPrivateKeyInst, _, err := GenerateVoucherKeypair(sgType)
 	if err != nil {
 		return nil, err
 	}
 
-	newCertBytes, err := x509.CreateCertificate(rand.Reader, newCertificate, intermCertInst, newPublicKeyInst, intermPrivKey)
+	newCertBytes, err := x509.CreateCertificate(rand.Reader, newCertificate, intermCertInst, CastPublicFromPrivate(newPrivateKeyInst), intermPrivKey)
 	if err != nil {
 		return nil, errors.New("Error generating new x509 certificate! " + err.Error())
 	}
