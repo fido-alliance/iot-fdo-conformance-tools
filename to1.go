@@ -114,7 +114,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 
 	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_30_HELLO_RV) {
 		testcomListener.To1.PushSuccess()
-		testcomListener.To1.CompleteCmd(fdoshared.TO1_32_PROVE_TO_RV)
+		testcomListener.To1.CompleteCmdAndSetNext(fdoshared.TO1_32_PROVE_TO_RV)
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
 			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_30_HELLO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
@@ -202,8 +202,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !bytes.Equal(pb.EatNonce[:], session.NonceTO1Proof[:]) {
-		log.Println("Nonce Invalid")
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "NonceTo1Proof mismatch", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, fmt.Sprintf("EatNonce is not set to NonceTO1Proof. Expected %s. Got %s", hex.EncodeToString(pb.EatNonce[:]), hex.EncodeToString(session.NonceTO1Proof[:])), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -253,7 +252,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		testcomListener.To1.CompleteTestRun()
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Conformance module failed to save result!", http.StatusInternalServerError, testcomListener, fdoshared.To1)
 			return
 		}
 	}
