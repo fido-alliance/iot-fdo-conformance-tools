@@ -135,7 +135,7 @@ func (h *RequestListenerRunnerInst) GetLastTestID() testcom.FDOTestID {
 	return h.LastTestID
 }
 
-func (h *RequestListenerRunnerInst) CompleteCmd(nextCMD fdoshared.FdoCmd) {
+func (h *RequestListenerRunnerInst) CompleteCmdAndSetNext(nextCMD fdoshared.FdoCmd) {
 	h.CompletedCmds = append(h.CompletedCmds, h.ExpectedCmd)
 	h.ExpectedCmd = nextCMD
 	h.CurrentTestIndex = 0
