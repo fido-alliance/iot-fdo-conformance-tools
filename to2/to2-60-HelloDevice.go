@@ -10,19 +10,22 @@ import (
 	"github.com/WebauthnWorks/fdo-do/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	log.Println("HelloDevice60: Receiving...")
-	if !fdoshared.CheckHeaders(w, r, fdoshared.TO2_60_HELLO_DEVICE) {
+	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_60_HELLO_DEVICE
+
+	var testcomListener *listenertestsdeps.RequestListenerInst
+	if !fdoshared.CheckHeaders(w, r, currentCmd) {
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Println("HelloDevice60: Error reading body... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Failed to read body!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to read body!", http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -30,44 +33,49 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	var helloDevice fdoshared.HelloDevice60
 	err = cbor.Unmarshal(bodyBytes, &helloDevice)
 	if err != nil {
-		log.Println("HelloDevice60: Error decoding request..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Failed to decode body!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode HelloDevice60!", http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(helloDevice.Guid)
+	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloDevice.Guid)
 	if err != nil {
 		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloDevice.Guid[:]), err.Error())
 	}
 
-	if testcomListener != nil {
+	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 		if !testcomListener.To2.CheckExpectedCmds([]fdoshared.FdoCmd{
-			fdoshared.TO2_60_HELLO_DEVICE,
+			currentCmd,
 			fdoshared.TO2_62_GET_OVNEXTENTRY,
-		}) {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, fdoshared.TO2_60_HELLO_DEVICE))
+		}) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO2 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+		} else if testcomListener.To2.CurrentTestIndex != 0 {
+			testcomListener.To2.PushSuccess()
 		}
 
-		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO2_60_HELLO_DEVICE) {
+		if !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
+		}
+
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
 		}
 	}
 
 	// Getting cipher suit params
 	cryptoParams, ok := fdoshared.CipherSuitesInfoMap[helloDevice.CipherSuiteName]
 	if !ok {
-		log.Println("HelloDevice60: Unknown cipher suit... ")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Unknown cipher suit!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Unknown cipher suit!", http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
 	// Getting voucher from DB
 	voucherDBEntry, err := h.voucher.Get(helloDevice.Guid)
 	if err != nil {
-		log.Println("HelloDevice60: Error locating voucher..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, fdoshared.TO2_60_HELLO_DEVICE, "Can not find voucher.", http.StatusUnauthorized)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, currentCmd, "Can not find voucher.", http.StatusUnauthorized, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -76,8 +84,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	// KEX Generation
 	kex, err := fdoshared.GenerateXAKeyExchange(helloDevice.KexSuiteName)
 	if err != nil {
-		log.Println("HelloDevice60: Error generating XAKeyExchange... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating XAKeyExchange...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -86,8 +93,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	voucherHeader, err := voucherDBEntry.Voucher.GetOVHeader()
 	if err != nil {
-		log.Println("HelloDevice60: Error parsing voucher header... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error parsing voucher header...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -121,8 +127,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	lastOwnerPubKey, err := voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
 	if err != nil {
-		log.Println("HelloDevice60: Error getting last owner public key... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error getting last owner public key...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -151,8 +156,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)
 	if err != nil {
-		log.Println("HelloDevice60: Error saving session... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal Server Error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error saving session...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -163,15 +167,13 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(voucherDBEntry.PrivateKeyX509)
 	if err != nil {
-		log.Println("HelloDevice60: Error decoding private key... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal Server Error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error decoding private key...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
 	helloAck, err := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, proveOVHdrUnprotectedHeader, privateKeyInst, helloDevice.EASigInfo.SgType)
 	if err != nil {
-		log.Println("HelloDevice60: Error generating cose signature... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Internal Server Error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating cose signature...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -191,8 +193,14 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		sessionIdToken = ""
 	}
 
-	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
-		testcomListener.To2.CompleteCmd(fdoshared.TO2_60_HELLO_DEVICE)
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To2.CheckExpectedCmd(currentCmd) {
+		testcomListener.To2.PushSuccess()
+		testcomListener.To2.CompleteCmdAndSetNext(fdoshared.TO2_62_GET_OVNEXTENTRY)
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
+		}
 	}
 
 	w.Header().Set("Authorization", sessionIdToken)

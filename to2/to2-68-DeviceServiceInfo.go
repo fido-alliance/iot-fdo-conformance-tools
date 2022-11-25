@@ -12,8 +12,10 @@ const MTU_BYTES = 1500
 
 func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	log.Println("DeviceServiceInfo68: Receiving...")
+	// var currentCmd fdoshared.FdoCmd = fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY
+	// var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 
-	session, sessionId, authorizationHeader, bodyBytes, err := h.receiveAndDecrypt(w, r, fdoshared.TO2_68_DEVICE_SERVICE_INFO)
+	session, sessionId, authorizationHeader, bodyBytes, _, err := h.receiveAndDecrypt(w, r, fdoshared.TO2_68_DEVICE_SERVICE_INFO)
 	if err != nil {
 		return
 	}

@@ -1,76 +1,63 @@
 package to2
 
 import (
-	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	log.Println("GetOVNextEntry62: Receiving...")
-	if !fdoshared.CheckHeaders(w, r, fdoshared.TO2_62_GET_OVNEXTENTRY) {
-		return
-	}
-
-	headerIsOk, sessionId, authorizationHeader := fdoshared.ExtractAuthorizationHeader(w, r, fdoshared.TO2_62_GET_OVNEXTENTRY)
-	if !headerIsOk {
-		return
-	}
-
-	session, err := h.session.GetSessionEntry(sessionId)
-	if err != nil {
-		log.Println("GetOVNextEntry62: Can not find session... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_62_GET_OVNEXTENTRY, "Unauthorized", http.StatusInternalServerError)
-		return
-	}
-
-	// Test stuff
+	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_62_GET_OVNEXTENTRY
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
-	if err != nil {
-		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
+
+	var testcomListener *listenertestsdeps.RequestListenerInst
+	if !fdoshared.CheckHeaders(w, r, currentCmd) {
+		return
 	}
 
-	if testcomListener != nil {
-		if !testcomListener.To2.CheckExpectedCmd(fdoshared.TO2_62_GET_OVNEXTENTRY) {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, fdoshared.TO2_62_GET_OVNEXTENTRY))
+	session, sessionId, authorizationHeader, bodyBytes, testcomListener, err := h.receiveAndVerify(w, r, currentCmd)
+	if err != nil {
+		return
+	}
+
+	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
+		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO2 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+		} else if testcomListener.To2.CurrentTestIndex != 0 {
+			testcomListener.To2.PushSuccess()
 		}
 
-		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO2_62_GET_OVNEXTENTRY) {
+		if !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
+		}
+
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
 		}
 	}
 
 	if session.PrevCMD != fdoshared.TO2_61_PROVE_OVHDR && session.PrevCMD != fdoshared.TO2_63_OV_NEXTENTRY {
-		log.Println("GetOVNextEntry62: Unexpected CMD... ")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_62_GET_OVNEXTENTRY, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	bodyBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println("GetOVNextEntry62: Error reading body... " + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_62_GET_OVNEXTENTRY, "Failed to read body!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Unexpected CMD...", http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
 	var getOVNextEntry fdoshared.GetOVNextEntry62
 	err = cbor.Unmarshal(bodyBytes, &getOVNextEntry)
 	if err != nil {
-		log.Println("GetOVNextEntry62: Error decoding request..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_62_GET_OVNEXTENTRY, "Failed to decode body!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode GetOVNextEntry!", http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
 	if getOVNextEntry.GetOVNextEntry > session.NumOVEntries-1 {
-		log.Println("GetOVNextEntry62: Out of bound...")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_62_GET_OVNEXTENTRY, "GetOVNextEntry is out of bound!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "GetOVNextEntry is out of bound!", http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -81,8 +68,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
-		log.Println("GetOVNextEntry62: Error saving session..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_62_GET_OVNEXTENTRY, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error saving session...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -107,7 +93,17 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
-		testcomListener.To2.CompleteCmd(fdoshared.TO2_62_GET_OVNEXTENTRY)
+		testcomListener.To2.CompleteCmdAndSetNext(currentCmd)
+	}
+
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To2.CheckExpectedCmd(currentCmd) {
+		testcomListener.To2.PushSuccess()
+		testcomListener.To2.CompleteCmdAndSetNext(fdoshared.TO2_64_PROVE_DEVICE)
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
+		}
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)

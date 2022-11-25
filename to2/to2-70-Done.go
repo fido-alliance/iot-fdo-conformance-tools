@@ -2,44 +2,39 @@ package to2
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	log.Println("Done70: Receiving...")
 
-	session, _, authorizationHeader, bodyBytes, err := h.receiveAndDecrypt(w, r, fdoshared.TO2_70_DONE)
+	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_70_DONE
+	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
+	session, _, authorizationHeader, bodyBytes, testcomListener, err := h.receiveAndDecrypt(w, r, currentCmd)
 	if err != nil {
 		return
 	}
 
-	// Test stuff
-	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
-	if err != nil {
-		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
-	}
-
+	// Test params setup
 	if testcomListener != nil {
-		if !testcomListener.To2.CheckExpectedCmd(fdoshared.TO2_68_DEVICE_SERVICE_INFO) {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, fdoshared.TO2_68_DEVICE_SERVICE_INFO))
+		if !testcomListener.To2.CheckExpectedCmd(currentCmd) {
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
 		}
 
-		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO2_68_DEVICE_SERVICE_INFO) {
+		if !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
 		}
 	}
 
 	if session.PrevCMD != fdoshared.TO2_69_OWNER_SERVICE_INFO {
-		log.Println("Done70: Unexpected CMD... ")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_70_DONE, "Unauthorized", http.StatusUnauthorized)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, fmt.Sprintf("Expected previous CMD to be %d. Got %d", fdoshared.TO2_69_OWNER_SERVICE_INFO, session.PrevCMD), http.StatusUnauthorized, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -47,13 +42,13 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	err = cbor.Unmarshal(bodyBytes, &done70)
 	if err != nil {
 		log.Println("Done70: Error decoding request..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_70_DONE, "Failed to decode body!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	if !bytes.Equal(done70.NonceTO2ProveDv[:], session.NonceTO2ProveDv61[:]) {
 		log.Println("Done70: Can not verify NonceTO2ProveDv vs NonceTO2ProveDv61...")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_70_DONE, "Failed to verify Done70!", http.StatusBadRequest)
+		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to verify Done70!", http.StatusBadRequest)
 		return
 	}
 
@@ -72,22 +67,26 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	done271Bytes, err := fdoshared.AddEncryptionWrapping(done271PayloadBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
-		log.Println("Done70: Error encrypting..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_70_DONE, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Done70: Error encrypting..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To1)
 		return
 	}
 
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_70_BAD_ENC_WRAPPING {
 		done271Bytes, err = fdoshared.Conf_Fuzz_AddWrapping(done271PayloadBytes, session.SessionKey, session.CipherSuiteName)
 		if err != nil {
-			log.Println("Done70: Error encrypting..." + err.Error())
-			fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_70_DONE, "Internal server error!", http.StatusInternalServerError)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Done70: Error encrypting..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To1)
 			return
 		}
 	}
 
 	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
-		testcomListener.To2.CompleteCmd(fdoshared.TO2_70_DONE)
+		testcomListener.To1.PushSuccess()
+		testcomListener.To1.CompleteTestRun()
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			return
+		}
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)

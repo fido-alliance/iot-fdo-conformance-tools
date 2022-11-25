@@ -1,6 +1,7 @@
 package to2
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"github.com/WebauthnWorks/fdo-do/dbs"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	tdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/dgraph-io/badger/v3"
 )
 
@@ -72,44 +74,48 @@ func GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV, error) {
 	}, nil
 }
 
-func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, error) {
+func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, *listenertestsdeps.RequestListenerInst, error) {
 	if !fdoshared.CheckHeaders(w, r, fdoshared.TO2_64_PROVE_DEVICE) {
-		return nil, []byte{}, "", []byte{}, fmt.Errorf("Error checking header!")
+		return nil, []byte{}, "", []byte{}, nil, fmt.Errorf("Error checking header!")
 	}
 
 	headerIsOk, sessionId, authorizationHeader := fdoshared.ExtractAuthorizationHeader(w, r, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY)
 	if !headerIsOk {
-		return nil, []byte{}, "", []byte{}, fmt.Errorf("Error getting session header!")
+		return nil, []byte{}, "", []byte{}, nil, fmt.Errorf("Error getting session header!")
 	}
 
 	session, err := h.session.GetSessionEntry(sessionId)
 	if err != nil {
-		log.Printf("%d: Can not find session... %s", currentCmd, err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Unauthorized", http.StatusUnauthorized)
-		return nil, []byte{}, "", []byte{}, fmt.Errorf("%d: Can not find session... %s", currentCmd, err.Error())
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, fmt.Sprintf("%d: Can not find session... %s", currentCmd, err.Error()), http.StatusUnauthorized, nil, fdoshared.To2)
+		return nil, []byte{}, "", []byte{}, nil, fmt.Errorf("%d: Can not find session... %s", currentCmd, err.Error())
+	}
+
+	// Conformance
+	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
+	if err != nil {
+		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("%d: Error reading body... %s", currentCmd, err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Failed to read body!", http.StatusBadRequest)
-		return nil, []byte{}, "", []byte{}, fmt.Errorf("%d: Error reading body... %s", currentCmd, err.Error())
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to read body!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+
+		return nil, []byte{}, "", []byte{}, testcomListener, fmt.Errorf("%d: Error reading body... %s", currentCmd, err.Error())
 	}
-	return session, sessionId, authorizationHeader, bodyBytes, nil
+	return session, sessionId, authorizationHeader, bodyBytes, testcomListener, nil
 }
 
-func (h *DoTo2) receiveAndDecrypt(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, error) {
-	session, sessionId, authorizationHeader, rawBodyBytes, err := h.receiveAndVerify(w, r, currentCmd)
+func (h *DoTo2) receiveAndDecrypt(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, *listenertestsdeps.RequestListenerInst, error) {
+	session, sessionId, authorizationHeader, rawBodyBytes, testcomListener, err := h.receiveAndVerify(w, r, currentCmd)
 	if err != nil {
-		return nil, []byte{}, "", []byte{}, err
+		return nil, []byte{}, "", []byte{}, testcomListener, err
 	}
 
 	bodyBytes, err := fdoshared.RemoveEncryptionWrapping(rawBodyBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
-		log.Printf("%d: Error decrypting... %s", currentCmd, err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, "Internal server error!", http.StatusInternalServerError)
-		return nil, []byte{}, "", []byte{}, fmt.Errorf("%d: Error decrypting... %s", currentCmd, err.Error())
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, fmt.Sprintf("%d: Error decrypting... %s", currentCmd, err.Error()), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		return nil, []byte{}, "", []byte{}, testcomListener, fmt.Errorf("%d: Error decrypting... %s", currentCmd, err.Error())
 	}
 
-	return session, sessionId, authorizationHeader, bodyBytes, nil
+	return session, sessionId, authorizationHeader, bodyBytes, testcomListener, nil
 }
