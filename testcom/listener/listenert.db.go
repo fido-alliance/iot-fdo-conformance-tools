@@ -2,6 +2,7 @@ package listener
 
 import (
 	"fmt"
+	"log"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
@@ -126,7 +127,12 @@ func (h *RequestListenerRunnerInst) GetNextTestID() testcom.FDOTestID {
 	selectedTestID := h.Tests[h.ExpectedCmd][h.CurrentTestIndex]
 
 	h.LastTestID = selectedTestID
-	h.CurrentTestIndex = h.CurrentTestIndex + 1
+
+	if h.CurrentTestIndex+1 < len(h.Tests[h.ExpectedCmd]) {
+		h.CurrentTestIndex = h.CurrentTestIndex + 1
+	} else {
+		log.Println("Was about to go out of index!") // TODO: Remove
+	}
 
 	return selectedTestID
 }
