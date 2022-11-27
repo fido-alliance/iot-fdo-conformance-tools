@@ -113,13 +113,6 @@ func main() {
 					devbasedb := dbs.NewDeviceBaseDB(db)
 					configdb := dbs.NewConfigDB(db)
 
-					conf, _ := configdb.Get()
-
-					log.Println(len(conf.SeededGuids))
-					for _, val := range conf.SeededGuids {
-						log.Println(len(val))
-					}
-
 					return PreSeed(configdb, devbasedb)
 				},
 			},
@@ -147,8 +140,8 @@ func main() {
 					},
 					{
 						Name:      "to1",
-						Usage:     "Generate test credentials",
-						UsageText: "[FDO Server URL] [Path to DI file]",
+						Usage:     "Execute TO1 exchange with RV server",
+						UsageText: "[FDO RV Server URL] [Path to DI file]",
 						Action: func(c *cli.Context) error {
 							if c.Args().Len() != 2 {
 								log.Println("Missing URL or Filename")
