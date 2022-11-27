@@ -48,8 +48,8 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !bytes.Equal(done70.NonceTO2ProveDv[:], session.NonceTO2ProveDv61[:]) {
-		log.Println("Done70: Can not verify NonceTO2ProveDv vs NonceTO2ProveDv61...")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to verify Done70!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, fmt.Sprintf("EatNonce is not set to NonceTO2ProveDv61. Expected %s. Got %s", hex.EncodeToString(done70.NonceTO2ProveDv[:]), hex.EncodeToString(session.NonceTO2ProveDv61[:])), http.StatusBadRequest, testcomListener, fdoshared.To2)
+
 		return
 	}
 
