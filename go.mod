@@ -3,7 +3,7 @@ module github.com/WebauthnWorks/fdo-rv
 go 1.17
 
 require (
-	github.com/WebauthnWorks/fdo-shared v0.9.3
+	github.com/WebauthnWorks/fdo-shared v0.9.6
 	github.com/dgraph-io/badger/v3 v3.2103.4
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/google/uuid v1.3.0
