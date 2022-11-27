@@ -1,10 +1,12 @@
 package to2
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -12,17 +14,16 @@ const MTU_BYTES = 1500
 
 func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	log.Println("DeviceServiceInfo68: Receiving...")
-	// var currentCmd fdoshared.FdoCmd = fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY
+	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY
 	// var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 
-	session, sessionId, authorizationHeader, bodyBytes, _, err := h.receiveAndDecrypt(w, r, fdoshared.TO2_68_DEVICE_SERVICE_INFO)
+	session, sessionId, authorizationHeader, bodyBytes, testcomListener, err := h.receiveAndDecrypt(w, r, fdoshared.TO2_68_DEVICE_SERVICE_INFO)
 	if err != nil {
 		return
 	}
 
 	if session.PrevCMD != fdoshared.TO2_67_OWNER_SERVICE_INFO_READY && session.PrevCMD != fdoshared.TO2_69_OWNER_SERVICE_INFO {
-		log.Println("DeviceServiceInfo68: Unexpected CMD... ")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_68_DEVICE_SERVICE_INFO, "Unauthorized", http.StatusUnauthorized)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, fmt.Sprintf("Expected previous CMD to be %d or %d. Got %d", fdoshared.TO2_67_OWNER_SERVICE_INFO_READY, fdoshared.TO2_69_OWNER_SERVICE_INFO, session.PrevCMD), http.StatusUnauthorized, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -31,8 +32,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	var deviceServiceInfo fdoshared.DeviceServiceInfo68
 	err = cbor.Unmarshal(bodyBytes, &deviceServiceInfo)
 	if err != nil {
-		log.Println("DeviceServiceInfo68: Error decoding request..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_68_DEVICE_SERVICE_INFO, "Failed to decode body!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Done70: Error encrypting..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 

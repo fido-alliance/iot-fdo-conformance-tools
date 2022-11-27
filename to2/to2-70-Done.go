@@ -2,6 +2,7 @@ package to2
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"

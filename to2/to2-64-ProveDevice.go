@@ -58,13 +58,13 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	var proveDevice64 fdoshared.CoseSignature
 	err = cbor.Unmarshal(bodyBytes, &proveDevice64)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error decoding request..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Error decoding request..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
 	err = fdoshared.VerifyCoseSignatureWithCertificate(proveDevice64, session.PublicKeyType, *session.Voucher.OVDevCertChain)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error validating cose signature with certificate..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Error validating cose signature with certificate..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
