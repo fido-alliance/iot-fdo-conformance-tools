@@ -29,7 +29,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
 		}
 
-		if !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
+		if !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
 		}
 	}
@@ -42,6 +42,8 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	var done70 fdoshared.Done70
 	err = cbor.Unmarshal(bodyBytes, &done70)
 	if err != nil {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to decode Done70. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+
 		log.Println("Done70: Error decoding request..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest)
 		return
@@ -49,7 +51,6 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	if !bytes.Equal(done70.NonceTO2ProveDv[:], session.NonceTO2ProveDv61[:]) {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, fmt.Sprintf("EatNonce is not set to NonceTO2ProveDv61. Expected %s. Got %s", hex.EncodeToString(done70.NonceTO2ProveDv[:]), hex.EncodeToString(session.NonceTO2ProveDv61[:])), http.StatusBadRequest, testcomListener, fdoshared.To2)
-
 		return
 	}
 
@@ -81,8 +82,8 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
-		testcomListener.To1.PushSuccess()
-		testcomListener.To1.CompleteTestRun()
+		testcomListener.To2.PushSuccess()
+		testcomListener.To2.CompleteTestRun()
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
 			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)

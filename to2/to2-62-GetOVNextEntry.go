@@ -39,7 +39,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 			return
 		}
 	}
@@ -52,7 +52,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	var getOVNextEntry fdoshared.GetOVNextEntry62
 	err = cbor.Unmarshal(bodyBytes, &getOVNextEntry)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode GetOVNextEntry!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode GetOVNextEntry! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 

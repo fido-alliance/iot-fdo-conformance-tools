@@ -32,7 +32,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 			testcomListener.To2.PushSuccess()
 		}
 
-		if !testcomListener.To2.CheckCmdTestingIsCompleted(fdoshared.TO2_62_GET_OVNEXTENTRY) {
+		if !testcomListener.To2.CheckCmdTestingIsCompleted(fdoshared.TO2_64_PROVE_DEVICE) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
 		}
 
@@ -156,8 +156,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	session.PrevCMD = fdoshared.TO2_65_SETUP_DEVICE
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
-		log.Println("ProveDevice64: Error saving session..." + err.Error())
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Internal server error!", http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "ProveDevice64: Error saving session..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 

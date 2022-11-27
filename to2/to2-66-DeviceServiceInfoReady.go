@@ -7,6 +7,7 @@ import (
 
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
+	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -23,19 +24,26 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if testcomListener != nil {
-		if !testcomListener.To2.CheckExpectedCmd(currentCmd) {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
+		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO2 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+		} else if testcomListener.To2.CurrentTestIndex != 0 {
+			testcomListener.To2.PushSuccess()
 		}
 
 		if !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
 		}
+
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
+		}
 	}
 
 	if session.PrevCMD != fdoshared.TO2_65_SETUP_DEVICE {
-		log.Println("DeviceServiceInfoReady66: Unexpected CMD... ")
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Unauthorized", http.StatusUnauthorized)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, fmt.Sprintf("Expected previous CMD to be %d. Got %d", fdoshared.TO2_65_SETUP_DEVICE, session.PrevCMD), http.StatusUnauthorized, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -44,8 +52,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	var deviceServiceInfoReady fdoshared.DeviceServiceInfoReady66
 	err = cbor.Unmarshal(bodyBytes, &deviceServiceInfoReady)
 	if err != nil {
-		log.Println("DeviceServiceInfoReady66: Error decoding request..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode DeviceServiceInfoReady66! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -60,7 +67,6 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		MaxDeviceServiceInfoSz: &maxDeviceServiceInfoSz,
 	}
 	ownerServiceInfoReadyPayloadBytes, _ := cbor.Marshal(ownerServiceInfoReadyPayload)
-
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_66_BAD_ENCODING {
 		ownerServiceInfoReadyPayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerServiceInfoReadyPayloadBytes)
 	}
@@ -69,16 +75,14 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 
 	ownerServiceInfoReadyBytes, err := fdoshared.AddEncryptionWrapping(ownerServiceInfoReadyPayloadBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
-		log.Println("DeviceServiceInfoReady66: Error encrypting..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to encrypt OwnerServiceInfoReady. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_66_BAD_ENC_WRAPPING {
 		ownerServiceInfoReadyBytes, err = fdoshared.Conf_Fuzz_AddWrapping(ownerServiceInfoReadyBytes, session.SessionKey, session.CipherSuiteName)
 		if err != nil {
-			log.Println("DeviceServiceInfoReady66: Error encrypting..." + err.Error())
-			fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to fuzz encrypt OwnerServiceInfoReady. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 			return
 		}
 	}
@@ -86,8 +90,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	// Stores MaxSz for 68
 	session.OwnerSIMs, err = GetOwnerSIMs(session.Guid)
 	if err != nil {
-		log.Println("DeviceServiceInfoReady66: Error generating owner SIMs..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating SIMs. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -95,8 +98,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	session.PrevCMD = fdoshared.TO2_67_OWNER_SERVICE_INFO_READY
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
-		log.Println("DeviceServiceInfoReady66: Error saving session..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error saving session..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
