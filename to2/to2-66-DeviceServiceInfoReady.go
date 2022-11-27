@@ -2,6 +2,8 @@ package to2
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
 
 	"github.com/WebauthnWorks/fdo-device-implementation/common"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
@@ -37,10 +39,18 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 	rawResultBytes, authzHeader, httpStatusCode, err := common.SendCborPost(h.SrvEntry, fdoshared.TO2_66_DEVICE_SERVICE_INFO_READY, deviceSrvInfoReadyBytesEnc, &h.AuthzHeader)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(rawResultBytes, fdoTestID, httpStatusCode)
+		return nil, &testState, nil
 	}
 
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if httpStatusCode != http.StatusOK {
+		fdoErrInst, err := fdoshared.DecodeErrorResponse(rawResultBytes)
+		if err == nil {
+			return nil, nil, fmt.Errorf("HelloDevice60: %s", fdoErrInst.EMErrorStr)
+		}
 	}
 
 	h.AuthzHeader = authzHeader
