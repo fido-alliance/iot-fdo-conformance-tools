@@ -10,4 +10,6 @@
     - `to2-common.go` - Add base methods and structs for TO2 for request testing
     - `to2-*.go` - A specific test command
 
+- `/common` - Common virtual device methods
+
 - `/pki` - PKI tools and certs
