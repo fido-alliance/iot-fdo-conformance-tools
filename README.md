@@ -27,7 +27,7 @@ A shared common module that hold all crypto, shared structs, and
 
 - `conformance.go` - All conformance tests related methods and structs, mostly fuzzers.
 
-- `/testcom` - Common test methods
+- `/testcom` - Common test methods and registries
 - `/testcom/request` - Common request dependencies
 - `/testcom/listener` - Common listener dependencies
 - `/testcom/dbs` - Common test databases
