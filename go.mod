@@ -10,7 +10,7 @@ require (
 
 require (
 	github.com/WebauthnWorks/dhkx v0.3.3 // indirect
-	github.com/WebauthnWorks/fdo-shared v0.9.3 // indirect
+	github.com/WebauthnWorks/fdo-shared v0.9.6 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
