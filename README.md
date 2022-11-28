@@ -54,6 +54,11 @@ The backend consists of five modules:
 - `go build` - Build code
 - `GOOS=linux GOARCH=amd64 go build` - Build for Linux x86 64bit architecture. More values here: https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
 
+To update packages without GOSUM check use env `GOSUMDB=off`
+
+ * Example `GOSUMDB=off go get github.com/WebauthnWorks/fdo-device-implementation`
+ * To update all `make update_fdo_packages`
+
 ### Structure
 
 - `/dbs` - Contains database structs and menthods. To see db entry structs see `*.structs.db.go`

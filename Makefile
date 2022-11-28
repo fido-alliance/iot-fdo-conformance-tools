@@ -44,4 +44,13 @@ build_frontend:
 	cd ./frontend && npm run build
 	cp -Rf ./frontend/dist bin/frontend
 
+# Build frontend
+update_fdo_packages:
+	echo "\n----- Updating FDO packages... -----\n"
+	GOSUMDB=off go get github.com/WebauthnWorks/fdo-shared
+	GOSUMDB=off go get github.com/WebauthnWorks/fdo-do
+	GOSUMDB=off go get github.com/WebauthnWorks/fdo-rv
+	GOSUMDB=off go get github.com/WebauthnWorks/fdo-device-implementation
+
+
 build: build_frontend compile_all
