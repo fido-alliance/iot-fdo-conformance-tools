@@ -43,6 +43,7 @@ The backend consists of five modules:
 ## Running
 - `./fdo-fido-conformance-server-OS seed` will generate testing config, and pre-seed testing device credentials. This will take just a minute to run. Need to be run only once
 - `./fdo-fido-conformance-server-OS serve` will serve testing frontend on port 8080 (http://localhost:8080/)[http://localhost:8080/]
+    - If you experience issues with SHA1 checking, please run with `GODEBUG=x509sha1=1` env
 
 ## Development
 
