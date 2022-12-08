@@ -6,7 +6,7 @@
 
 <section id="first" class="main special">
     <header class="major">
-        <h2>Choose your test suit</h2>
+        <h2><b>FDO Test Tools</b>: Choose your test suit</h2>
     </header>
     <ul class="features">
         <li>
@@ -29,5 +29,5 @@
             <a href="/#/test/do" class="button">Run</a>
         </li>
     </ul>
-    <a href="#" on:click={purgeTests}>Purge Tests [DEV]</a>
+    <!-- <a href="#" on:click={purgeTests}>Purge Tests [DEV]</a> -->
 </section>

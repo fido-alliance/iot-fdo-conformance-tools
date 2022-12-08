@@ -31,12 +31,16 @@
 
     isLoggedIn()
     .then(async (isActually) => {
-        if (isActually) {
-            push("/test")
-        }
-
         const cfg = await getConfig()
         mode = cfg.mode;
+
+        if (isActually) {
+            if (mode === "onprem") {
+                push("/test")
+            } else {
+                push("/menu")
+            }
+        }
     })
     
 </script>

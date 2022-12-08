@@ -2,18 +2,22 @@
     import Login from './routes/Login.svelte'
     import Register from './routes/Register.svelte'
     import NotFound from './routes/NotFound.svelte'
-    import Dashboard from './routes/Dashboard.svelte';
+    import FdoDashboard from './routes/FdoDashboard.svelte';
+    import OnlineMenu from './routes/OnlineMenu.svelte';
     import {getConfig, logout} from './lib/User.api'
     import Router, {location, push} from "svelte-spa-router"
     import Rv from './routes/RV.fdo.svelte';
     import Do from './routes/DO.fdo.svelte';
     import Device from './routes/Device.fdo.svelte';
+    import Builds from './routes/Builds.svelte';
 
     let routes = {
         "/": Login,
         "/register": Register,
         "/login": Login,
-        "/test": Dashboard,
+        "/test": FdoDashboard,
+        "/menu": OnlineMenu,
+        "/builds": Builds,
         "/test/rv": Rv,
         "/test/do": Do,
         "/test/device": Device,
@@ -47,6 +51,10 @@
 
         {#if $location.startsWith("/test/")}
             <li><a href="/#/test" class="button primary">Back to Dashboard</a></li>
+        {/if}
+
+        {#if mode === "online" && ($location === "/test" || $location === "/builds")}
+            <li><a href="/#/menu" class="button primary">Back to main menu</a></li>
         {/if}
 
         {#if $location === "/login" || $location === "/"}
