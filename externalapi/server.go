@@ -90,8 +90,8 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/user/purgetests", userApiHandler.PurgeTests)
 	r.HandleFunc("/api/user/config", userApiHandler.Config)
 
-	// r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
-	r.PathPrefix("/").HandlerFunc(ProxyDevUI)
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
+	// r.PathPrefix("/").HandlerFunc(ProxyDevUI)
 
 	http.Handle("/", AddContext(r, ctx))
 }
