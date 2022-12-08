@@ -3,9 +3,9 @@ package fdoshared
 type CONFIG_ENTRY string
 
 const (
-	CFG_API_KEY_RESULTS CONFIG_ENTRY = "results_api_key"
-	CFG_API_BUILDS_URL  CONFIG_ENTRY = "builds_api_url"
-	CFG_MODE            CONFIG_ENTRY = "mode"
+	CFG_API_KEY_RESULTS CONFIG_ENTRY = "RESULTS_API_KEY"
+	CFG_API_BUILDS_URL  CONFIG_ENTRY = "BUILDS_API_URL"
+	CFG_MODE            CONFIG_ENTRY = "MODE"
 )
 
 type CONFIG_MODE_TYPE string
