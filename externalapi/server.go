@@ -57,6 +57,11 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		SessionDB: sessionDb,
 	}
 
+	buildsProxyHandler := BuildsProxyAPI{
+		UserDB:    userDb,
+		SessionDB: sessionDb,
+	}
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/rvt/create", rvtApiHandler.Generate)
@@ -74,6 +79,8 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/device/testruns", deviceApiHandler.List)
 	r.HandleFunc("/api/device/testruns/{toprotocol}/{testinsthex}/{testrunid}", deviceApiHandler.DeleteTestRun).Methods("DELETE")
 	r.HandleFunc("/api/device/testruns/{toprotocol}/{testinsthex}", deviceApiHandler.StartNewTestRun).Methods("POST")
+
+	r.PathPrefix("/api/builds/").HandlerFunc(buildsProxyHandler.ProxyBuilds)
 
 	r.HandleFunc("/api/user/register", userApiHandler.Register)
 	r.HandleFunc("/api/user/login", userApiHandler.Login)

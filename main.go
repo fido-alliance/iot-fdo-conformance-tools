@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
@@ -77,8 +78,19 @@ func main() {
 					db := InitBadgerDB()
 					defer db.Close()
 
+					apiKeyResult := os.Getenv(strings.ToUpper(string(fdoshared.CFG_API_KEY_RESULTS)))
+					if apiKeyResult == "" {
+						apiKeyResult = APIKEY_RESULT_SUBMISSION
+					}
+
+					apiKeyBuilds := os.Getenv(strings.ToUpper(string(fdoshared.CFG_API_BUILDS_URL)))
+					if apiKeyBuilds == "" {
+						apiKeyBuilds = APIKEY_BUILDS_URL
+					}
+
 					ctx := context.Background()
-					ctx = context.WithValue(ctx, fdoshared.CFG_RESULTS_API_KEY, RESULT_SUBMISSION_API_KEY)
+					ctx = context.WithValue(ctx, fdoshared.CFG_API_KEY_RESULTS, apiKeyResult)
+					ctx = context.WithValue(ctx, fdoshared.CFG_API_BUILDS_URL, apiKeyBuilds)
 					ctx = context.WithValue(ctx, fdoshared.CFG_MODE, TOOLS_MODE)
 
 					// Setup FDO listeners
