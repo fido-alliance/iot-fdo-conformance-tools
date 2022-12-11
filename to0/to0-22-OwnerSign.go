@@ -50,7 +50,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		To1dRV: []fdoshared.RVTO2AddrEntry{
 			{
 				RVIP:       &localostIPBytes,
-				RVPort:     8084,
+				RVPort:     8080,
 				RVProtocol: fdoshared.ProtHTTP,
 			},
 		},
