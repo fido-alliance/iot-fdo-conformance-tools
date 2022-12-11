@@ -88,9 +88,15 @@ func main() {
 						apiKeyBuilds = APIKEY_BUILDS_URL
 					}
 
+					fdoServiceUrl := os.Getenv(strings.ToUpper(string(fdoshared.CFG_FDO_SERVICE_URL)))
+					if fdoServiceUrl == "" {
+						fdoServiceUrl = FDO_SERVICE_URL
+					}
+
 					ctx := context.Background()
 					ctx = context.WithValue(ctx, fdoshared.CFG_API_KEY_RESULTS, apiKeyResult)
 					ctx = context.WithValue(ctx, fdoshared.CFG_API_BUILDS_URL, apiKeyBuilds)
+					ctx = context.WithValue(ctx, fdoshared.CFG_FDO_SERVICE_URL, fdoServiceUrl)
 					ctx = context.WithValue(ctx, fdoshared.CFG_MODE, TOOLS_MODE)
 
 					// Setup FDO listeners
