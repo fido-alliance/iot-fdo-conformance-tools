@@ -58,6 +58,16 @@ type RequestTestRun struct {
 	Protocol  fdoshared.FdoToProtocol `json:"protocol"`
 }
 
+func (h *RequestTestRun) PassingAllTests() bool {
+	for _, testState := range h.Tests {
+		if !testState.Passed {
+			return false
+		}
+	}
+
+	return true
+}
+
 func NewRVTestRun(protocol fdoshared.FdoToProtocol) RequestTestRun {
 	newUuid, _ := uuid.NewRandom()
 	uuidStr, _ := newUuid.MarshalText()
