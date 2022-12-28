@@ -47,7 +47,7 @@ func (h *DOTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEnt
 		return nil, errors.New("Session expired. " + err.Error())
 	}
 
-	userInst, err := h.UserDB.Get(sessionInst.Username)
+	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
 		return nil, errors.New("User does not exists. " + err.Error())
 	}
@@ -137,7 +137,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 
 	// Saving user
 	userInst.DOTestInsts = append(userInst.DOTestInsts, dbs.NewDOTestInst(doUrl, newDOTTestTo2.Uuid))
-	err = h.UserDB.Save(userInst.Username, *userInst)
+	err = h.UserDB.Save(*userInst)
 	if err != nil {
 		log.Println("Failed to save user. " + err.Error())
 		RespondError(w, "Internal server error", http.StatusInternalServerError)

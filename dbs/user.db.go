@@ -19,15 +19,15 @@ func NewUserTestDB(db *badger.DB) *UserTestDB {
 	}
 }
 
-func (h *UserTestDB) Save(username string, usere UserTestDBEntry) error {
-	username = strings.ToLower(username)
+func (h *UserTestDB) Save(usere UserTestDBEntry) error {
+	email := strings.ToLower(usere.Email)
 
 	usereBytes, err := cbor.Marshal(usere)
 	if err != nil {
 		return errors.New("Failed to marshal User entry. The error is: " + err.Error())
 	}
 
-	userEStorageId := append(h.prefix, []byte(username)...)
+	userEStorageId := append(h.prefix, []byte(email)...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -46,17 +46,17 @@ func (h *UserTestDB) Save(username string, usere UserTestDBEntry) error {
 	return nil
 }
 
-func (h *UserTestDB) Get(username string) (*UserTestDBEntry, error) {
-	username = strings.ToLower(username)
+func (h *UserTestDB) Get(email string) (*UserTestDBEntry, error) {
+	email = strings.ToLower(email)
 
-	userEStorageId := append(h.prefix, []byte(username)...)
+	userEStorageId := append(h.prefix, []byte(email)...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
 	item, err := dbtxn.Get(userEStorageId)
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, fmt.Errorf("The user entry with id %s does not exist", username)
+		return nil, fmt.Errorf("The user entry with id %s does not exist", email)
 	} else if err != nil {
 		return nil, errors.New("Failed locating entry. The error is: " + err.Error())
 	}

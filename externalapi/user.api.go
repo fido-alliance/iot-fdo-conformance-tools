@@ -181,15 +181,15 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 
 	userInst, err := h.UserDB.Get(loginUser.Email)
 	if err != nil {
-		log.Printf("Can not find user with username \"%s\". %s \n", loginUser.Email, err.Error())
-		RespondError(w, "Invalid username or password", http.StatusBadRequest)
+		log.Printf("Can not find user with email \"%s\". %s \n", loginUser.Email, err.Error())
+		RespondError(w, "Invalid email or password", http.StatusBadRequest)
 		return
 	}
 
 	passwordMatch, err := h.verifyPasswordHash(loginUser.Password, userInst.PasswordHash)
 	if err != nil {
 		log.Println("Error while verifying hash of the password. " + err.Error())
-		RespondError(w, "Invalid username or password", http.StatusBadRequest)
+		RespondError(w, "Invalid emails or password", http.StatusBadRequest)
 		return
 	}
 
@@ -199,7 +199,7 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Username: loginUser.Email})
+	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: loginUser.Email})
 	if err != nil {
 		log.Println("Error creating session. " + err.Error())
 		RespondError(w, "Internal server error. ", http.StatusBadRequest)
@@ -224,10 +224,10 @@ func (h *UserAPI) LoginOnPremNoLogin(w http.ResponseWriter, r *http.Request) {
 	_, err := h.UserDB.Get(ONPREM_CONFIG)
 	if err != nil {
 		newUserInst := dbs.UserTestDBEntry{
-			Username: strings.ToLower(ONPREM_CONFIG),
+			Email: strings.ToLower(ONPREM_CONFIG),
 		}
 
-		err = h.UserDB.Save(newUserInst.Username, newUserInst)
+		err = h.UserDB.Save(newUserInst)
 		if err != nil {
 			log.Println("Error saving user. " + err.Error())
 			RespondError(w, "Internal server error.", http.StatusInternalServerError)
@@ -235,7 +235,7 @@ func (h *UserAPI) LoginOnPremNoLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Username: ONPREM_CONFIG})
+	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: ONPREM_CONFIG})
 	if err != nil {
 		log.Println("Error creating session. " + err.Error())
 		RespondError(w, "Internal server error. ", http.StatusBadRequest)
@@ -272,7 +272,7 @@ func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.UserDB.Get(sessionInst.Username)
+	_, err = h.UserDB.Get(sessionInst.Email)
 	if err != nil {
 		log.Println("User does not exists.")
 		RespondError(w, "Unauthorized", http.StatusUnauthorized)
@@ -357,7 +357,7 @@ func (h *UserAPI) PurgeTests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInst, err := h.UserDB.Get(sessionInst.Username)
+	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
 		log.Println("User does not exists.")
 		RespondError(w, "Unauthorized", http.StatusUnauthorized)
@@ -368,7 +368,7 @@ func (h *UserAPI) PurgeTests(w http.ResponseWriter, r *http.Request) {
 	userInst.DOTestInsts = []dbs.DOTestInst{}
 	userInst.RVTestInsts = []dbs.RVTestInst{}
 
-	err = h.UserDB.Save(userInst.Username, *userInst)
+	err = h.UserDB.Save(*userInst)
 	if err != nil {
 		log.Println("Failed to save user. " + err.Error())
 		RespondError(w, "Internal server error", http.StatusInternalServerError)

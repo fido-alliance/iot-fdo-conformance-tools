@@ -69,7 +69,7 @@ func (h *DeviceTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestD
 		return nil, errors.New("Session expired. " + err.Error())
 	}
 
-	userInst, err := h.UserDB.Get(sessionInst.Username)
+	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
 		return nil, errors.New("User does not exists. " + err.Error())
 	}
@@ -143,7 +143,7 @@ func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 
 	userInst.DeviceTestInsts = append(userInst.DeviceTestInsts, dbs.NewDeviceTestInst(createTestCase.Name, deviceListenerInsts.Uuid, ovHeader.OVGuid))
 
-	err = h.UserDB.Save(userInst.Username, *userInst)
+	err = h.UserDB.Save(*userInst)
 	if err != nil {
 		log.Println("Failed to save user. " + err.Error())
 		RespondError(w, "Internal server error", http.StatusInternalServerError)
