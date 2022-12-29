@@ -8,14 +8,6 @@ import (
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 )
 
-type FdoImplementationType string
-
-const (
-	Device                  FdoImplementationType = "device"
-	RendezvousServer        FdoImplementationType = "rv"
-	DeviceOnboardingService FdoImplementationType = "do"
-)
-
 type RequestListenerRunnerInst struct {
 	Protocol      fdoshared.FdoToProtocol `cbor:"protocol,omitempty"`
 	LastTestID    testcom.FDOTestID       `cbor:"lastTestID,omitempty"`
@@ -31,13 +23,13 @@ type RequestListenerRunnerInst struct {
 }
 
 type RequestListenerInst struct {
-	Uuid        []byte                    `cbor:"uuid,omitempty"`
-	Guid        fdoshared.FdoGuid         `cbor:"guid,omitempty"`
-	TestVoucher fdoshared.VoucherDBEntry  `cbor:"testvoucher,omitempty"`
-	Type        FdoImplementationType     `cbor:"type,omitempty"`
-	To0         RequestListenerRunnerInst `cbor:"to0,omitempty"`
-	To1         RequestListenerRunnerInst `cbor:"to1,omitempty"`
-	To2         RequestListenerRunnerInst `cbor:"to2,omitempty"`
+	Uuid        []byte                           `cbor:"uuid,omitempty"`
+	Guid        fdoshared.FdoGuid                `cbor:"guid,omitempty"`
+	TestVoucher fdoshared.VoucherDBEntry         `cbor:"testvoucher,omitempty"`
+	Type        fdoshared.FdoImplementationClass `cbor:"type,omitempty"`
+	To0         RequestListenerRunnerInst        `cbor:"to0,omitempty"`
+	To1         RequestListenerRunnerInst        `cbor:"to1,omitempty"`
+	To2         RequestListenerRunnerInst        `cbor:"to2,omitempty"`
 }
 
 func (h *RequestListenerInst) GetProtocolInst(toProtocol int) (*RequestListenerRunnerInst, error) {

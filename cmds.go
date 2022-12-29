@@ -44,3 +44,11 @@ const (
 	To1 FdoToProtocol = 1
 	To2 FdoToProtocol = 2
 )
+
+type FdoImplementationClass string
+
+const (
+	Device                  FdoImplementationClass = "device"
+	RendezvousServer        FdoImplementationClass = "rv"
+	DeviceOnboardingService FdoImplementationClass = "do"
+)
