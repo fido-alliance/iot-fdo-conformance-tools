@@ -68,6 +68,15 @@ func (h *RequestTestRun) PassingAllTests() bool {
 	return true
 }
 
+func (h *RequestTestRun) GetAllTestIDs() []testcom.FDOTestID {
+	result := make([]testcom.FDOTestID, 0, len(h.Tests))
+	for fi := range h.Tests {
+		result = append(result, fi)
+	}
+
+	return result
+}
+
 func NewRVTestRun(protocol fdoshared.FdoToProtocol) RequestTestRun {
 	newUuid, _ := uuid.NewRandom()
 	uuidStr, _ := newUuid.MarshalText()
