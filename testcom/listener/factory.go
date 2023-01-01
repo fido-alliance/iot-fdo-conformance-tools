@@ -14,7 +14,7 @@ func NewDevice_RequestListenerInst(voucherEntry fdoshared.VoucherDBEntry, guid f
 		Uuid:        uuidBytes,
 		Guid:        guid,
 		TestVoucher: voucherEntry,
-		Type:        Device,
+		Type:        fdoshared.Device,
 		To1: RequestListenerRunnerInst{
 			Protocol: fdoshared.To1,
 			Tests: map[fdoshared.FdoCmd][]testcom.FDOTestID{
@@ -48,7 +48,7 @@ func NewDO_RequestListenerInst(voucherEntry fdoshared.VoucherDBEntry, guid fdosh
 		Uuid:        uuidBytes,
 		Guid:        guid,
 		TestVoucher: voucherEntry,
-		Type:        DeviceOnboardingService,
+		Type:        fdoshared.DeviceOnboardingService,
 		To0: RequestListenerRunnerInst{
 			Protocol: fdoshared.To0,
 			Tests: map[fdoshared.FdoCmd][]testcom.FDOTestID{
