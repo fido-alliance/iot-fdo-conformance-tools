@@ -2,6 +2,7 @@ package fdoshared
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/pem"
 )
 
@@ -22,6 +23,13 @@ func NewRandomBuffer(size int) []byte {
 	rand.Read(nonceBuff)
 
 	return nonceBuff
+}
+
+func NewRandomString(size int) string {
+	var randBuffer = NewRandomBuffer(size)
+	var randString = base64.RawURLEncoding.EncodeToString(randBuffer)
+
+	return randString[0:size]
 }
 
 type X509CertificateBytes []byte
