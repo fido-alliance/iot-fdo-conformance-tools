@@ -225,3 +225,13 @@ func ByteIdsContain(byteIds [][]byte, byteId []byte) bool {
 
 	return false
 }
+
+func StringsContain(stringsArr []string, item string) bool {
+	for _, str := range stringsArr {
+		if str == item {
+			return true
+		}
+	}
+
+	return false
+}
