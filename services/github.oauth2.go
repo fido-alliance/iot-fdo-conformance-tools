@@ -40,21 +40,21 @@ type GithubOrg struct {
 	OrgName string `json:"login"`
 }
 
-type GithubOauth2 struct {
-	Config   Oauth2ServiceConfig
+type GithubOauth2Provider struct {
+	Config   Oauth2ProviderConfig
 	Endpoint oauth2.Endpoint
 	LogTag   string
 }
 
-func NewGithubOAuth2Connector(config Oauth2ServiceConfig) GithubOauth2 {
-	return GithubOauth2{
+func NewGithubOAuth2Connector(config Oauth2ProviderConfig) GithubOauth2Provider {
+	return GithubOauth2Provider{
 		Config:   config,
 		Endpoint: Github_EndpointConfig,
 		LogTag:   "GithubOAuth2",
 	}
 }
 
-func (h *GithubOauth2) getGithubUser(authToken string) (string, error) {
+func (h *GithubOauth2Provider) getGithubUser(authToken string) (string, error) {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
@@ -85,7 +85,7 @@ func (h *GithubOauth2) getGithubUser(authToken string) (string, error) {
 	return userInst.Email, nil
 }
 
-func (h *GithubOauth2) getGithubUser_Orgs(authToken string) ([]string, error) {
+func (h *GithubOauth2Provider) getGithubUser_Orgs(authToken string) ([]string, error) {
 	var result = []string{}
 
 	httpClient := &http.Client{
@@ -122,7 +122,7 @@ func (h *GithubOauth2) getGithubUser_Orgs(authToken string) ([]string, error) {
 	return result, nil
 }
 
-func (h *GithubOauth2) getGithubOauthConfig() *oauth2.Config {
+func (h *GithubOauth2Provider) getGithubOauthConfig() *oauth2.Config {
 	return &oauth2.Config{
 		RedirectURL:  h.Config.RedirectUrl,
 		ClientID:     h.Config.ClientId,
@@ -132,7 +132,7 @@ func (h *GithubOauth2) getGithubOauthConfig() *oauth2.Config {
 	}
 }
 
-func (h *GithubOauth2) GetRedirectUrl() (string, string, string) {
+func (h *GithubOauth2Provider) GetRedirectUrl() (string, string, string) {
 
 	state := fdoshared.NewRandomString(16)
 	nonce := fdoshared.NewRandomString(16)
@@ -140,7 +140,7 @@ func (h *GithubOauth2) GetRedirectUrl() (string, string, string) {
 	return h.getGithubOauthConfig().AuthCodeURL(state), state, nonce
 }
 
-func (h *GithubOauth2) GetUserInfo(resultCode string) (string, bool, error) {
+func (h *GithubOauth2Provider) GetUserInfo(resultCode string) (string, bool, error) {
 	oauth2Token, err := h.getGithubOauthConfig().Exchange(context.Background(), resultCode)
 	if err != nil {
 		return "", false, err
