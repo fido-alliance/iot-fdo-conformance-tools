@@ -24,7 +24,7 @@ var Github_OAuth2Scopes = []string{
 }
 
 const Github_UserUrl = "https://api.github.com/user"
-const Github_OrgsUrl = "https://api.github.com/user"
+const Github_OrgsUrl = "https://api.github.com/user/orgs"
 const Github_FIDOAllianceID = "fido-alliance"
 
 type GithubUser struct {
@@ -91,7 +91,7 @@ func (h GithubOAuth2Provider) getGithubUser_Orgs(authToken string) ([]string, er
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
-	req, err := http.NewRequest("GET", Github_UserUrl, nil)
+	req, err := http.NewRequest("GET", Github_OrgsUrl, nil)
 	if err != nil {
 		return result, fmt.Errorf("%s: Error generating new request instance. %s", h.LogTag, err.Error())
 	}

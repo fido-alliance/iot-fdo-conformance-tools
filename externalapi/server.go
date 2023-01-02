@@ -7,6 +7,8 @@ import (
 	dodbs "github.com/WebauthnWorks/fdo-do/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/testapi"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/tools"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 
 	"github.com/dgraph-io/badger/v3"
@@ -27,6 +29,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	devBaseDb := dbs.NewDeviceBaseDB(db)
 	listenerDb := testdbs.NewListenerTestDB(db)
 	doVoucherDb := dodbs.NewVoucherDB(db)
+	verifyDb := dbs.NewVerifyDB(db)
 
 	rvtApiHandler := testapi.RVTestMgmtAPI{
 		UserDB:    userDb,
@@ -58,9 +61,27 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		SessionDB: sessionDb,
 	}
 
+	userVerifyHandler := UserVerify{
+		UserDB:   userDb,
+		VerifyDB: verifyDb,
+	}
+
 	buildsProxyHandler := BuildsProxyAPI{
 		UserDB:    userDb,
 		SessionDB: sessionDb,
+	}
+
+	oauth2ApiHandle := OAuth2API{
+		UserDB:    userDb,
+		SessionDB: sessionDb,
+		OAuth2Service: &services.OAuth2Service{
+			Providers: map[services.OAuth2ProviderID]services.OAuth2Provider{
+				services.OATH2_GITHUB: services.NewGithubOAuth2Connector(services.OAuth2ProviderConfig{
+					ClientId:     ctx.Value(tools.CFG_GITHUB_CLIENTID).(string),
+					ClientSecret: ctx.Value(tools.CFG_GITHUB_CLIENTSECRET).(string),
+				}),
+			},
+		},
 	}
 
 	r := mux.NewRouter()
@@ -91,8 +112,17 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/user/purgetests", userApiHandler.PurgeTests)
 	r.HandleFunc("/api/user/config", userApiHandler.Config)
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
-	// r.PathPrefix("/").HandlerFunc(ProxyDevUI)
+	r.HandleFunc("/api/user/approve/{id}/{email}", userVerifyHandler.Check)
+	r.HandleFunc("/api/user/email/check/{id}/{email}", userVerifyHandler.Check)
+
+	r.HandleFunc("/api/oauth2/{providerid}/init", oauth2ApiHandle.InitWithRedirectUrl)
+	r.HandleFunc("/api/oauth2/{providerid}/callback", oauth2ApiHandle.ProcessCallback)
+
+	if ctx.Value(tools.CFG_DEV_ENV) == tools.ENV_DEV {
+		r.PathPrefix("/").HandlerFunc(ProxyDevUI)
+	} else {
+		r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
+	}
 
 	http.Handle("/", AddContext(r, ctx))
 }

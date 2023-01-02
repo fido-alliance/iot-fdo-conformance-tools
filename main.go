@@ -16,6 +16,7 @@ import (
 	fdodo "github.com/WebauthnWorks/fdo-do"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/tools"
 	fdorv "github.com/WebauthnWorks/fdo-rv"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	testcomdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
@@ -93,11 +94,35 @@ func main() {
 						fdoServiceUrl = FDO_SERVICE_URL
 					}
 
+					fdoDevEnvState := os.Getenv(strings.ToUpper(string(tools.CFG_DEV_ENV)))
+					if fdoDevEnvState == "" {
+						fdoDevEnvState = FDO_DEV_ENV_DEFAULT
+					}
+
+					// Github OAuth2
+					githubOauth2_clientid := os.Getenv(strings.ToUpper(string(tools.CFG_GITHUB_CLIENTID)))
+					if githubOauth2_clientid == "" {
+						githubOauth2_clientid = GITHUB_OAUTH2_CLIENTID
+					}
+					githubOauth2_clientsecret := os.Getenv(strings.ToUpper(string(tools.CFG_GITHUB_CLIENTSECRET)))
+					if githubOauth2_clientsecret == "" {
+						githubOauth2_clientsecret = GITHUB_OAUTH2_CLIENTISECRET
+					}
+					githubOauth2_redirecturl := os.Getenv(strings.ToUpper(string(tools.CFG_GITHUB_REDIRECTURL)))
+					if githubOauth2_redirecturl == "" {
+						githubOauth2_redirecturl = GITHUB_OAUTH2_REDIRECTURL
+					}
+
 					ctx := context.Background()
 					ctx = context.WithValue(ctx, fdoshared.CFG_API_KEY_RESULTS, apiKeyResult)
 					ctx = context.WithValue(ctx, fdoshared.CFG_API_BUILDS_URL, apiKeyBuilds)
 					ctx = context.WithValue(ctx, fdoshared.CFG_FDO_SERVICE_URL, fdoServiceUrl)
 					ctx = context.WithValue(ctx, fdoshared.CFG_MODE, TOOLS_MODE)
+					ctx = context.WithValue(ctx, tools.CFG_DEV_ENV, fdoDevEnvState)
+
+					ctx = context.WithValue(ctx, tools.CFG_GITHUB_CLIENTID, githubOauth2_clientid)
+					ctx = context.WithValue(ctx, tools.CFG_GITHUB_CLIENTSECRET, githubOauth2_clientsecret)
+					ctx = context.WithValue(ctx, tools.CFG_GITHUB_REDIRECTURL, githubOauth2_redirecturl)
 
 					// Setup FDO listeners
 					fdodo.SetupServer(db)

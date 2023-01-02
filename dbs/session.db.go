@@ -26,8 +26,11 @@ func NewSessionDB(db *badger.DB) *SessionDB {
 const MAX_SESSION_TIME time.Duration = 7 * 24 * time.Hour
 
 type SessionEntry struct {
-	_     struct{} `cbor:",toarray"`
-	Email string
+	_              struct{} `cbor:",toarray"`
+	Email          string
+	OAuth2Provider string
+	OAuth2Nonce    string
+	OAuth2State    string
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {

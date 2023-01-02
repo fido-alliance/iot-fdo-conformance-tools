@@ -69,15 +69,18 @@ func NewDeviceTestInst(name string, listenerUuid []byte, guid fdoshared.FdoGuid)
 }
 
 type UserTestDBEntry struct {
-	_               struct{} `cbor:",toarray"`
-	Username        string
-	PasswordHash    []byte
-	Name            string
-	Company         string
-	Phone           string
-	RVTestInsts     []RVTestInst
-	DOTestInsts     []DOTestInst
-	DeviceTestInsts []DeviceTestInst
+	_            struct{} `cbor:",toarray"`
+	Email        string   `cbor:"email"`
+	PasswordHash []byte   `cbor:"password_hash"`
+	Name         string   `cbor:"name"`
+	Company      string   `cbor:"company"`
+
+	EmailVerified   bool `cbor:"email_verified"`
+	AccountApproved bool `cbor:"account_approved"`
+
+	RVTestInsts     []RVTestInst     `cbor:"test_rv"`
+	DOTestInsts     []DOTestInst     `cbor:"test_do"`
+	DeviceTestInsts []DeviceTestInst `cbor:"test_device"`
 }
 
 func (h *UserTestDBEntry) RVT_ContainID(rvtid []byte) bool {
