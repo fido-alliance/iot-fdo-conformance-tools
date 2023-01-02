@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
+	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/gorilla/mux"
 )
 
@@ -15,7 +17,13 @@ type UserVerify struct {
 
 func (h *UserVerify) Check(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
+		log.Println("Only allowed for on-line build!")
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
@@ -25,18 +33,18 @@ func (h *UserVerify) Check(w http.ResponseWriter, r *http.Request) {
 
 	entry, err := h.VerifyDB.GetEntry([]byte(id))
 	if err != nil {
-		RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
 	userInst, err := h.UserDB.Get(entry.Email)
 	if err != nil {
-		RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
 	if userInst.Email != email {
-		RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
@@ -48,16 +56,16 @@ func (h *UserVerify) Check(w http.ResponseWriter, r *http.Request) {
 
 	err = h.UserDB.Save(*userInst)
 	if err != nil {
-		RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
 
 	err = h.VerifyDB.DeleteEntry([]byte(id))
 	if err != nil {
 		log.Println("Error deleting verify entry. " + err.Error())
-		RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
 		return
 	}
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }

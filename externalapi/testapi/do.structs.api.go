@@ -1,34 +1,34 @@
-package externalapi
+package testapi
 
 import (
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )
 
-type RVT_CreateTestCase struct {
+type DOT_CreateTestCase struct {
 	Url string `json:"url"`
 }
 
-type RVT_InstInfo struct {
+type DOT_InstInfo struct {
 	Id         string                        `json:"id"`
 	Runs       []reqtestsdeps.RequestTestRun `json:"runs"`
 	InProgress bool                          `json:"inprogress"`
 	Protocol   fdoshared.FdoToProtocol       `json:"protocol"`
 }
 
-type RVT_Item struct {
+type DOT_Item struct {
 	Id  string       `json:"id"`
 	Url string       `json:"url"`
-	To0 RVT_InstInfo `json:"to0"`
-	To1 RVT_InstInfo `json:"to1"`
+	To2 DOT_InstInfo `json:"to2"`
 }
 
-type RVT_ListRvts struct {
-	RVTItems []RVT_Item       `json:"entries"`
-	Status   FdoConfApiStatus `json:"status"`
+type DOT_ListTestEntries struct {
+	TestEntries []DOT_Item                 `json:"entries"`
+	Status      commonapi.FdoConfApiStatus `json:"status"`
 }
 
-type RVT_RequestInfo struct {
+type DOT_RequestInfo struct {
 	Id        string `json:"id"`
 	TestRunId string `json:"testRunId,omitempty"`
 }

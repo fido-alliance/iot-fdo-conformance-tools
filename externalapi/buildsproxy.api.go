@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
@@ -43,20 +44,20 @@ func (h *BuildsProxyAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEn
 
 func (h *BuildsProxyAPI) ProxyBuilds(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
 		log.Println("Only allowed for on-line build!")
-		RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
 	_, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 

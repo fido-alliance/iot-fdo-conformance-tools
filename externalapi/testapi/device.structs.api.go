@@ -1,6 +1,7 @@
-package externalapi
+package testapi
 
 import (
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 )
 
@@ -18,8 +19,8 @@ type Device_Item struct {
 }
 
 type Device_ListRuns struct {
-	DeviceItems []Device_Item    `json:"entries"`
-	Status      FdoConfApiStatus `json:"status"`
+	DeviceItems []Device_Item              `json:"entries"`
+	Status      commonapi.FdoConfApiStatus `json:"status"`
 }
 
 type Device_RequestInfo struct {

@@ -6,6 +6,7 @@ import (
 
 	dodbs "github.com/WebauthnWorks/fdo-do/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/testapi"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 
 	"github.com/dgraph-io/badger/v3"
@@ -27,7 +28,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	listenerDb := testdbs.NewListenerTestDB(db)
 	doVoucherDb := dodbs.NewVoucherDB(db)
 
-	rvtApiHandler := RVTestMgmtAPI{
+	rvtApiHandler := testapi.RVTestMgmtAPI{
 		UserDB:    userDb,
 		ReqTDB:    rvtDb,
 		SessionDB: sessionDb,
@@ -35,7 +36,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		DevBaseDB: devBaseDb,
 	}
 
-	dotApiHandler := DOTestMgmtAPI{
+	dotApiHandler := testapi.DOTestMgmtAPI{
 		UserDB:    userDb,
 		ReqTDB:    rvtDb,
 		SessionDB: sessionDb,
@@ -43,7 +44,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		DevBaseDB: devBaseDb,
 	}
 
-	deviceApiHandler := DeviceTestMgmtAPI{
+	deviceApiHandler := testapi.DeviceTestMgmtAPI{
 		UserDB:       userDb,
 		ListenerDB:   listenerDb,
 		SessionDB:    sessionDb,

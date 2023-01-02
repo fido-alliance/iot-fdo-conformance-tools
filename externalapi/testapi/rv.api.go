@@ -1,4 +1,4 @@
-package externalapi
+package testapi
 
 import (
 	"encoding/hex"
@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
@@ -52,21 +53,21 @@ func (h *RVTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEnt
 }
 
 func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
-	if !CheckHeaders(w, r) {
+	if !commonapi.CheckHeaders(w, r) {
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
-		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
@@ -74,20 +75,20 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(bodyBytes, &createTestCase)
 	if err != nil {
 		log.Println("Failed to decode body. " + err.Error())
-		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	parsedUrl, err := url.ParseRequestURI(createTestCase.Url)
 	if err != nil {
 		log.Println("Bad URL. " + err.Error())
-		RespondError(w, "Bad URL", http.StatusBadRequest)
+		commonapi.RespondError(w, "Bad URL", http.StatusBadRequest)
 		return
 	}
 
 	if parsedUrl.Path != "" && parsedUrl.Path != "/" {
 		log.Println("Bad URL path.")
-		RespondError(w, "Bad URL", http.StatusBadRequest)
+		commonapi.RespondError(w, "Bad URL", http.StatusBadRequest)
 		return
 	}
 
@@ -96,7 +97,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	mainConfig, err := h.ConfigDB.Get()
 	if err != nil {
 		log.Println("Failed to generate VDIs. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -105,7 +106,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = h.ReqTDB.Save(newRVTestTo0)
 	if err != nil {
 		log.Println("Failed to save rvte. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -114,7 +115,7 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = h.ReqTDB.Save(newRVTestTo1)
 	if err != nil {
 		log.Println("Failed to save rvte. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -123,23 +124,23 @@ func (h *RVTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = h.UserDB.Save(*userInst)
 	if err != nil {
 		log.Println("Failed to save user. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }
 
 func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -156,7 +157,7 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 		rvtsInfoPayloadsPtr, err := h.ReqTDB.GetMany([][]byte{rvtInfo.To0, rvtInfo.To1})
 		if err != nil {
 			log.Println("Error reading rvts. " + err.Error())
-			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
@@ -180,21 +181,21 @@ func (h *RVTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	rvtsList.Status = FdoApiStatus_OK
+	rvtsList.Status = commonapi.FdoApiStatus_OK
 
-	RespondSuccessStruct(w, rvtsList)
+	commonapi.RespondSuccessStruct(w, rvtsList)
 }
 
 func (h *RVTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "DELETE" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -205,37 +206,37 @@ func (h *RVTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 	rvtId, err := hex.DecodeString(testinsthex)
 	if err != nil {
 		log.Println("Can not decode hex rvtid " + err.Error())
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	if !userInst.RVT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	h.ReqTDB.RemoveTestRun(rvtId, testrunid)
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }
 
 func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
-	if !CheckHeaders(w, r) {
+	if !commonapi.CheckHeaders(w, r) {
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
-		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
@@ -243,27 +244,27 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(bodyBytes, &execReq)
 	if err != nil {
 		log.Println("Failed to decode body. " + err.Error())
-		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	rvtId, err := hex.DecodeString(execReq.Id)
 	if err != nil {
 		log.Println("Can not decode hex rvtid " + err.Error())
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	if !userInst.RVT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	rvte, err := h.ReqTDB.Get(rvtId)
 	if err != nil {
 		log.Println("Can get RVT entry. " + err.Error())
-		RespondError(w, "Internal server error!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Internal server error!", http.StatusBadRequest)
 		return
 	}
 
@@ -273,9 +274,9 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		testexec.ExecuteRVTestsTo1(*rvte, h.ReqTDB, h.DevBaseDB)
 	} else {
 		log.Printf("Protocol TO%d is not supported. ", rvte.Protocol)
-		RespondError(w, "Unsupported protocol!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Unsupported protocol!", http.StatusBadRequest)
 		return
 	}
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }

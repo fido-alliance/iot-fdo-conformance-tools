@@ -1,4 +1,4 @@
-package externalapi
+package testapi
 
 import (
 	"encoding/hex"
@@ -14,6 +14,7 @@ import (
 	dodbs "github.com/WebauthnWorks/fdo-do/dbs"
 	"github.com/WebauthnWorks/fdo-do/to0"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/WebauthnWorks/fdo-shared/testcom"
 	testcomdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
@@ -78,21 +79,21 @@ func (h *DeviceTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestD
 }
 
 func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
-	if !CheckHeaders(w, r) {
+	if !commonapi.CheckHeaders(w, r) {
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
-		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
@@ -100,34 +101,34 @@ func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(bodyBytes, &createTestCase)
 	if err != nil {
 		log.Println("Failed to decode body. " + err.Error())
-		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	if len(createTestCase.Name) == 0 || len(createTestCase.VoucherAndPrivateKey) == 0 {
 		log.Println("Missing name or voucher.")
-		RespondError(w, "Missing name or voucher!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Missing name or voucher!", http.StatusBadRequest)
 		return
 	}
 
 	newVand, err := fdodocommon.DecodePemVoucherAndKey(createTestCase.VoucherAndPrivateKey)
 	if err != nil {
 		log.Println("Failed to decode voucher. " + err.Error())
-		RespondError(w, "Failed to decode voucher! "+err.Error(), http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode voucher! "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = h.submitToRvOwnerSign(newVand)
 	if err != nil {
 		log.Println("Failed submit owner sign to RV! " + err.Error())
-		RespondError(w, "Failed submit owner sign to RV! "+err.Error(), http.StatusInternalServerError)
+		commonapi.RespondError(w, "Failed submit owner sign to RV! "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err = h.submitVoucherToDO(newVand)
 	if err != nil {
 		log.Println("Error submitting voucher to DO " + err.Error())
-		RespondError(w, "Error submitting voucher to DO! "+err.Error(), http.StatusInternalServerError)
+		commonapi.RespondError(w, "Error submitting voucher to DO! "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -137,7 +138,7 @@ func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = h.ListenerDB.Save(deviceListenerInsts)
 	if err != nil {
 		log.Println("Failed to decode voucher. " + err.Error())
-		RespondError(w, "Failed to decode voucher! "+err.Error(), http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode voucher! "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -146,23 +147,23 @@ func (h *DeviceTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = h.UserDB.Save(*userInst)
 	if err != nil {
 		log.Println("Failed to save user. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }
 
 func (h *DeviceTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -200,21 +201,21 @@ func (h *DeviceTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	listDeviceRuns.Status = FdoApiStatus_OK
+	listDeviceRuns.Status = commonapi.FdoApiStatus_OK
 
-	RespondSuccessStruct(w, listDeviceRuns)
+	commonapi.RespondSuccessStruct(w, listDeviceRuns)
 }
 
 func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -224,36 +225,36 @@ func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Reque
 	testinsthex := vars["testinsthex"]
 
 	if len(testinsthex) == 0 {
-		RespondError(w, "Missing testInstID or testRunID!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Missing testInstID or testRunID!", http.StatusBadRequest)
 		return
 	}
 
 	testIstIdBytes, err := hex.DecodeString(testinsthex)
 	if err != nil {
-		RespondError(w, "Failed to decode test inst id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode test inst id!", http.StatusBadRequest)
 		return
 	}
 
 	if !userInst.DeviceT_ContainID(testIstIdBytes) {
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	topInt, err := strconv.ParseInt(toprotocol, 10, 64)
 	if err != nil {
-		RespondError(w, "Failed to decode TO Protocol ID!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode TO Protocol ID!", http.StatusBadRequest)
 		return
 	}
 
 	reqListInst, err := h.ListenerDB.Get(testIstIdBytes)
 	if err != nil {
-		RespondError(w, err.Error(), http.StatusBadRequest)
+		commonapi.RespondError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	runnerInst, err := reqListInst.GetProtocolInst(int(topInt))
 	if err != nil {
-		RespondError(w, err.Error(), http.StatusBadRequest)
+		commonapi.RespondError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -261,23 +262,23 @@ func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Reque
 
 	err = h.ListenerDB.Update(reqListInst)
 	if err != nil {
-		RespondError(w, err.Error(), http.StatusBadRequest)
+		commonapi.RespondError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }
 
 func (h *DeviceTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "DELETE" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -288,29 +289,29 @@ func (h *DeviceTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request
 	testrunid := vars["testrunid"]
 
 	if len(testinsthex) == 0 || len(testrunid) == 0 {
-		RespondError(w, "Missing testInstID or testRunID!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Missing testInstID or testRunID!", http.StatusBadRequest)
 		return
 	}
 
 	log.Println(testinsthex)
 	testIstIdBytes, err := hex.DecodeString(testinsthex)
 	if err != nil {
-		RespondError(w, "Failed to decode test inst id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode test inst id!", http.StatusBadRequest)
 		return
 	}
 
 	if !userInst.DeviceT_ContainID(testIstIdBytes) {
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	topInt, err := strconv.ParseInt(toprotocol, 10, 64)
 	if err != nil {
-		RespondError(w, "Failed to decode TO Protocol ID!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode TO Protocol ID!", http.StatusBadRequest)
 		return
 	}
 
 	h.ListenerDB.RemoveTestRun(fdoshared.FdoToProtocol(topInt), testIstIdBytes, testrunid)
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }

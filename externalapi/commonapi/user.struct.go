@@ -1,4 +1,4 @@
-package externalapi
+package commonapi
 
 import fdoshared "github.com/WebauthnWorks/fdo-shared"
 

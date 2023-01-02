@@ -1,4 +1,4 @@
-package externalapi
+package testapi
 
 import (
 	"archive/zip"
@@ -14,6 +14,7 @@ import (
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
@@ -56,21 +57,21 @@ func (h *DOTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEnt
 }
 
 func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
-	if !CheckHeaders(w, r) {
+	if !commonapi.CheckHeaders(w, r) {
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
-		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
@@ -79,20 +80,20 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(bodyBytes, &createTestCase)
 	if err != nil {
 		log.Println("Failed to decode body. " + err.Error())
-		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	parsedUrl, err := url.ParseRequestURI(createTestCase.Url)
 	if err != nil {
 		log.Println("Bad URL. " + err.Error())
-		RespondError(w, "Bad URL", http.StatusBadRequest)
+		commonapi.RespondError(w, "Bad URL", http.StatusBadRequest)
 		return
 	}
 
 	if parsedUrl.Path != "" && parsedUrl.Path != "/" {
 		log.Println("Bad URL path.")
-		RespondError(w, "Bad URL", http.StatusBadRequest)
+		commonapi.RespondError(w, "Bad URL", http.StatusBadRequest)
 		return
 	}
 
@@ -102,7 +103,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	mainConfig, err := h.ConfigDB.Get()
 	if err != nil {
 		log.Println("Failed to generate VDIs. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -120,7 +121,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	voucherTestMap, err := testexec.GenerateTo2Vouchers(allTestIds, h.DevBaseDB)
 	if err != nil {
 		log.Println("Generate vouchers. " + err.Error())
-		RespondError(w, "Failed to generate vouchers. Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Failed to generate vouchers. Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -131,7 +132,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = h.ReqTDB.Save(newDOTTestTo2)
 	if err != nil {
 		log.Println("Failed to save do test inst. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -140,23 +141,23 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 	err = h.UserDB.Save(*userInst)
 	if err != nil {
 		log.Println("Failed to save user. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }
 
 func (h *DOTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -173,7 +174,7 @@ func (h *DOTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 		dotsInfoPayloadPtr, err := h.ReqTDB.Get(dotInfo.To2)
 		if err != nil {
 			log.Println("Error reading dots. " + err.Error())
-			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
@@ -190,21 +191,21 @@ func (h *DOTestMgmtAPI) List(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	dotList.Status = FdoApiStatus_OK
+	dotList.Status = commonapi.FdoApiStatus_OK
 
-	RespondSuccessStruct(w, dotList)
+	commonapi.RespondSuccessStruct(w, dotList)
 }
 
 func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -212,27 +213,27 @@ func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
 	idBytes, err := hex.DecodeString(vars["uuid"])
 	if err != nil {
 		log.Printf("Cound not decode %s hex", vars["uuid"])
-		RespondError(w, "ID not found!", http.StatusNotFound)
+		commonapi.RespondError(w, "ID not found!", http.StatusNotFound)
 		return
 	}
 
 	if !userInst.DOT_ContainID(idBytes) {
 		log.Printf("ID %s does not belong to user", vars["uuid"])
-		RespondError(w, "ID not found!", http.StatusNotFound)
+		commonapi.RespondError(w, "ID not found!", http.StatusNotFound)
 		return
 	}
 
 	dotsInfoPayloadPtr, err := h.ReqTDB.Get(idBytes)
 	if err != nil {
 		log.Println("Error reading dots. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	parsedUrl, err := url.ParseRequestURI(dotsInfoPayloadPtr.URL)
 	if err != nil {
 		log.Println("Bad URL. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -250,21 +251,21 @@ func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
 		zipFile, err := writer.Create(fmt.Sprintf("%s.voucher.pem", hex.EncodeToString(vanv.WawDeviceCredential.DCGuid[:])))
 		if err != nil {
 			log.Println("Error creating new zip file instance. " + err.Error())
-			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		voucherPemBytes, err := fdodeviceimplementation.MarshalVoucherAndPrivateKey(vanv.VoucherDBEntry)
 		if err != nil {
 			log.Println("Error encoding voucher. " + err.Error())
-			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		_, err = zipFile.Write(voucherPemBytes)
 		if err != nil {
 			log.Println("Error writing zip file bytes. " + err.Error())
-			RespondError(w, "Internal server error", http.StatusInternalServerError)
+			commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -272,7 +273,7 @@ func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
 	err = writer.Close()
 	if err != nil {
 		log.Println("Error closing zip stream. " + err.Error())
-		RespondError(w, "Internal server error", http.StatusInternalServerError)
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -283,26 +284,26 @@ func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
 
 func (h *DOTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "DELETE" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
 	receivedContentType := r.Header.Get("Content-Type")
-	if receivedContentType != CONTENT_TYPE_JSON {
-		RespondError(w, "Unsupported media types!", http.StatusUnsupportedMediaType)
+	if receivedContentType != commonapi.CONTENT_TYPE_JSON {
+		commonapi.RespondError(w, "Unsupported media types!", http.StatusUnsupportedMediaType)
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
-		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
@@ -310,50 +311,50 @@ func (h *DOTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(bodyBytes, &execReq)
 	if err != nil {
 		log.Println("Failed to decode body. " + err.Error())
-		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	if len(execReq.TestRunId) == 0 {
 		log.Println("Missing test run id field")
-		RespondError(w, "Missing test run id field!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Missing test run id field!", http.StatusBadRequest)
 		return
 	}
 
 	rvtId, err := hex.DecodeString(execReq.Id)
 	if err != nil {
 		log.Println("Can not decode hex rvtid " + err.Error())
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	if !userInst.DOT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	h.ReqTDB.RemoveTestRun(rvtId, execReq.TestRunId)
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }
 
 func (h *DOTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
-	if !CheckHeaders(w, r) {
+	if !commonapi.CheckHeaders(w, r) {
 		return
 	}
 
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
-		RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
-		RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
 		return
 	}
 
@@ -361,31 +362,31 @@ func (h *DOTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(bodyBytes, &execReq)
 	if err != nil {
 		log.Println("Failed to decode body. " + err.Error())
-		RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	rvtId, err := hex.DecodeString(execReq.Id)
 	if err != nil {
 		log.Println("Can not decode hex rvtid " + err.Error())
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	if !userInst.RVT_ContainID(rvtId) {
 		log.Println("Id does not belong to user")
-		RespondError(w, "Invalid id!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
 	rvte, err := h.ReqTDB.Get(rvtId)
 	if err != nil {
 		log.Println("Can get RVT entry. " + err.Error())
-		RespondError(w, "Internal server error!", http.StatusBadRequest)
+		commonapi.RespondError(w, "Internal server error!", http.StatusBadRequest)
 		return
 	}
 
 	testexec.ExecuteDOTestsTo2(*rvte, h.ReqTDB)
 
-	RespondSuccess(w)
+	commonapi.RespondSuccess(w)
 }

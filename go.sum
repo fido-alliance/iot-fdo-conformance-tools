@@ -14,6 +14,10 @@ github.com/WebauthnWorks/fdo-shared v0.9.81 h1:gFLrp3WaEHniXKoWZN9asCIGihqnVdXdf
 github.com/WebauthnWorks/fdo-shared v0.9.81/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
 github.com/WebauthnWorks/fdo-shared v0.9.82 h1:DrmrSCYj7eUj1TPw/okw1dTYqf0syBxncopKM7P1jvU=
 github.com/WebauthnWorks/fdo-shared v0.9.82/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
+github.com/WebauthnWorks/fdo-shared v0.9.83 h1:zz+pBtAh69gMb/0vS3G7naw+WnBm8iIAnYiYa41IuIw=
+github.com/WebauthnWorks/fdo-shared v0.9.83/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
+github.com/WebauthnWorks/fdo-shared v0.9.84 h1:qdyTLhmZPmH9mkFR/Zfkq5GLxbP37uPOqD/edxEFlQo=
+github.com/WebauthnWorks/fdo-shared v0.9.84/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=

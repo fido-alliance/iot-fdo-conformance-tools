@@ -4,11 +4,13 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 )
 
 func ProxyDevUI(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
