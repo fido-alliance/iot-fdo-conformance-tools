@@ -1,56 +1,16 @@
 package externalapi
 
 import (
-	"bytes"
-	"crypto/rand"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	"golang.org/x/crypto/scrypt"
 )
-
-const ONPREM_CONFIG string = "tester@fido.local"
-
-type UserAPI struct {
-	UserDB    *dbs.UserTestDB
-	SessionDB *dbs.SessionDB
-}
-
-func isEmailValid(e string) bool {
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	return emailRegex.MatchString(e)
-}
-
-func (h *UserAPI) generatePasswordHash(password string) ([]byte, error) {
-	salt := make([]byte, 8)
-	rand.Read(salt)
-
-	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
-	if err != nil {
-		return []byte{}, errors.New("Error hashing password")
-	}
-
-	return append(salt, dk...), nil
-}
-
-func (h *UserAPI) verifyPasswordHash(password string, passwordHash []byte) (bool, error) {
-	salt := passwordHash[0:8]
-
-	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
-	if err != nil {
-		return false, errors.New("Error hashing password")
-	}
-
-	return bytes.Equal(append(salt, dk...), passwordHash), nil
-}
 
 func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 	if !commonapi.CheckHeaders(w, r) {
@@ -108,8 +68,8 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.UserDB.Get(createUser.Email)
-	if err == nil {
+	userInst, err := h.UserDB.Get(createUser.Email)
+	if err == nil && userInst.AccountApproved {
 		log.Println("User exists.")
 		commonapi.RespondError(w, "User exists.", http.StatusBadRequest)
 		return
@@ -123,29 +83,30 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newUserInst := dbs.UserTestDBEntry{
-		Username:     strings.ToLower(createUser.Email),
+		Email:        strings.ToLower(createUser.Email),
 		PasswordHash: passwordHash,
 		Name:         createUser.Name,
 		Company:      createUser.Company,
-		Phone:        createUser.Phone,
 	}
 
-	err = h.UserDB.Save(newUserInst.Username, newUserInst)
+	err = h.UserDB.Save(newUserInst)
 	if err != nil {
 		log.Println("Error saving user. " + err.Error())
 		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
 		return
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Username: createUser.Email})
-	if err != nil {
-		log.Println("Error creating session. " + err.Error())
-		RespondError(w, "Internal server error. ", http.StatusBadRequest)
-		return
-	}
+	commonapi.RespondError(w, "Your account pending approval. Once it approved you will receive notification on your email address.", http.StatusInternalServerError)
 
-	http.SetCookie(w, GenerateCookie(sessionDbId))
-	RespondSuccess(w)
+	// sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: createUser.Email})
+	// if err != nil {
+	// 	log.Println("Error creating session. " + err.Error())
+	// 	commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
+	// 	return
+	// }
+
+	// http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
+	// commonapi.RespondSuccess(w)
 }
 
 func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
@@ -196,8 +157,12 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 
 	if !passwordMatch {
 		log.Println("Passwords do not match.")
-		RespondError(w, "Invalid username or password", http.StatusBadRequest)
 		commonapi.RespondError(w, "Invalid emails or password", http.StatusBadRequest)
+		return
+	}
+
+	if !userInst.AccountApproved {
+		commonapi.RespondError(w, "Your account pending approval. Please wait 2-3 working days. Otherwise email certification@fidoalliance.org", http.StatusBadRequest)
 		return
 	}
 
@@ -245,139 +210,5 @@ func (h *UserAPI) LoginOnPremNoLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
-	commonapi.RespondSuccess(w)
-}
-
-func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
-		return
-	}
-
-	sessionCookie, err := r.Cookie("session")
-	if err != nil {
-		log.Println("Failed to read cookie. " + err.Error())
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if sessionCookie == nil {
-		log.Println("Request missing session cookie!")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
-	if err != nil {
-		log.Println("Error reading session db!" + err.Error())
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	_, err = h.UserDB.Get(sessionInst.Email)
-	if err != nil {
-		log.Println("User does not exists.")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	commonapi.RespondSuccess(w)
-}
-
-func (h *UserAPI) Config(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
-		return
-	}
-
-	commonapi.RespondSuccessStruct(w, commonapi.User_Config{
-		Mode: r.Context().Value(fdoshared.CFG_MODE).(fdoshared.CONFIG_MODE_TYPE),
-	})
-}
-
-func (h *UserAPI) Logout(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
-		return
-	}
-
-	sessionCookie, err := r.Cookie("session")
-	if err != nil {
-		log.Println("Failed to read cookie. " + err.Error())
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if sessionCookie == nil {
-		log.Println("Request missing session cookie!")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	_, err = h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
-	if err != nil {
-		log.Println("Error reading session db!" + err.Error())
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	err = h.SessionDB.DeleteSessionEntry([]byte(sessionCookie.Value))
-	if err != nil {
-		log.Println("Session does not exists.")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	http.SetCookie(w, commonapi.GenerateCookie([]byte{}))
-
-	commonapi.RespondSuccess(w)
-}
-
-func (h *UserAPI) PurgeTests(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
-		return
-	}
-
-	sessionCookie, err := r.Cookie("session")
-	if err != nil {
-		log.Println("Failed to read cookie. " + err.Error())
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if sessionCookie == nil {
-		log.Println("Request missing session cookie!")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
-	if err != nil {
-		log.Println("Error reading session db!" + err.Error())
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	userInst, err := h.UserDB.Get(sessionInst.Email)
-	if err != nil {
-		log.Println("User does not exists.")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	userInst.DeviceTestInsts = []dbs.DeviceTestInst{}
-	userInst.DOTestInsts = []dbs.DOTestInst{}
-	userInst.RVTestInsts = []dbs.RVTestInst{}
-
-	err = h.UserDB.Save(*userInst)
-	if err != nil {
-		log.Println("Failed to save user. " + err.Error())
-		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	log.Println("SUCCESSFULLY PURGED TESTS")
-
 	commonapi.RespondSuccess(w)
 }
