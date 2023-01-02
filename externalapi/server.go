@@ -85,7 +85,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 
 	r.HandleFunc("/api/user/register", userApiHandler.Register)
 	r.HandleFunc("/api/user/login", userApiHandler.Login)
-	r.HandleFunc("/api/user/login/onprem", userApiHandler.LoginOnPremNoLogin)
+	r.HandleFunc("/api/user/login/onprem", userApiHandler.OnPremNoLogin)
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
 	r.HandleFunc("/api/user/logout", userApiHandler.Logout)
 	r.HandleFunc("/api/user/purgetests", userApiHandler.PurgeTests)

@@ -177,7 +177,7 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 	commonapi.RespondSuccess(w)
 }
 
-func (h *UserAPI) LoginOnPremNoLogin(w http.ResponseWriter, r *http.Request) {
+func (h *UserAPI) OnPremNoLogin(w http.ResponseWriter, r *http.Request) {
 	if !commonapi.CheckHeaders(w, r) {
 		return
 	}
