@@ -10,6 +10,7 @@
     import Do from './routes/DO.fdo.svelte';
     import Device from './routes/Device.fdo.svelte';
     import Builds from './routes/Builds.svelte';
+    import ErrorNotVerified from './routes/ErrorNotVerified.svelte';
 
     let routes = {
         "/": Login,
@@ -21,6 +22,7 @@
         "/test/rv": Rv,
         "/test/do": Do,
         "/test/device": Device,
+        "/error/notverified": ErrorNotVerified,
         "*": NotFound,
     }
 

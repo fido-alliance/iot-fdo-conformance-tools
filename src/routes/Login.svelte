@@ -1,6 +1,6 @@
 <script lang="ts">
     import svelteLogo from '../assets/FIDO_Alliance_logo_black_RGB.webp'
-    import {login, isLoggedIn, getConfig, loginOnprem} from '../lib/User.api'
+    import {login, isLoggedIn, getConfig, loginOnprem, getGithubRedirectUrl} from '../lib/User.api'
     import {push} from "svelte-spa-router"
 
     let email: string = ""
@@ -28,6 +28,28 @@
             errorMsg = err
         })
     }
+
+    const handleGithubLogin = async (e) => {
+        e.preventDefault()
+        errorMsg = "" 
+        
+        let prom = undefined
+        if (mode == "online") {
+            prom = getGithubRedirectUrl()
+        } else {
+            errorMsg = "This is only for Online mode"
+            return
+        }
+        
+        await prom
+        .then((result) => {
+            window.location.href = result;
+        })
+        .catch((err) => {
+            errorMsg = err
+        })
+    }
+
 
     isLoggedIn()
     .then(async (isActually) => {
@@ -75,6 +97,14 @@
                             <li><input type="submit" on:click={handleLogin} value="Login" class="primary" /></li>
                         </ul>
                     </div>
+
+                    <div class="col-12">
+                        <ul class="actions">
+                            <li><a href="/#/" style="color:#ffffffcc !important" class="button oauth github" on:click={handleGithubLogin} ><span class="fab fa-github"></span> Login with Github </a></li>
+                            <!-- <li><a href="/#/" dis class="button oauth google"><span class="fab fa-google"></span> Login with Google</a></li> -->
+                        </ul>
+                    </div>
+
                     <div class="col-12">
                         <p>{errorMsg}</p>
                     </div>

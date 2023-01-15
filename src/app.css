@@ -25,6 +25,21 @@ header > h1 {
   padding-bottom: 1em;
 }
 
+
+.button.oauth {
+  min-width: 18.5em;
+}
+
+.button.oauth.github {
+  background-color: black !important;
+  color: white !important;
+}
+
+.button.oauth.google {
+  background-color: white !important;
+}
+
+
 .button.cancel {
   background-color: #ff3232c2 !important;
 }
