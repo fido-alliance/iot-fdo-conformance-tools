@@ -9,40 +9,45 @@ import (
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
+func (h *UserAPI) isLoggedIn(r *http.Request) (bool, *dbs.SessionEntry, *dbs.UserTestDBEntry) {
+	sessionCookie, err := r.Cookie("session")
+	if err != nil {
+		log.Println("Failed to read cookie. " + err.Error())
+		return false, nil, nil
+	}
+
+	if sessionCookie == nil {
+		log.Println("Request missing session cookie!")
+		return false, nil, nil
+	}
+
+	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
+	if err != nil {
+		log.Println("Error reading session db!" + err.Error())
+		return false, nil, nil
+	}
+
+	userInst, err := h.UserDB.Get(sessionInst.Email)
+	if err != nil {
+		log.Println("User does not exists.")
+		return false, nil, nil
+	}
+
+	return true, sessionInst, userInst
+}
+
 func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
-	sessionCookie, err := r.Cookie("session")
-	if err != nil {
-		log.Println("Failed to read cookie. " + err.Error())
+	isLoggedIn, _, _ := h.isLoggedIn(r)
+	if isLoggedIn {
+		commonapi.RespondSuccess(w)
+	} else {
 		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
 	}
-
-	if sessionCookie == nil {
-		log.Println("Request missing session cookie!")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
-	if err != nil {
-		log.Println("Error reading session db!" + err.Error())
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	_, err = h.UserDB.Get(sessionInst.Email)
-	if err != nil {
-		log.Println("User does not exists.")
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	commonapi.RespondSuccess(w)
 }
 
 func (h *UserAPI) Config(w http.ResponseWriter, r *http.Request) {

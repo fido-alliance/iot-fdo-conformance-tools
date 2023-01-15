@@ -1,8 +1,6 @@
 package services
 
-import (
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-)
+import "github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 
 type NotifyService struct {
 	ApiKey   string
