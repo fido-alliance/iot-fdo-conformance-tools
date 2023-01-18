@@ -30,7 +30,7 @@ compile_win:
 
 compile_linux:
 	echo "\n----- Building for Linux... -----\n"
-	GOOS=linux go build -o bin/fdo-fido-conformance-server-linux
+	GOOS=linux GOARCH=amd64 go build -o bin/fdo-fido-conformance-server-linux
 
 compile_osx:
 	echo "\n----- Building for MacOS... -----\n"
@@ -52,5 +52,10 @@ update_fdo_packages:
 	GOSUMDB=off go get github.com/WebauthnWorks/fdo-rv
 	GOSUMDB=off go get github.com/WebauthnWorks/fdo-device-implementation
 
+
+# Build frontend
+push_new_build_online:
+	echo "\n----- Updating FDO build... -----\n"
+	scp ./bin/fdo-fido-conformance-server-linux $(echo $FDO_BUILD_PUSH):~/conformance-test-infrastructure-new/iot-fdo-conformance/
 
 build: build_frontend compile_all
