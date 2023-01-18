@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const PORT = 8080
+const DEFAULT_PORT = 8080
 
 func TryReadingWawDIFile(filepath string) (*fdoshared.WawDeviceCredential, error) {
 	fileBytes, err := os.ReadFile(filepath)
@@ -79,24 +80,32 @@ func main() {
 					db := InitBadgerDB()
 					defer db.Close()
 
+					selectedPort := DEFAULT_PORT
+
 					apiKeyResult := os.Getenv(strings.ToUpper(string(fdoshared.CFG_API_KEY_RESULTS)))
 					if apiKeyResult == "" {
 						apiKeyResult = APIKEY_RESULT_SUBMISSION
 					}
-
 					apiKeyBuilds := os.Getenv(strings.ToUpper(string(fdoshared.CFG_API_BUILDS_URL)))
 					if apiKeyBuilds == "" {
 						apiKeyBuilds = APIKEY_BUILDS_URL
 					}
-
 					fdoServiceUrl := os.Getenv(strings.ToUpper(string(fdoshared.CFG_FDO_SERVICE_URL)))
 					if fdoServiceUrl == "" {
 						fdoServiceUrl = FDO_SERVICE_URL
 					}
-
 					fdoDevEnvState := os.Getenv(strings.ToUpper(string(tools.CFG_DEV_ENV)))
 					if fdoDevEnvState == "" {
 						fdoDevEnvState = FDO_DEV_ENV_DEFAULT
+					}
+					portEnv := os.Getenv(strings.ToUpper(string(tools.CFG_ENV_PORT)))
+					if portEnv != "" {
+						portEnvNum, err := strconv.ParseInt(portEnv, 10, 0)
+						if err != nil {
+							log.Panicln("Error error reading port. " + err.Error())
+						}
+
+						selectedPort = int(portEnvNum)
 					}
 
 					// Github OAuth2
@@ -129,9 +138,9 @@ func main() {
 					fdorv.SetupServer(db)
 					externalapi.SetupServer(db, ctx)
 
-					log.Printf("Starting server at port %d... \n", PORT)
+					log.Printf("Starting server at port %d... \n", selectedPort)
 
-					err := http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
+					err := http.ListenAndServe(fmt.Sprintf(":%d", selectedPort), nil)
 					if err != nil {
 						log.Panicln("Error starting HTTP server. " + err.Error())
 					}
