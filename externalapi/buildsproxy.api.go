@@ -61,7 +61,14 @@ func (h *BuildsProxyAPI) ProxyBuilds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlInst, _ := url.Parse("https://fidotools:5E5GL3S6PaqL7ll5HgvG@builds.fidoalliance.org")
+	buildsApiUrl := r.Context().Value(fdoshared.CFG_API_BUILDS_URL)
+
+	if buildsApiUrl == nil {
+		commonapi.RespondError(w, "Server is down. ", http.StatusInternalServerError)
+		return
+	}
+
+	urlInst, _ := url.Parse(buildsApiUrl.(string))
 
 	proxy := httputil.NewSingleHostReverseProxy(urlInst)
 
@@ -76,6 +83,5 @@ func (h *BuildsProxyAPI) ProxyBuilds(w http.ResponseWriter, r *http.Request) {
 	r.Host = urlInst.Host
 	r.URL.Path = newPath
 
-	log.Println(r.URL.Path)
 	proxy.ServeHTTP(w, r)
 }

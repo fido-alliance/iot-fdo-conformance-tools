@@ -94,7 +94,7 @@ func main() {
 					if fdoServiceUrl == "" {
 						fdoServiceUrl = FDO_SERVICE_URL
 					}
-					fdoDevEnvState := os.Getenv(strings.ToUpper(string(tools.CFG_DEV_ENV)))
+					fdoDevEnvState := os.Getenv(strings.ToUpper(string(fdoshared.CFG_MODE)))
 					if fdoDevEnvState == "" {
 						fdoDevEnvState = FDO_DEV_ENV_DEFAULT
 					}
