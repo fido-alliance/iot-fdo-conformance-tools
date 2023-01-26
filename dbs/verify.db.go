@@ -28,8 +28,9 @@ const MAX_VERIFY_TIME time.Duration = 7 * 24 * time.Hour
 type VerifyType string
 
 const (
-	VT_Email VerifyType = "email"
-	VT_User  VerifyType = "user"
+	VT_Email         VerifyType = "email"
+	VT_User          VerifyType = "user"
+	VT_PasswordReset VerifyType = "password_reset"
 )
 
 type VerifyEntry struct {

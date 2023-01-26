@@ -10,6 +10,15 @@ type User_UserReq struct {
 	Password string `json:"password"`
 }
 
+type User_ResetPassword struct {
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirm_password"`
+}
+
+type User_ResetPasswordReq struct {
+	Email string `json:"email"`
+}
+
 type User_Config struct {
 	Mode fdoshared.CONFIG_MODE_TYPE `json:"mode"`
 }

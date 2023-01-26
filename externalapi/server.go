@@ -31,6 +31,11 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	doVoucherDb := dodbs.NewVoucherDB(db)
 	verifyDb := dbs.NewVerifyDB(db)
 
+	notifyService := services.NotifyService{
+		ResultsApiKey: "123456",
+		VerifyDB:      verifyDb,
+	}
+
 	rvtApiHandler := testapi.RVTestMgmtAPI{
 		UserDB:    userDb,
 		ReqTDB:    rvtDb,
@@ -62,8 +67,10 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	}
 
 	userVerifyHandler := UserVerify{
-		UserDB:   userDb,
-		VerifyDB: verifyDb,
+		UserDB:        userDb,
+		VerifyDB:      verifyDb,
+		SessionDB:     sessionDb,
+		NotifyService: &notifyService,
 	}
 
 	buildsProxyHandler := BuildsProxyAPI{
@@ -114,6 +121,10 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 
 	r.HandleFunc("/api/user/approve/{id}/{email}", userVerifyHandler.Check)
 	r.HandleFunc("/api/user/email/check/{id}/{email}", userVerifyHandler.Check)
+
+	r.HandleFunc("/api/user/password/reset/init", userVerifyHandler.PasswordResetInit)
+	r.HandleFunc("/api/user/password/reset/{id}/{email}", userVerifyHandler.PasswordResetCheck)
+	r.HandleFunc("/api/user/password/reset", userVerifyHandler.PasswordResetSet)
 
 	r.HandleFunc("/api/oauth2/{providerid}/init", oauth2ApiHandle.InitWithRedirectUrl)
 	r.HandleFunc("/api/oauth2/{providerid}/callback", oauth2ApiHandle.ProcessCallback)
