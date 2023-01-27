@@ -133,6 +133,7 @@ export const purgeTests = async(): Promise<Boolean> => {
     return true
 }
 
+
 export const register = async (password: String, passwordRepeat:string, email: string, company:string, name:string, phone:string): Promise<any> => {
     if (password.length == 0
     || passwordRepeat.length == 0
@@ -175,8 +176,81 @@ export const register = async (password: String, passwordRepeat:string, email: s
 }
 
 
+export const resetPasswordInit = async (email: String): Promise<any> => {
+    if (email.length == 0) {
+        throw new Error("Missing required field!");
+    }
 
-const getRedirectUrl = async (provider: string): Promise<any> => {
+    let result = await fetch("/api/user/password/reset/init", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({email}),
+    })
+
+    let resultJson = await result.json()
+
+    if (result.status !== 200) {
+        let statusText = result.statusText
+
+        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
+            statusText = resultJson.errorMessage
+        }
+
+        throw new Error(`Error sending request: ${statusText}`);
+    }
+
+    if (resultJson.status === "ok") {
+        return Promise.resolve()
+    } else {
+        throw new Error("Unexpected error");
+    }
+}
+
+
+export const resetPasswordApply = async (password: String, passwordRepeat:string): Promise<any> => {
+    if (password.length == 0
+    || passwordRepeat.length == 0) {
+        throw new Error("Missing required field!");
+    }
+
+    if (password !== passwordRepeat) {
+        throw new Error("Passwords do not match!");
+    }
+
+    let result = await fetch("/api/user/password/reset", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            password: password,
+            confirm_password: password
+        }),
+    })
+
+    let resultJson = await result.json()
+
+    if (result.status !== 200) {
+        let statusText = result.statusText
+
+        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
+            statusText = resultJson.errorMessage
+        }
+
+        throw new Error(`Error sending request: ${statusText}`);
+    }
+
+    if (resultJson.status === "ok") {
+        return Promise.resolve()
+    } else {
+        throw new Error("Unexpected error");
+    }
+}
+
+
+const getOauth2RedirectUrl = async (provider: string): Promise<any> => {
     let result = await fetch(`/api/oauth2/${provider}/init`, {
         method: "GET",
         headers: {
@@ -203,6 +277,7 @@ const getRedirectUrl = async (provider: string): Promise<any> => {
     }
 }
 
+
 export const getGithubRedirectUrl = async (): Promise<any> => {
-    return getRedirectUrl("github")
+    return getOauth2RedirectUrl("github")
 }

@@ -92,9 +92,14 @@
                         </div>
                     {/if}
                     
-                    <div class="col-12">
+                    <div class="col-9">
                         <ul class="actions">
                             <li><input type="submit" on:click={handleLogin} value="Login" class="primary" /></li>
+                        </ul>
+                    </div>
+                    <div class="col-3">
+                        <ul class="actions">
+                            <li><a href="/#/passwordreset/init">Reset password</a></li>
                         </ul>
                     </div>
 

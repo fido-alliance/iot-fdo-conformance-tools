@@ -11,6 +11,8 @@
     import Device from './routes/Device.fdo.svelte';
     import Builds from './routes/Builds.svelte';
     import ErrorNotVerified from './routes/ErrorNotVerified.svelte';
+    import PasswordResetInit from './routes/PasswordResetInit.svelte';
+    import PasswordResetApply from './routes/PasswordResetApply.svelte';
 
     let routes = {
         "/": Login,
@@ -22,6 +24,8 @@
         "/test/rv": Rv,
         "/test/do": Do,
         "/test/device": Device,
+        "/resetpassword/apply": PasswordResetApply,
+        "/resetpassword": PasswordResetInit,
         "/error/notverified": ErrorNotVerified,
         "*": NotFound,
     }
