@@ -1,3 +1,9 @@
+build_loc := ./bin/
+
+
+fdotools_bin_loc := ~/conformance-test-infrastructure-new/iot-fdo-conformance/
+fdotools_infra_loc := ~/conformance-test-infrastructure-new/
+
 # Setting up project
 preconfig_submodules:
 	echo "\n----- Preconfig: Updating git submodules -----\n"
@@ -26,15 +32,15 @@ build_config_online:
 # Compiling GO code
 compile_win:
 	echo "\n----- Building for Windows... -----\n"
-	GOOS=windows go build -o bin/fdo-fido-conformance-server-windows.exe
+	GOOS=windows go build -o $(build_loc)/fdo-fido-conformance-server-windows.exe
 
 compile_linux:
 	echo "\n----- Building for Linux... -----\n"
-	GOOS=linux GOARCH=amd64 go build -o bin/fdo-fido-conformance-server-linux
+	GOOS=linux GOARCH=amd64 go build -o $(build_loc)/fdo-fido-conformance-server-linux
 
 compile_osx:
 	echo "\n----- Building for MacOS... -----\n"
-	GOOS=darwin go build -o bin/fdo-fido-conformance-server-osx
+	GOOS=darwin go build -o $(build_loc)/fdo-fido-conformance-server-osx
 
 compile_all: compile_win compile_linux compile_osx
 
@@ -42,7 +48,7 @@ compile_all: compile_win compile_linux compile_osx
 build_frontend:
 	echo "\n----- Building frontend... -----\n"
 	cd ./frontend && npm run build
-	cp -Rf ./frontend/dist bin/frontend
+	cp -Rf ./frontend/dist $(build_loc)/frontend
 
 # Build frontend
 update_fdo_packages:
@@ -54,8 +60,21 @@ update_fdo_packages:
 
 
 # Build frontend
-push_new_build_online:
-	echo "\n----- Updating FDO build... -----\n"
-	scp ./bin/fdo-fido-conformance-server-linux $(echo $FDO_BUILD_PUSH):~/conformance-test-infrastructure-new/iot-fdo-conformance/
+fdotools__push_new_bin:
+	echo "\n----- Updating FDO tools binary... -----\n"
+	scp bin/fdo-fido-conformance-server-linux ${FDO_BUILD_PUSH_HOST}:$(fdotools_bin_loc)
+
+# Build frontend
+fdotools__push_new_ui:
+	echo "\n----- Updating FDO tools ui... -----\n"
+	scp -R bin/frontend ${FDO_BUILD_PUSH_HOST}:$(fdotools_bin_loc)
+
+# Build frontend
+fdotools__restart_docker_compose:
+	echo "\n----- Restarting docker compose... -----\n"
+	ssh ${FDO_BUILD_PUSH_HOST} "cd $(fdotools_infra_loc) && docker-compose up --build --force -d"
+
+fdotools__restart_docker_update:
+
 
 build: build_frontend compile_all
