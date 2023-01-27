@@ -20,7 +20,7 @@
 
     <div class="row gtr-uniform">
         <div class="col-12 col-12-xsmall">
-            <iframe src="/api/builds/" frameborder="0" style="min-width: 100%; min-height: 20rem"></iframe>
+            <iframe title="FIDO Test Tools Builds" src="/api/builds/" frameborder="0" style="min-width: 100%; min-height: 20rem"></iframe>
         </div>
     </div>
 </section>

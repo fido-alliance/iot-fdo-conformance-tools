@@ -59,7 +59,7 @@
                         <input class="login_input" bind:value={password} type="password" placeholder="Password">
                     </div>
                     <div class="col-6 col-12-xsmall">
-                        <input class="login_input" bind:value={passwordRepeat} type="password" placeholder="Password repeated">
+                        <input class="login_input" bind:value={passwordRepeat} type="password" placeholder="Confirm your password">
                     </div>
                     <div class="col-12">
                         <ul class="actions">
