@@ -120,6 +120,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/user/config", userApiHandler.Config)
 
 	r.HandleFunc("/api/user/approve/{id}/{email}", userVerifyHandler.Check)
+	r.HandleFunc("/api/user/reject/{id}/{email}", userVerifyHandler.Check)
 	r.HandleFunc("/api/user/email/check/{id}/{email}", userVerifyHandler.Check)
 
 	r.HandleFunc("/api/user/password/reset/init", userVerifyHandler.PasswordResetInit)

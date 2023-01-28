@@ -68,7 +68,7 @@ func (h *UserVerify) generatePasswordHash(password string) ([]byte, error) {
 
 	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
 	if err != nil {
-		return []byte{}, errors.New("Error hashing password")
+		return []byte{}, errors.New("error hashing password")
 	}
 
 	return append(salt, dk...), nil
@@ -167,7 +167,7 @@ func (h *UserVerify) PasswordResetInit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.NotifyService.NotifyUserRegistration_PasswordReset(userResetPasswordReq.Email)
+	err = h.NotifyService.NotifyUserRegistration_PasswordReset(userResetPasswordReq.Email, r.Context())
 	if err != nil {
 		log.Println("Failed to submit notification. " + err.Error())
 		commonapi.RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
