@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
@@ -16,13 +15,21 @@ import (
 const FIDO_NOTIFY_EMAIL = "certification@fidoalliance.org"
 
 type NotifyPayload struct {
-	VendorEmail       string         `json:"vendor_email"`
-	FidoEmail         string         `json:"fido_email,omitempty"`
-	ApproveLink       string         `json:"approve_link,omitempty"`
-	RejectLink        string         `json:"reject_link,omitempty"`
-	PasswordResetLink string         `json:"password_reset_link,omitempty"`
+	VendorEmail   string `json:"vendor_email"`
+	VendorName    string `json:"vendor_name"`
+	VendorPhone   string `json:"vendor_phone"`
+	VendorCompany string `json:"vendor_company"`
+
+	ApproveLink       string `json:"approve_link,omitempty"`
+	RejectLink        string `json:"reject_link,omitempty"`
+	PasswordResetLink string `json:"reset_link,omitempty"`
+	EmailVerifyLink   string `json:"verify_link,omitempty"`
+
 	Type              dbs.VerifyType `json:"type"`
+	SubmissionCountry string         `json:"submission_country"`
+	RandomKss         string         `json:"randomkss,omitempty"`
 }
+
 
 type NotifyService struct {
 	ResultsApiKey string
@@ -31,9 +38,19 @@ type NotifyService struct {
 	LogTag        string
 }
 
-func (h *NotifyService) getResultsUrl(vttype dbs.VerifyType) string {
-	return fmt.Sprintf("%s/api/fdotools/%s", h.ResultsHost, vttype)
+func NewNotifyService(resultsApiKey string, resultsHost string, verifyDb *dbs.VerifyDB) NotifyService {
+	return NotifyService{
+		ResultsApiKey: resultsApiKey,
+		ResultsHost:   resultsHost,
+		VerifyDB:      verifyDb,
+		LogTag:        "NotifyService",
+	}
 }
+
+func (h *NotifyService) getResultsUrl(vttype dbs.VerifyType) string {
+	return fmt.Sprintf("%s/api/fdotools/notify/%s", h.ResultsHost, vttype)
+}
+
 func (h *NotifyService) createNotifyUserSession(email string, vttype dbs.VerifyType) ([]byte, error) {
 	var entry = dbs.VerifyEntry{
 		Email: email,
@@ -49,8 +66,6 @@ func (h *NotifyService) createNotifyUserSession(email string, vttype dbs.VerifyT
 }
 
 func (h *NotifyService) sendEmailNotification(requestPayload NotifyPayload) error {
-	log.Println("Reset email", requestPayload.FidoEmail, requestPayload.ApproveLink)
-
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
@@ -81,7 +96,7 @@ func (h *NotifyService) sendEmailNotification(requestPayload NotifyPayload) erro
 }
 
 // Send user email validation link
-func (h *NotifyService) NotifyUserRegistration_EmailVerification(email string, ctx context.Context) error {
+func (h *NotifyService) NotifyUserRegistration_EmailVerification(email string, submissionCountry string, ctx context.Context) error {
 	entryId, err := h.createNotifyUserSession(email, dbs.VT_Email)
 	if err != nil {
 		return nil
@@ -97,7 +112,7 @@ func (h *NotifyService) NotifyUserRegistration_EmailVerification(email string, c
 }
 
 // Send FIDO email about new user
-func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, ctx context.Context) error {
+func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, userInfo NotifyPayload, submissionCountry string, ctx context.Context) error {
 	entryId, err := h.createNotifyUserSession(email, dbs.VT_User)
 	if err != nil {
 		return nil
@@ -106,11 +121,35 @@ func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, c
 	userApprovalLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_FDO_SERVICE_URL).(string), email, string(entryId))
 	userRejectLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_FDO_SERVICE_URL).(string), email, string(entryId))
 
+	reqPayload := userInfo
+	reqPayload.ApproveLink = userApprovalLink
+	reqPayload.RejectLink = userRejectLink
+	reqPayload.VendorEmail = email
+	reqPayload.SubmissionCountry = submissionCountry
+	reqPayload.Type = dbs.VT_User
+
+	return h.sendEmailNotification(NotifyPayload{
+		VendorEmail:       email,
+		ApproveLink:       userApprovalLink,
+		RejectLink:        userRejectLink,
+		SubmissionCountry: submissionCountry,
+		Type:              dbs.VT_Email,
+	})
+}
+
+// Send FIDO email about new user
+func (h *NotifyService) NotifyUserRegistration_Approved(email string, ctx context.Context) error {
 	return h.sendEmailNotification(NotifyPayload{
 		VendorEmail: email,
-		ApproveLink: userApprovalLink,
-		RejectLink:  userRejectLink,
-		Type:        dbs.VT_Email,
+		Type:        dbs.VT_RegistrationApproved,
+	})
+}
+
+// Send FIDO email about new user
+func (h *NotifyService) NotifyUserRegistration_Rejected(email string, ctx context.Context) error {
+	return h.sendEmailNotification(NotifyPayload{
+		VendorEmail: email,
+		Type:        dbs.VT_RegistrationRejected,
 	})
 }
 
