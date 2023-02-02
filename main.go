@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -70,6 +69,15 @@ func InitBadgerDB() *badger.DB {
 	return db
 }
 
+func TryEnvAndSaveToCtx(ctx context.Context, envvar fdoshared.CONFIG_ENTRY, defaultValue string) context.Context {
+	resultEnvValue := os.Getenv(strings.ToUpper(string(envvar)))
+	if resultEnvValue == "" {
+		resultEnvValue = defaultValue
+	}
+
+	return context.WithValue(ctx, envvar, defaultValue)
+}
+
 func main() {
 	cliapp := &cli.App{
 		Commands: []*cli.Command{
@@ -82,56 +90,24 @@ func main() {
 
 					selectedPort := DEFAULT_PORT
 
-					apiKeyResult := os.Getenv(strings.ToUpper(string(fdoshared.CFG_API_KEY_RESULTS)))
-					if apiKeyResult == "" {
-						apiKeyResult = APIKEY_RESULT_SUBMISSION
-					}
-					apiKeyBuilds := os.Getenv(strings.ToUpper(string(fdoshared.CFG_API_BUILDS_URL)))
-					if apiKeyBuilds == "" {
-						apiKeyBuilds = APIKEY_BUILDS_URL
-					}
-					fdoServiceUrl := os.Getenv(strings.ToUpper(string(fdoshared.CFG_FDO_SERVICE_URL)))
-					if fdoServiceUrl == "" {
-						fdoServiceUrl = FDO_SERVICE_URL
-					}
-					fdoDevEnvState := os.Getenv(strings.ToUpper(string(fdoshared.CFG_MODE)))
-					if fdoDevEnvState == "" {
-						fdoDevEnvState = FDO_DEV_ENV_DEFAULT
-					}
-					portEnv := os.Getenv(strings.ToUpper(string(tools.CFG_ENV_PORT)))
-					if portEnv != "" {
-						portEnvNum, err := strconv.ParseInt(portEnv, 10, 0)
-						if err != nil {
-							log.Panicln("Error error reading port. " + err.Error())
-						}
-
-						selectedPort = int(portEnvNum)
-					}
-
-					// Github OAuth2
-					githubOauth2_clientid := os.Getenv(strings.ToUpper(string(tools.CFG_GITHUB_CLIENTID)))
-					if githubOauth2_clientid == "" {
-						githubOauth2_clientid = GITHUB_OAUTH2_CLIENTID
-					}
-					githubOauth2_clientsecret := os.Getenv(strings.ToUpper(string(tools.CFG_GITHUB_CLIENTSECRET)))
-					if githubOauth2_clientsecret == "" {
-						githubOauth2_clientsecret = GITHUB_OAUTH2_CLIENTISECRET
-					}
-					githubOauth2_redirecturl := os.Getenv(strings.ToUpper(string(tools.CFG_GITHUB_REDIRECTURL)))
-					if githubOauth2_redirecturl == "" {
-						githubOauth2_redirecturl = GITHUB_OAUTH2_REDIRECTURL
-					}
-
 					ctx := context.Background()
-					ctx = context.WithValue(ctx, fdoshared.CFG_API_KEY_RESULTS, apiKeyResult)
-					ctx = context.WithValue(ctx, fdoshared.CFG_API_BUILDS_URL, apiKeyBuilds)
-					ctx = context.WithValue(ctx, fdoshared.CFG_FDO_SERVICE_URL, fdoServiceUrl)
-					ctx = context.WithValue(ctx, fdoshared.CFG_MODE, TOOLS_MODE)
-					ctx = context.WithValue(ctx, tools.CFG_DEV_ENV, fdoDevEnvState)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_API_KEY_RESULTS, APIKEY_RESULT_SUBMISSION)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_API_BUILDS_URL, APIKEY_BUILDS_URL)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_FDO_SERVICE_URL, FDO_SERVICE_URL)
 
-					ctx = context.WithValue(ctx, tools.CFG_GITHUB_CLIENTID, githubOauth2_clientid)
-					ctx = context.WithValue(ctx, tools.CFG_GITHUB_CLIENTSECRET, githubOauth2_clientsecret)
-					ctx = context.WithValue(ctx, tools.CFG_GITHUB_REDIRECTURL, githubOauth2_redirecturl)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_MODE, string(TOOLS_MODE))
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_DEV_ENV, FDO_DEV_ENV_DEFAULT)
+
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_NOTIFY_SERVICE_HOST, NOTIFY_SERVICE_HOST)
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_NOTIFY_SERVICE_SECRET, NOTIFY_SERVICE_SECRET)
+
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GITHUB_CLIENTID, GITHUB_OAUTH2_CLIENTID)
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GITHUB_CLIENTSECRET, GITHUB_OAUTH2_CLIENTISECRET)
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GITHUB_REDIRECTURL, GITHUB_OAUTH2_REDIRECTURL)
+
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GOOGLE_CLIENTID, GOOGLE_OAUTH2_CLIENTID)
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GOOGLE_CLIENTSECRET, GOOGLE_OAUTH2_CLIENTISECRET)
+					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GOOGLE_REDIRECTURL, GOOGLE_OAUTH2_REDIRECTURL)
 
 					// Setup FDO listeners
 					fdodo.SetupServer(db)
