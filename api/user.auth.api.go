@@ -1,4 +1,4 @@
-package externalapi
+package api
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
@@ -69,7 +70,7 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userInst, err := h.UserDB.Get(createUser.Email)
-	if err == nil && userInst.AccountApproved {
+	if err == nil && userInst.Status == dbs.AS_Awaiting {
 		log.Println("User exists.")
 		commonapi.RespondError(w, "User exists.", http.StatusBadRequest)
 		return
@@ -87,6 +88,7 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: passwordHash,
 		Name:         createUser.Name,
 		Company:      createUser.Company,
+		Status:       dbs.AS_Awaiting,
 	}
 
 	err = h.UserDB.Save(newUserInst)
@@ -96,17 +98,28 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	submissionCountry := commonapi.ExtractCloudflareLocation(r)
+
+	err = h.Notify.NotifyUserRegistration_EmailVerification(newUserInst.Email, submissionCountry, r.Context())
+	if err != nil {
+		log.Println("Error sending user registration email. " + err.Error())
+		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.Notify.NotifyUserRegistration_AccountValidation(newUserInst.Email, services.NotifyPayload{
+		VendorEmail:   newUserInst.Email,
+		VendorName:    newUserInst.Name,
+		VendorPhone:   createUser.Phone,
+		VendorCompany: newUserInst.Company,
+	}, submissionCountry, r.Context())
+	if err != nil {
+		log.Println("Error sending user verification email. " + err.Error())
+		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
+		return
+	}
+
 	commonapi.RespondError(w, "Your account pending approval. Once it approved you will receive notification on your email address.", http.StatusInternalServerError)
-
-	// sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: createUser.Email})
-	// if err != nil {
-	// 	log.Println("Error creating session. " + err.Error())
-	// 	commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
-	// 	return
-	// }
-
-	// http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
-	// commonapi.RespondSuccess(w)
 }
 
 func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
@@ -161,7 +174,7 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !userInst.AccountApproved {
+	if userInst.Status != dbs.AS_Validated {
 		commonapi.RespondError(w, "Your account pending approval. Please wait 2-3 working days. Otherwise email certification@fidoalliance.org", http.StatusBadRequest)
 		return
 	}

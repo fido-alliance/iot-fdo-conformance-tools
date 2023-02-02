@@ -1,4 +1,4 @@
-package externalapi
+package api
 
 import (
 	"errors"
@@ -126,7 +126,7 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 
 	userInst, err := h.UserDB.Get(email)
 	if err == nil && userInst != nil {
-		if isFidoGithubMember || userInst.AccountApproved {
+		if isFidoGithubMember || userInst.Status == dbs.AS_Validated {
 			sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
 				Email: email,
 			})
@@ -144,9 +144,15 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		accountStatus := dbs.AS_Awaiting
+
+		if isFidoGithubMember {
+			accountStatus = dbs.AS_Validated
+		}
+
 		newUserInst := dbs.UserTestDBEntry{
-			Email:           strings.ToLower(email),
-			AccountApproved: isFidoGithubMember,
+			Email:  strings.ToLower(email),
+			Status: accountStatus,
 		}
 
 		err = h.UserDB.Save(newUserInst)

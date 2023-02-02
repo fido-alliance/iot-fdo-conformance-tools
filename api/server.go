@@ -1,12 +1,12 @@
-package externalapi
+package api
 
 import (
 	"context"
 	"net/http"
 
 	dodbs "github.com/WebauthnWorks/fdo-do/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/testapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/testapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/tools"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
@@ -31,10 +31,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	doVoucherDb := dodbs.NewVoucherDB(db)
 	verifyDb := dbs.NewVerifyDB(db)
 
-	notifyService := services.NotifyService{
-		ResultsApiKey: "123456",
-		VerifyDB:      verifyDb,
-	}
+	notifyService := services.NewNotifyService("123456", "http://12345", verifyDb)
 
 	rvtApiHandler := testapi.RVTestMgmtAPI{
 		UserDB:    userDb,
@@ -78,14 +75,26 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		SessionDB: sessionDb,
 	}
 
+	adminApi := AdminApi{
+		UserDB:        userDb,
+		VerifyDB:      verifyDb,
+		NotifyService: &notifyService,
+	}
+
 	oauth2ApiHandle := OAuth2API{
 		UserDB:    userDb,
 		SessionDB: sessionDb,
 		OAuth2Service: &services.OAuth2Service{
 			Providers: map[services.OAuth2ProviderID]services.OAuth2Provider{
 				services.OATH2_GITHUB: services.NewGithubOAuth2Connector(services.OAuth2ProviderConfig{
-					ClientId:     ctx.Value(tools.CFG_GITHUB_CLIENTID).(string),
-					ClientSecret: ctx.Value(tools.CFG_GITHUB_CLIENTSECRET).(string),
+					ClientId:     ctx.Value(tools.CFG_ENV_GITHUB_CLIENTID).(string),
+					ClientSecret: ctx.Value(tools.CFG_ENV_GITHUB_CLIENTSECRET).(string),
+					RedirectUrl:  ctx.Value(tools.CFG_ENV_GITHUB_REDIRECTURL).(string),
+				}),
+				services.OATH2_GOOGLE: services.NewGoogleOAuth2Connector(services.OAuth2ProviderConfig{
+					ClientId:     ctx.Value(tools.CFG_ENV_GOOGLE_CLIENTID).(string),
+					ClientSecret: ctx.Value(tools.CFG_ENV_GOOGLE_CLIENTSECRET).(string),
+					RedirectUrl:  ctx.Value(tools.CFG_ENV_GOOGLE_REDIRECTURL).(string),
 				}),
 			},
 		},
@@ -120,7 +129,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/user/config", userApiHandler.Config)
 
 	r.HandleFunc("/api/user/approve/{id}/{email}", userVerifyHandler.Check)
-	r.HandleFunc("/api/user/reject/{id}/{email}", userVerifyHandler.Check)
+	r.HandleFunc("/api/user/reject/{id}/{email}", userVerifyHandler.Reject)
 	r.HandleFunc("/api/user/email/check/{id}/{email}", userVerifyHandler.Check)
 
 	r.HandleFunc("/api/user/password/reset/init", userVerifyHandler.PasswordResetInit)
@@ -129,6 +138,9 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 
 	r.HandleFunc("/api/oauth2/{providerid}/init", oauth2ApiHandle.InitWithRedirectUrl)
 	r.HandleFunc("/api/oauth2/{providerid}/callback", oauth2ApiHandle.ProcessCallback)
+
+	r.HandleFunc("/api/admin/users", adminApi.GetUserList)
+	r.HandleFunc("/api/admin/users/{action}/{email}", adminApi.SetUserAccountState)
 
 	if ctx.Value(tools.CFG_DEV_ENV) == tools.ENV_DEV {
 		r.PathPrefix("/").HandlerFunc(ProxyDevUI)

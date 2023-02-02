@@ -1,4 +1,4 @@
-package externalapi
+package api
 
 import (
 	"crypto/rand"
@@ -74,6 +74,69 @@ func (h *UserVerify) generatePasswordHash(password string) ([]byte, error) {
 	return append(salt, dk...), nil
 }
 
+func (h *UserVerify) Reject(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
+		log.Println("Only allowed for on-line build!")
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+	email := vars["email"]
+
+	entry, err := h.VerifyDB.GetEntry([]byte(id))
+	if err != nil {
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	if entry.Email != email {
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	userInst, err := h.UserDB.Get(entry.Email)
+	if err != nil {
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	if entry.Type != dbs.VT_User {
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	userInst.Status = dbs.AS_Blocked
+
+	err = h.UserDB.Save(*userInst)
+	if err != nil {
+		commonapi.RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.VerifyDB.DeleteEntry([]byte(id))
+	if err != nil {
+		log.Println("Error deleting verify entry. " + err.Error())
+		commonapi.RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.NotifyService.NotifyUserRegistration_Rejected(userInst.Email, r.Context())
+	if err != nil {
+		log.Println("Error sending reject notification email. " + err.Error())
+		commonapi.RespondError(w, "Internal Server Error!", http.StatusInternalServerError)
+		return
+	}
+
+	commonapi.RespondSuccess(w)
+}
+
 func (h *UserVerify) Check(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
@@ -96,13 +159,13 @@ func (h *UserVerify) Check(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInst, err := h.UserDB.Get(entry.Email)
-	if err != nil {
+	if entry.Email != email {
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
-	if userInst.Email != email {
+	userInst, err := h.UserDB.Get(entry.Email)
+	if err != nil {
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
@@ -110,7 +173,7 @@ func (h *UserVerify) Check(w http.ResponseWriter, r *http.Request) {
 	if entry.Type == dbs.VT_Email {
 		userInst.EmailVerified = true
 	} else if entry.Type == dbs.VT_User {
-		userInst.AccountApproved = true
+		userInst.Status = dbs.AS_Validated
 	} else {
 		commonapi.RespondError(w, "Bad request!", http.StatusBadRequest)
 		return
