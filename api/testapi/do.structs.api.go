@@ -1,7 +1,7 @@
 package testapi
 
 import (
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
 )

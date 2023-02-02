@@ -14,8 +14,8 @@ import (
 	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
 	"github.com/WebauthnWorks/fdo-device-implementation/to1"
 	fdodo "github.com/WebauthnWorks/fdo-do"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/api"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/tools"
 	fdorv "github.com/WebauthnWorks/fdo-rv"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
@@ -112,7 +112,7 @@ func main() {
 					// Setup FDO listeners
 					fdodo.SetupServer(db)
 					fdorv.SetupServer(db)
-					externalapi.SetupServer(db, ctx)
+					api.SetupServer(db, ctx)
 
 					log.Printf("Starting server at port %d... \n", selectedPort)
 

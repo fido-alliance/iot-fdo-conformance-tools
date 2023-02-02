@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/gorilla/mux"

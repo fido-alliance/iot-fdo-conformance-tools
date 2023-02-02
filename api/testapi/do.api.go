@@ -13,8 +13,8 @@ import (
 	"net/url"
 
 	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/externalapi/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
