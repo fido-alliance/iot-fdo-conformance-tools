@@ -127,6 +127,7 @@ func (h GithubOAuth2Provider) getGithubOauthConfig() *oauth2.Config {
 		// RedirectURL:  h.Config.RedirectUrl,
 		ClientID:     h.Config.ClientId,
 		ClientSecret: h.Config.ClientSecret,
+		RedirectURL:  h.Config.RedirectUrl,
 		Scopes:       Github_OAuth2Scopes,
 		Endpoint:     h.Endpoint,
 	}

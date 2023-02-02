@@ -8,6 +8,7 @@ type OAuth2ProviderConfig struct {
 	// RedirectUrl  string
 	ClientSecret string
 	ClientId     string
+	RedirectUrl  string
 }
 
 type OAuth2ProviderID string
