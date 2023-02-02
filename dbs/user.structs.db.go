@@ -68,6 +68,14 @@ func NewDeviceTestInst(name string, listenerUuid []byte, guid fdoshared.FdoGuid)
 	}
 }
 
+type AccountStatus string
+
+const (
+	AS_Awaiting  AccountStatus = "awaiting"
+	AS_Blocked   AccountStatus = "blocked"
+	AS_Validated AccountStatus = "validated"
+)
+
 type UserTestDBEntry struct {
 	_            struct{} `cbor:",toarray"`
 	Email        string   `cbor:"email"`
@@ -75,8 +83,8 @@ type UserTestDBEntry struct {
 	Name         string   `cbor:"name"`
 	Company      string   `cbor:"company"`
 
-	EmailVerified   bool `cbor:"email_verified"`
-	AccountApproved bool `cbor:"account_approved"`
+	EmailVerified bool          `cbor:"email_verified"`
+	Status        AccountStatus `cbor:"account_status"`
 
 	RVTestInsts     []RVTestInst     `cbor:"test_rv"`
 	DOTestInsts     []DOTestInst     `cbor:"test_do"`
