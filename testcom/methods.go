@@ -24,6 +24,19 @@ func ExpectFdoError(bodyBytes []byte, testId FDOTestID, expectedFdoError fdoshar
 	return NewSuccessTestState(testId)
 }
 
+func ExpectAnyFdoError(bodyBytes []byte, testId FDOTestID, expectedFdoError fdoshared.FdoErrorCode, httpStatus int) FDOTestState {
+	if httpStatus == http.StatusOK {
+		return NewFailTestState(testId, "Server return HTTP 200OK. Expected error.")
+	}
+
+	_, err := fdoshared.DecodeErrorResponse(bodyBytes)
+	if err != nil {
+		return NewFailTestState(testId, "Could not decode FDO Error")
+	}
+
+	return NewSuccessTestState(testId)
+}
+
 func ExpectedFdoSuccess(testId FDOTestID, httpStatus int) FDOTestState {
 	if httpStatus != http.StatusOK {
 		return NewFailTestState(testId, fmt.Sprintf("Server return HTTP Error %d. Expected HTTP 200OK", httpStatus))
