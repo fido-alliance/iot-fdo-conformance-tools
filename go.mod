@@ -12,10 +12,10 @@ require (
 )
 
 require (
-	github.com/WebauthnWorks/fdo-device-implementation v0.3.0
-	github.com/WebauthnWorks/fdo-do v0.3.0
-	github.com/WebauthnWorks/fdo-rv v0.3.0
-	github.com/WebauthnWorks/fdo-shared v0.9.84
+	github.com/WebauthnWorks/fdo-device-implementation v0.3.1
+	github.com/WebauthnWorks/fdo-do v0.3.1
+	github.com/WebauthnWorks/fdo-rv v0.3.1
+	github.com/WebauthnWorks/fdo-shared v0.9.85
 	golang.org/x/oauth2 v0.3.0
 )
 

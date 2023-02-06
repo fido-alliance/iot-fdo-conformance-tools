@@ -6,10 +6,16 @@ github.com/WebauthnWorks/dhkx v0.3.3 h1:C+X9EeZPRIgv5tT/jIoBvXsqLqKbUnFXOipvEAU5
 github.com/WebauthnWorks/dhkx v0.3.3/go.mod h1:dxBmjaAf+m+ba0moLw5ytPNeZdOXnDnymEZbfreapAM=
 github.com/WebauthnWorks/fdo-device-implementation v0.3.0 h1:nW3fLKf5foHBoUk62Q5Umgvcx1BYmi/WC65/oCNvZvg=
 github.com/WebauthnWorks/fdo-device-implementation v0.3.0/go.mod h1:LW2/N1FZEYoka4JXaYE9dRMNMiLIP08XUkDOrcYFSLA=
+github.com/WebauthnWorks/fdo-device-implementation v0.3.1 h1:B1jBYbisnfd6+tN4yVPLbuhiQwGsBoTppArOffC29uQ=
+github.com/WebauthnWorks/fdo-device-implementation v0.3.1/go.mod h1:HN7e3G8SXkudwykgQ6t1zQb3DTHo23NHaeuhodSho14=
 github.com/WebauthnWorks/fdo-do v0.3.0 h1:KSGjRRrEowy+adTxsZ+ZRqUj2BkbDHO3SsYuBxSKwx4=
 github.com/WebauthnWorks/fdo-do v0.3.0/go.mod h1:alLFDfsm8rFFVWFebcvRX70E/zNwUyKql4rCMlwX2a8=
+github.com/WebauthnWorks/fdo-do v0.3.1 h1:S3YElq5Ami4bu43BvtafuL+SYIfEJJktMJQUQwm+ujE=
+github.com/WebauthnWorks/fdo-do v0.3.1/go.mod h1:fmZrcIIpVr8Q0PZ29DsmvR/jqZLCIyAs9hBY0Gr1uGA=
 github.com/WebauthnWorks/fdo-rv v0.3.0 h1:j6q5p2zbl8XP0UHPMODwOr4D6anPavCmxDQniPtHXBQ=
 github.com/WebauthnWorks/fdo-rv v0.3.0/go.mod h1:GUOGaOaIqCB2GurI/UDiEFMGcXbGrCU1Z939e9qaZf8=
+github.com/WebauthnWorks/fdo-rv v0.3.1 h1:llGAZcuS4zbn8VZ5vPWe1BD6AnVAc5t9TtyNTQigJHs=
+github.com/WebauthnWorks/fdo-rv v0.3.1/go.mod h1:/u6TKXKqvZYEZfkwkEIgYUGNgHJERXcg2n6EIhiRdos=
 github.com/WebauthnWorks/fdo-shared v0.9.81 h1:gFLrp3WaEHniXKoWZN9asCIGihqnVdXdfFn856Ty1QI=
 github.com/WebauthnWorks/fdo-shared v0.9.81/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
 github.com/WebauthnWorks/fdo-shared v0.9.82 h1:DrmrSCYj7eUj1TPw/okw1dTYqf0syBxncopKM7P1jvU=
@@ -18,6 +24,8 @@ github.com/WebauthnWorks/fdo-shared v0.9.83 h1:zz+pBtAh69gMb/0vS3G7naw+WnBm8iIAn
 github.com/WebauthnWorks/fdo-shared v0.9.83/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
 github.com/WebauthnWorks/fdo-shared v0.9.84 h1:qdyTLhmZPmH9mkFR/Zfkq5GLxbP37uPOqD/edxEFlQo=
 github.com/WebauthnWorks/fdo-shared v0.9.84/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
+github.com/WebauthnWorks/fdo-shared v0.9.85 h1:NFJDklRGQCZYNGcsGMt81NElNFHa04Cr+cZkusQJSrM=
+github.com/WebauthnWorks/fdo-shared v0.9.85/go.mod h1:2xkHcyS3f7AbjiOrenfG30ZeyETJQyo2O+XhA6UHB1g=
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
