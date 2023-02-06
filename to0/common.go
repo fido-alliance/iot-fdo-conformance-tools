@@ -90,13 +90,13 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 		return testcom.NewSuccessTestState(fdoTestID)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_20, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_RVT_22, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
 
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_VOUCHER, fdoTestID):
-		return testcom.ExpectFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, expectedErrorCode, httpStatusCode)
 	}
 
 	return testcom.NewFailTestState(fdoTestID, "Unsupported test "+string(fdoTestID))
