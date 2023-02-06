@@ -37,6 +37,11 @@ header > h1 {
 
 .button.oauth.google {
   background-color: white !important;
+  color: black !important;
+}
+
+.button.oauth.google {
+  background-color: white !important;
 }
 
 

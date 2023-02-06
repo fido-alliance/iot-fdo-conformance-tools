@@ -281,3 +281,7 @@ const getOauth2RedirectUrl = async (provider: string): Promise<any> => {
 export const getGithubRedirectUrl = async (): Promise<any> => {
     return getOauth2RedirectUrl("github")
 }
+
+export const getGoogleRedirectUrl = async (): Promise<any> => {
+    return getOauth2RedirectUrl("google")
+}
