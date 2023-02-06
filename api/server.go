@@ -31,7 +31,10 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	doVoucherDb := dodbs.NewVoucherDB(db)
 	verifyDb := dbs.NewVerifyDB(db)
 
-	notifyService := services.NewNotifyService("123456", "http://12345", verifyDb)
+	notifyService := services.NewNotifyService(
+		ctx.Value(tools.CFG_ENV_NOTIFY_SERVICE_HOST).(string),
+		ctx.Value(tools.CFG_ENV_NOTIFY_SERVICE_SECRET).(string),
+		verifyDb)
 
 	rvtApiHandler := testapi.RVTestMgmtAPI{
 		UserDB:    userDb,
