@@ -102,7 +102,7 @@ func (h *NotifyService) NotifyUserRegistration_EmailVerification(email string, s
 		return nil
 	}
 
-	emailVerificationLink := fmt.Sprintf("%s/api/user/email/check/%s/%s", ctx.Value(fdoshared.CFG_FDO_SERVICE_URL).(string), email, string(entryId))
+	emailVerificationLink := fmt.Sprintf("%s/api/user/email/check/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
 
 	return h.sendEmailNotification(NotifyPayload{
 		VendorEmail: email,
@@ -118,8 +118,8 @@ func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, u
 		return nil
 	}
 
-	userApprovalLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_FDO_SERVICE_URL).(string), email, string(entryId))
-	userRejectLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_FDO_SERVICE_URL).(string), email, string(entryId))
+	userApprovalLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
+	userRejectLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
 
 	reqPayload := userInfo
 	reqPayload.ApproveLink = userApprovalLink
@@ -159,7 +159,7 @@ func (h *NotifyService) NotifyUserRegistration_PasswordReset(email string, ctx c
 		return nil
 	}
 
-	resetLink := fmt.Sprintf("%s/api/user/password/reset/%s/%s", ctx.Value(fdoshared.CFG_FDO_SERVICE_URL).(string), email, string(entryId))
+	resetLink := fmt.Sprintf("%s/api/user/password/reset/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
 
 	return h.sendEmailNotification(NotifyPayload{
 		VendorEmail:       email,

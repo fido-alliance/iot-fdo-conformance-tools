@@ -48,7 +48,7 @@ func (h *BuildsProxyAPI) ProxyBuilds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
+	if r.Context().Value(fdoshared.CFG_ENV_MODE) == fdoshared.CFG_MODE_ONPREM {
 		log.Println("Only allowed for on-line build!")
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
@@ -61,7 +61,7 @@ func (h *BuildsProxyAPI) ProxyBuilds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buildsApiUrl := r.Context().Value(fdoshared.CFG_API_BUILDS_URL)
+	buildsApiUrl := r.Context().Value(fdoshared.CFG_ENV_API_BUILDS_URL)
 
 	if buildsApiUrl == nil {
 		commonapi.RespondError(w, "Server is down. ", http.StatusInternalServerError)

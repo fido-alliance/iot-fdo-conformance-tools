@@ -91,11 +91,11 @@ func main() {
 					selectedPort := DEFAULT_PORT
 
 					ctx := context.Background()
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_API_KEY_RESULTS, APIKEY_RESULT_SUBMISSION)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_API_BUILDS_URL, APIKEY_BUILDS_URL)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_FDO_SERVICE_URL, FDO_SERVICE_URL)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_KEY_RESULTS, APIKEY_RESULT_SUBMISSION)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_BUILDS_URL, APIKEY_BUILDS_URL)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_FDO_SERVICE_URL, FDO_SERVICE_URL)
 
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_MODE, string(TOOLS_MODE))
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_MODE, string(TOOLS_MODE))
 					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_DEV_ENV, FDO_DEV_ENV_DEFAULT)
 
 					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_NOTIFY_SERVICE_HOST, NOTIFY_SERVICE_HOST)

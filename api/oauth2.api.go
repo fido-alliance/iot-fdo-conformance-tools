@@ -49,7 +49,7 @@ func (h *OAuth2API) InitWithRedirectUrl(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
+	if r.Context().Value(fdoshared.CFG_ENV_MODE) == fdoshared.CFG_MODE_ONPREM {
 		log.Println("Only allowed for on-line build!")
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
@@ -89,7 +89,7 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Context().Value(fdoshared.CFG_MODE) == fdoshared.CFG_MODE_ONPREM {
+	if r.Context().Value(fdoshared.CFG_ENV_MODE) == fdoshared.CFG_MODE_ONPREM {
 		log.Println("Only allowed for on-line build!")
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
