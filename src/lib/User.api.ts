@@ -175,6 +175,41 @@ export const register = async (password: String, passwordRepeat:string, email: s
     }
 }
 
+export const completeOAuth2Reg = async (company:string, name:string, phone:string): Promise<any> => {
+    if (name.length == 0
+    || company.length == 0
+    || phone.length == 0) {
+        throw new Error("Missing required field!");
+    }
+
+    let result = await fetch("/api/user/register/additionalinfo", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({name, company, phone}),
+    })
+
+    let resultJson = await result.json()
+
+    if (result.status !== 200) {
+        let statusText = result.statusText
+
+        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
+            statusText = resultJson.errorMessage
+        }
+
+        throw new Error(`Error sending request: ${statusText}`);
+    }
+
+    if (resultJson.status === "ok") {
+        return Promise.resolve()
+    } else {
+        throw new Error("Unexpected error");
+    }
+}
+
+
 
 export const resetPasswordInit = async (email: String): Promise<any> => {
     if (email.length == 0) {

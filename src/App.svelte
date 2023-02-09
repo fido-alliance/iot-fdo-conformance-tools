@@ -13,10 +13,12 @@
     import ErrorNotVerified from './routes/ErrorNotVerified.svelte';
     import PasswordResetInit from './routes/PasswordResetInit.svelte';
     import PasswordResetApply from './routes/PasswordResetApply.svelte';
+    import AdditionalInfo from './routes/AdditionalInfo.svelte';
 
     let routes = {
         "/": Login,
         "/register": Register,
+        "/register/additionalinfo": AdditionalInfo,
         "/login": Login,
         "/test": FdoDashboard,
         "/menu": OnlineMenu,
