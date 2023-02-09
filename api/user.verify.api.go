@@ -298,7 +298,7 @@ func (h *UserVerify) PasswordResetCheck(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	http.Redirect(w, r, "/#/resetpassword/apply", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, commonapi.REDIRECT_RESET_PASSWORD, http.StatusTemporaryRedirect)
 }
 
 func (h *UserVerify) PasswordResetSet(w http.ResponseWriter, r *http.Request) {

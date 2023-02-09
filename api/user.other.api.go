@@ -65,7 +65,7 @@ func (h *UserAPI) Config(w http.ResponseWriter, r *http.Request) {
 	}
 
 	commonapi.RespondSuccessStruct(w, commonapi.User_Config{
-		Mode: r.Context().Value(fdoshared.CFG_ENV_MODE).(fdoshared.CONFIG_MODE_TYPE),
+		Mode: fdoshared.CONFIG_MODE_TYPE(r.Context().Value(fdoshared.CFG_ENV_MODE).(string)),
 	})
 }
 
@@ -157,6 +157,34 @@ func (h *UserAPI) PurgeTests(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("SUCCESSFULLY PURGED TESTS")
+
+	commonapi.RespondSuccess(w)
+}
+
+func (h *UserAPI) ReRequestEmailValidationLink(w http.ResponseWriter, r *http.Request) {
+	if !commonapi.CheckHeaders(w, r) {
+		return
+	}
+
+	if r.Context().Value(fdoshared.CFG_ENV_MODE) == fdoshared.CFG_MODE_ONPREM {
+		log.Println("Only allowed for on-line build!")
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	isLoggedIn, session, _ := h.isLoggedIn(r)
+	if isLoggedIn {
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
+	}
+
+	submissionCountry := commonapi.ExtractCloudflareLocation(r)
+
+	err := h.Notify.NotifyUserRegistration_EmailVerification(session.Email, submissionCountry, r.Context())
+	if err != nil {
+		log.Println("Error sending user registration email. " + err.Error())
+		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
+		return
+	}
 
 	commonapi.RespondSuccess(w)
 }
