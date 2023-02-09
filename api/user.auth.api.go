@@ -179,7 +179,10 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: loginUser.Email})
+	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
+		Email:    loginUser.Email,
+		LoggedIn: true,
+	})
 	if err != nil {
 		log.Println("Error creating session. " + err.Error())
 		commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
@@ -215,7 +218,7 @@ func (h *UserAPI) OnPremNoLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: ONPREM_CONFIG})
+	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: ONPREM_CONFIG, LoggedIn: true})
 	if err != nil {
 		log.Println("Error creating session. " + err.Error())
 		commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)

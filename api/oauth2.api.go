@@ -27,12 +27,16 @@ func (h *OAuth2API) checkAutzAndGetSession(r *http.Request) (*dbs.SessionEntry, 
 	}
 
 	if sessionCookie == nil {
-		return nil, errors.New("Cookie does not exists")
+		return nil, errors.New("cookie does not exists")
 	}
 
 	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
 	if err != nil {
 		return nil, errors.New("Session expired. " + err.Error())
+	}
+
+	if !sessionInst.LoggedIn {
+		return nil, errors.New("User is not logged in!" + err.Error())
 	}
 
 	return sessionInst, nil
@@ -128,7 +132,8 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 	if err == nil && userInst != nil {
 		if isFidoGithubMember || userInst.Status == dbs.AS_Validated {
 			sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
-				Email: email,
+				Email:    email,
+				LoggedIn: true,
 			})
 			if err != nil {
 				log.Println("Error creating session. " + err.Error())

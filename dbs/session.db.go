@@ -31,6 +31,9 @@ type SessionEntry struct {
 	OAuth2Provider         string
 	OAuth2Nonce            string
 	OAuth2State            string
+	_        struct{} `cbor:",toarray"`
+	Email    string
+	LoggedIn bool
 	PasswordResetEmail     string
 	PasswordResetTimestamp time.Time
 }

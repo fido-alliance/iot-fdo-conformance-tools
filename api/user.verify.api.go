@@ -385,7 +385,7 @@ func (h *UserVerify) PasswordResetSet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: userInst.Email})
+	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: userInst.Email, LoggedIn: true})
 	if err != nil {
 		log.Println("Error creating session. " + err.Error())
 		commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)

@@ -125,6 +125,11 @@ func (h *UserAPI) PurgeTests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !sessionInst.LoggedIn {
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
 		log.Println("User does not exists.")

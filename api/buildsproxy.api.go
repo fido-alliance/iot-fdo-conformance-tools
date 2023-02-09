@@ -34,6 +34,10 @@ func (h *BuildsProxyAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEn
 		return nil, errors.New("Session expired. " + err.Error())
 	}
 
+	if !sessionInst.LoggedIn {
+		return nil, errors.New("User is not logged in!" + err.Error())
+	}
+
 	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
 		return nil, errors.New("User does not exists. " + err.Error())

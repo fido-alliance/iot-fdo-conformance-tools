@@ -44,6 +44,10 @@ func (h *RVTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEnt
 		return nil, errors.New("Session expired. " + err.Error())
 	}
 
+	if !sessionInst.LoggedIn {
+		return nil, errors.New("Unauthorized!")
+	}
+
 	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
 		return nil, errors.New("User does not exists. " + err.Error())
