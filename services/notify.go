@@ -15,7 +15,8 @@ import (
 const FIDO_NOTIFY_EMAIL = "certification@fidoalliance.org"
 
 type NotifyPayload struct {
-	VendorEmail   string `json:"vendor_email"`
+	TargetEmail string `json:"target_email"`
+
 	VendorName    string `json:"vendor_name"`
 	VendorPhone   string `json:"vendor_phone"`
 	VendorCompany string `json:"vendor_company"`
@@ -105,7 +106,7 @@ func (h *NotifyService) NotifyUserRegistration_EmailVerification(email string, s
 	emailVerificationLink := fmt.Sprintf("%s/api/user/email/check/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
 
 	return h.sendEmailNotification(NotifyPayload{
-		VendorEmail: email,
+		TargetEmail: email,
 		ApproveLink: emailVerificationLink,
 		Type:        dbs.VT_Email,
 	})
@@ -124,12 +125,12 @@ func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, u
 	reqPayload := userInfo
 	reqPayload.ApproveLink = userApprovalLink
 	reqPayload.RejectLink = userRejectLink
-	reqPayload.VendorEmail = email
+	reqPayload.TargetEmail = email
 	reqPayload.SubmissionCountry = submissionCountry
 	reqPayload.Type = dbs.VT_User
 
 	return h.sendEmailNotification(NotifyPayload{
-		VendorEmail:       email,
+		TargetEmail:       email,
 		ApproveLink:       userApprovalLink,
 		RejectLink:        userRejectLink,
 		SubmissionCountry: submissionCountry,
@@ -140,7 +141,7 @@ func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, u
 // Send FIDO email about new user
 func (h *NotifyService) NotifyUserRegistration_Approved(email string, ctx context.Context) error {
 	return h.sendEmailNotification(NotifyPayload{
-		VendorEmail: email,
+		TargetEmail: email,
 		Type:        dbs.VT_RegistrationApproved,
 	})
 }
@@ -148,7 +149,7 @@ func (h *NotifyService) NotifyUserRegistration_Approved(email string, ctx contex
 // Send FIDO email about new user
 func (h *NotifyService) NotifyUserRegistration_Rejected(email string, ctx context.Context) error {
 	return h.sendEmailNotification(NotifyPayload{
-		VendorEmail: email,
+		TargetEmail: email,
 		Type:        dbs.VT_RegistrationRejected,
 	})
 }
@@ -162,7 +163,7 @@ func (h *NotifyService) NotifyUserRegistration_PasswordReset(email string, ctx c
 	resetLink := fmt.Sprintf("%s/api/user/password/reset/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
 
 	return h.sendEmailNotification(NotifyPayload{
-		VendorEmail:       email,
+		TargetEmail:       email,
 		PasswordResetLink: resetLink,
 		Type:              dbs.VT_PasswordReset,
 	})

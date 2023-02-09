@@ -1,11 +1,15 @@
 package api
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
 	fdoshared "github.com/WebauthnWorks/fdo-shared"
 )
 
@@ -24,6 +28,10 @@ func (h *UserAPI) isLoggedIn(r *http.Request) (bool, *dbs.SessionEntry, *dbs.Use
 	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
 	if err != nil {
 		log.Println("Error reading session db!" + err.Error())
+		return false, nil, nil
+	}
+
+	if !sessionInst.LoggedIn {
 		return false, nil, nil
 	}
 
@@ -151,4 +159,100 @@ func (h *UserAPI) PurgeTests(w http.ResponseWriter, r *http.Request) {
 	log.Println("SUCCESSFULLY PURGED TESTS")
 
 	commonapi.RespondSuccess(w)
+}
+
+func (h *UserAPI) AdditionalInfo(w http.ResponseWriter, r *http.Request) {
+	if !commonapi.CheckHeaders(w, r) {
+		return
+	}
+
+	if r.Context().Value(fdoshared.CFG_ENV_MODE) == fdoshared.CFG_MODE_ONPREM {
+		log.Println("Only allowed for on-line build!")
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Failed to read body. " + err.Error())
+		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
+		return
+	}
+
+	_, session, _ := h.isLoggedIn(r)
+	if !session.OAuth2AdditionalInfo {
+		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
+	} else {
+
+	}
+
+	var additonalInfo commonapi.User_UserReq
+	err = json.Unmarshal(bodyBytes, &additonalInfo)
+	if err != nil {
+		log.Println("Failed to decode body. " + err.Error())
+		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
+		return
+	}
+
+	if len(additonalInfo.Name) == 0 {
+		log.Println("Missing name!")
+		commonapi.RespondError(w, "Missing name!", http.StatusBadRequest)
+		return
+	}
+
+	if len(additonalInfo.Company) == 0 {
+		log.Println("Missing company name!")
+		commonapi.RespondError(w, "Missing company name!", http.StatusBadRequest)
+		return
+	}
+
+	if len(additonalInfo.Phone) == 0 {
+		log.Println("Missing phone number!")
+		commonapi.RespondError(w, "Missing phone number!", http.StatusBadRequest)
+		return
+	}
+
+	userInst, err := h.UserDB.Get(additonalInfo.Email)
+	if err == nil && userInst.Status == dbs.AS_Awaiting {
+		log.Println("User exists.")
+		commonapi.RespondError(w, "User exists.", http.StatusBadRequest)
+		return
+	}
+
+	newUserInst := dbs.UserTestDBEntry{
+		Email:   strings.ToLower(additonalInfo.Email),
+		Name:    additonalInfo.Name,
+		Company: additonalInfo.Company,
+		Status:  dbs.AS_Awaiting,
+	}
+
+	err = h.UserDB.Save(newUserInst)
+	if err != nil {
+		log.Println("Error saving user. " + err.Error())
+		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
+		return
+	}
+
+	submissionCountry := commonapi.ExtractCloudflareLocation(r)
+
+	err = h.Notify.NotifyUserRegistration_EmailVerification(newUserInst.Email, submissionCountry, r.Context())
+	if err != nil {
+		log.Println("Error sending user registration email. " + err.Error())
+		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.Notify.NotifyUserRegistration_AccountValidation(newUserInst.Email, services.NotifyPayload{
+		TargetEmail:   newUserInst.Email,
+		VendorName:    newUserInst.Name,
+		VendorPhone:   additonalInfo.Phone,
+		VendorCompany: newUserInst.Company,
+	}, submissionCountry, r.Context())
+	if err != nil {
+		log.Println("Error sending user verification email. " + err.Error())
+		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
+		return
+	}
+
+	commonapi.RespondError(w, "Your account pending approval. Once it approved you will receive notification on your email address.", http.StatusInternalServerError)
 }

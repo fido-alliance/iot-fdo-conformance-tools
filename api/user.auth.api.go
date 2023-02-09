@@ -108,7 +108,7 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.Notify.NotifyUserRegistration_AccountValidation(newUserInst.Email, services.NotifyPayload{
-		VendorEmail:   newUserInst.Email,
+		TargetEmail:   newUserInst.Email,
 		VendorName:    newUserInst.Name,
 		VendorPhone:   createUser.Phone,
 		VendorCompany: newUserInst.Company,

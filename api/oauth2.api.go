@@ -17,6 +17,7 @@ type OAuth2API struct {
 	UserDB        *dbs.UserTestDB
 	SessionDB     *dbs.SessionDB
 	OAuth2Service *services.OAuth2Service
+	Notify        services.NotifyService
 }
 
 func (h *OAuth2API) checkAutzAndGetSession(r *http.Request) (*dbs.SessionEntry, error) {
@@ -142,25 +143,26 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 			}
 
 			http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, commonapi.REDIRECT_HOME, http.StatusTemporaryRedirect)
 			return
 		} else {
-			http.Redirect(w, r, "/#/error/notverified", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, commonapi.REDIRECT_AWAITING_VERIFICATION, http.StatusTemporaryRedirect)
 			return
 		}
 	} else {
-		accountStatus := dbs.AS_Awaiting
+		if !isFidoGithubMember {
+			session.OAuth2Email = strings.ToLower(email)
+			session.OAuth2AdditionalInfo = true
 
-		if isFidoGithubMember {
-			accountStatus = dbs.AS_Validated
+			http.Redirect(w, r, commonapi.REDIRECT_ADDITIONAL_INFO, http.StatusTemporaryRedirect)
+			return
 		}
 
-		newUserInst := dbs.UserTestDBEntry{
-			Email:  strings.ToLower(email),
-			Status: accountStatus,
-		}
-
-		err = h.UserDB.Save(newUserInst)
+		err = h.UserDB.Save(dbs.UserTestDBEntry{
+			Email:         strings.ToLower(email),
+			Status:        dbs.AS_Validated,
+			EmailVerified: true,
+		})
 		if err != nil {
 			log.Println("Error saving user. " + err.Error())
 			commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
@@ -169,7 +171,8 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 
 		if isFidoGithubMember {
 			sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
-				Email: email,
+				Email:    email,
+				LoggedIn: true,
 			})
 			if err != nil {
 				log.Println("Error creating session. " + err.Error())
@@ -178,9 +181,9 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 			}
 
 			http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, commonapi.REDIRECT_HOME, http.StatusTemporaryRedirect)
 		} else {
-			http.Redirect(w, r, "/#/error/notverified", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, commonapi.REDIRECT_AWAITING_VERIFICATION, http.StatusTemporaryRedirect)
 		}
 	}
 }

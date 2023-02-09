@@ -87,6 +87,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	oauth2ApiHandle := OAuth2API{
 		UserDB:    userDb,
 		SessionDB: sessionDb,
+		Notify:    notifyService,
 		OAuth2Service: &services.OAuth2Service{
 			Providers: map[services.OAuth2ProviderID]services.OAuth2Provider{
 				services.OATH2_GITHUB: services.NewGithubOAuth2Connector(services.OAuth2ProviderConfig{
@@ -124,6 +125,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.PathPrefix("/api/builds/").HandlerFunc(buildsProxyHandler.ProxyBuilds)
 
 	r.HandleFunc("/api/user/register", userApiHandler.Register)
+	r.HandleFunc("/api/user/register/additionalinfo", userApiHandler.AdditionalInfo)
 	r.HandleFunc("/api/user/login", userApiHandler.Login)
 	r.HandleFunc("/api/user/login/onprem", userApiHandler.OnPremNoLogin)
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
