@@ -175,11 +175,20 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userInst.Status != dbs.AS_Validated {
+		err := h.setUserSession(w, dbs.SessionEntry{
+			Email: loginUser.Email,
+		})
+		if err != nil {
+			log.Println("Error creating session. " + err.Error())
+			commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
+			return
+		}
+
 		commonapi.RespondError(w, "Your account pending approval. Please wait 2-3 working days. Otherwise email certification@fidoalliance.org", http.StatusBadRequest)
 		return
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
+	err = h.setUserSession(w, dbs.SessionEntry{
 		Email:    loginUser.Email,
 		LoggedIn: true,
 	})
@@ -189,7 +198,6 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
 	commonapi.RespondSuccess(w)
 }
 
@@ -218,13 +226,12 @@ func (h *UserAPI) OnPremNoLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{Email: ONPREM_CONFIG, LoggedIn: true})
+	err = h.setUserSession(w, dbs.SessionEntry{Email: ONPREM_CONFIG, LoggedIn: true})
 	if err != nil {
 		log.Println("Error creating session. " + err.Error())
 		commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
 		return
 	}
 
-	http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
 	commonapi.RespondSuccess(w)
 }

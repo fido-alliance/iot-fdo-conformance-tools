@@ -43,6 +43,16 @@ func (h *OAuth2API) checkAutzAndGetSession(r *http.Request) (*dbs.SessionEntry, 
 	return sessionInst, nil
 }
 
+func (h *OAuth2API) setUserSession(w http.ResponseWriter, sessionInst dbs.SessionEntry) error {
+	sessionDbId, err := h.SessionDB.NewSessionEntry(sessionInst)
+	if err != nil {
+		return errors.New("Error creating session. " + err.Error())
+	}
+
+	http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
+	return nil
+}
+
 type OAuth2RedictUrlResult struct {
 	RedirectUrl string                     `json:"redirect_url"`
 	Status      commonapi.FdoConfApiStatus `json:"status"`
@@ -71,7 +81,7 @@ func (h *OAuth2API) InitWithRedirectUrl(w http.ResponseWriter, r *http.Request) 
 
 	redirectUrl, state, nonce := oauth2Provider.GetRedirectUrl()
 
-	sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
+	err = h.setUserSession(w, dbs.SessionEntry{
 		OAuth2Provider: string(providerid),
 		OAuth2Nonce:    nonce,
 		OAuth2State:    state,
@@ -82,7 +92,6 @@ func (h *OAuth2API) InitWithRedirectUrl(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
 	commonapi.RespondSuccessStruct(w, OAuth2RedictUrlResult{RedirectUrl: redirectUrl, Status: commonapi.FdoApiStatus_OK})
 }
 
@@ -130,9 +139,11 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userInst, err := h.UserDB.Get(email)
+
+	// User exists
 	if err == nil && userInst != nil {
 		if isFidoGithubMember || userInst.Status == dbs.AS_Validated {
-			sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
+			err = h.setUserSession(w, dbs.SessionEntry{
 				Email:    email,
 				LoggedIn: true,
 			})
@@ -142,17 +153,34 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
 			http.Redirect(w, r, commonapi.REDIRECT_HOME, http.StatusTemporaryRedirect)
 			return
 		} else {
+			err = h.setUserSession(w, dbs.SessionEntry{
+				Email: email,
+			})
+			if err != nil {
+				log.Println("Error creating session. " + err.Error())
+				commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
+				return
+			}
+
 			http.Redirect(w, r, commonapi.REDIRECT_AWAITING_VERIFICATION, http.StatusTemporaryRedirect)
 			return
 		}
-	} else {
+
+	} else { // New user
 		if !isFidoGithubMember {
-			session.OAuth2Email = strings.ToLower(email)
-			session.OAuth2AdditionalInfo = true
+			err = h.setUserSession(w, dbs.SessionEntry{
+				Email:                strings.ToLower(email),
+				OAuth2Email:          strings.ToLower(email),
+				OAuth2AdditionalInfo: true,
+			})
+			if err != nil {
+				log.Println("Error creating session. " + err.Error())
+				commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
+				return
+			}
 
 			http.Redirect(w, r, commonapi.REDIRECT_ADDITIONAL_INFO, http.StatusTemporaryRedirect)
 			return
@@ -170,7 +198,7 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if isFidoGithubMember {
-			sessionDbId, err := h.SessionDB.NewSessionEntry(dbs.SessionEntry{
+			err = h.setUserSession(w, dbs.SessionEntry{
 				Email:    email,
 				LoggedIn: true,
 			})
@@ -180,9 +208,19 @@ func (h *OAuth2API) ProcessCallback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
 			http.Redirect(w, r, commonapi.REDIRECT_HOME, http.StatusTemporaryRedirect)
 		} else {
+			err = h.setUserSession(w, dbs.SessionEntry{
+				Email:                strings.ToLower(email),
+				OAuth2Email:          strings.ToLower(email),
+				OAuth2AdditionalInfo: true,
+			})
+			if err != nil {
+				log.Println("Error creating session. " + err.Error())
+				commonapi.RespondError(w, "Internal server error. ", http.StatusBadRequest)
+				return
+			}
+
 			http.Redirect(w, r, commonapi.REDIRECT_AWAITING_VERIFICATION, http.StatusTemporaryRedirect)
 		}
 	}

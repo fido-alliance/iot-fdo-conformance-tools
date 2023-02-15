@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/rand"
 	"errors"
+	"net/http"
 	"regexp"
 
+	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
 	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
 	"golang.org/x/crypto/scrypt"
@@ -45,4 +47,14 @@ func (h *UserAPI) verifyPasswordHash(password string, passwordHash []byte) (bool
 	}
 
 	return bytes.Equal(append(salt, dk...), passwordHash), nil
+}
+
+func (h *UserAPI) setUserSession(w http.ResponseWriter, sessionInst dbs.SessionEntry) error {
+	sessionDbId, err := h.SessionDB.NewSessionEntry(sessionInst)
+	if err != nil {
+		return errors.New("Error creating session. " + err.Error())
+	}
+
+	http.SetCookie(w, commonapi.GenerateCookie(sessionDbId))
+	return nil
 }
