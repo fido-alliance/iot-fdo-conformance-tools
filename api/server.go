@@ -64,6 +64,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	userApiHandler := UserAPI{
 		UserDB:    userDb,
 		SessionDB: sessionDb,
+		Notify:    &notifyService,
 	}
 
 	userVerifyHandler := UserVerify{
@@ -129,6 +130,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/user/login", userApiHandler.Login)
 	r.HandleFunc("/api/user/login/onprem", userApiHandler.OnPremNoLogin)
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
+	r.HandleFunc("/api/user/email/resendverification", userApiHandler.ReRequestEmailValidationLink)
 	r.HandleFunc("/api/user/logout", userApiHandler.Logout)
 	r.HandleFunc("/api/user/purgetests", userApiHandler.PurgeTests)
 	r.HandleFunc("/api/user/config", userApiHandler.Config)

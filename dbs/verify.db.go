@@ -65,7 +65,7 @@ func (h *VerifyDB) SaveEntry(verifyEntry VerifyEntry) ([]byte, error) {
 		return []byte{}, errors.New("Failed saving vt entry. The error is: " + err.Error())
 	}
 
-	return []byte(randomEntryId.String()), nil
+	return []byte(randomEntryIdString), nil
 }
 
 func (h *VerifyDB) GetEntry(entryId []byte) (*VerifyEntry, error) {

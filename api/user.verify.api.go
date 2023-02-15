@@ -258,17 +258,19 @@ func (h *UserVerify) PasswordResetCheck(w http.ResponseWriter, r *http.Request) 
 
 	entry, err := h.VerifyDB.GetEntry([]byte(id))
 	if err != nil {
-		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		log.Println("Entry not found")
 		return
 	}
 
 	userInst, err := h.UserDB.Get(entry.Email)
 	if err != nil {
+		log.Println("User not found")
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
 	if userInst.Email != email {
+		log.Println("Emails dont match")
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
@@ -315,11 +317,13 @@ func (h *UserVerify) PasswordResetSet(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.getSession(r)
 	if err != nil {
+		log.Println("Session not found")
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
 
 	if session.PasswordResetEmail == "" {
+		log.Println("Session missing password reset email")
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
@@ -351,7 +355,6 @@ func (h *UserVerify) PasswordResetSet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add updated password
-
 	userInst, err := h.UserDB.Get(session.PasswordResetEmail)
 	if err != nil {
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)

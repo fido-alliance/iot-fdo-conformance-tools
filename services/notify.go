@@ -1,10 +1,11 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -39,7 +40,7 @@ type NotifyService struct {
 	LogTag        string
 }
 
-func NewNotifyService(resultsApiKey string, resultsHost string, verifyDb *dbs.VerifyDB) NotifyService {
+func NewNotifyService(resultsHost string, resultsApiKey string, verifyDb *dbs.VerifyDB) NotifyService {
 	return NotifyService{
 		ResultsApiKey: resultsApiKey,
 		ResultsHost:   resultsHost,
@@ -58,41 +59,30 @@ func (h *NotifyService) createNotifyUserSession(email string, vttype dbs.VerifyT
 		Type:  vttype,
 	}
 
-	entryId, err := h.VerifyDB.SaveEntry(entry)
-	if err != nil {
-		return nil, err
-	}
-
-	return entryId, nil
+	return h.VerifyDB.SaveEntry(entry)
 }
 
 func (h *NotifyService) sendEmailNotification(requestPayload NotifyPayload) error {
+	reqBytes, _ := json.Marshal(requestPayload)
+
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
-	req, err := http.NewRequest("POST", h.getResultsUrl(requestPayload.Type), nil)
+	req, err := http.NewRequest("POST", h.getResultsUrl(requestPayload.Type), bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return fmt.Errorf("%s: Error generating new request instance. %s", h.LogTag, err.Error())
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+h.ResultsApiKey)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("%s: Error sending request. %s", h.LogTag, err.Error())
 	}
 
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("%s: Error reading response body. %s", h.LogTag, err.Error())
+	if resp.StatusCode != http.StatusOK {
+		log.Println(resp.Status)
 	}
-
-	var userInst GithubUser
-	err = json.Unmarshal(bodyBytes, &userInst)
-	if err != nil {
-		return fmt.Errorf("%s: Error decoding userinfo. %s", h.LogTag, err.Error())
-	}
-
 	return nil
 }
 
@@ -100,10 +90,11 @@ func (h *NotifyService) sendEmailNotification(requestPayload NotifyPayload) erro
 func (h *NotifyService) NotifyUserRegistration_EmailVerification(email string, submissionCountry string, ctx context.Context) error {
 	entryId, err := h.createNotifyUserSession(email, dbs.VT_Email)
 	if err != nil {
+		log.Println("Error notifying user... " + err.Error())
 		return nil
 	}
 
-	emailVerificationLink := fmt.Sprintf("%s/api/user/email/check/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
+	emailVerificationLink := fmt.Sprintf("%s/api/user/email/check/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), string(entryId), email)
 
 	return h.sendEmailNotification(NotifyPayload{
 		TargetEmail: email,
@@ -119,8 +110,8 @@ func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, u
 		return nil
 	}
 
-	userApprovalLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
-	userRejectLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
+	userApprovalLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), string(entryId), email)
+	userRejectLink := fmt.Sprintf("%s/api/user/approve/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), string(entryId), email)
 
 	reqPayload := userInfo
 	reqPayload.ApproveLink = userApprovalLink
@@ -157,10 +148,10 @@ func (h *NotifyService) NotifyUserRegistration_Rejected(email string, ctx contex
 func (h *NotifyService) NotifyUserRegistration_PasswordReset(email string, ctx context.Context) error {
 	entryId, err := h.createNotifyUserSession(email, dbs.VT_PasswordReset)
 	if err != nil {
-		return nil
+		return err
 	}
 
-	resetLink := fmt.Sprintf("%s/api/user/password/reset/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), email, string(entryId))
+	resetLink := fmt.Sprintf("%s/api/user/password/reset/%s/%s", ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string), string(entryId), email)
 
 	return h.sendEmailNotification(NotifyPayload{
 		TargetEmail:       email,
