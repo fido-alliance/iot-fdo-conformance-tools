@@ -31,17 +31,9 @@ func (h *UserAPI) isLoggedIn(r *http.Request) (bool, *dbs.SessionEntry, *dbs.Use
 		return false, nil, nil
 	}
 
-	if !sessionInst.LoggedIn {
-		return false, nil, nil
-	}
+	userInst, _ := h.UserDB.Get(sessionInst.Email)
 
-	userInst, err := h.UserDB.Get(sessionInst.Email)
-	if err != nil {
-		log.Println("User does not exists.")
-		return false, nil, nil
-	}
-
-	return true, sessionInst, userInst
+	return sessionInst.LoggedIn, sessionInst, userInst
 }
 
 func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
@@ -200,18 +192,18 @@ func (h *UserAPI) AdditionalInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, session, _ := h.isLoggedIn(r)
+	if session == nil || !session.OAuth2AdditionalInfo {
+		log.Println("Session is empty!")
+		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
 		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
 		return
-	}
-
-	_, session, _ := h.isLoggedIn(r)
-	if !session.OAuth2AdditionalInfo {
-		commonapi.RespondError(w, "Unauthorized", http.StatusUnauthorized)
-	} else {
-
 	}
 
 	var additonalInfo commonapi.User_UserReq
@@ -240,15 +232,8 @@ func (h *UserAPI) AdditionalInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInst, err := h.UserDB.Get(additonalInfo.Email)
-	if err == nil && userInst.Status == dbs.AS_Awaiting {
-		log.Println("User exists.")
-		commonapi.RespondError(w, "User exists.", http.StatusBadRequest)
-		return
-	}
-
 	newUserInst := dbs.UserTestDBEntry{
-		Email:   strings.ToLower(additonalInfo.Email),
+		Email:   strings.ToLower(session.OAuth2Email),
 		Name:    additonalInfo.Name,
 		Company: additonalInfo.Company,
 		Status:  dbs.AS_Awaiting,
@@ -263,18 +248,11 @@ func (h *UserAPI) AdditionalInfo(w http.ResponseWriter, r *http.Request) {
 
 	submissionCountry := commonapi.ExtractCloudflareLocation(r)
 
-	err = h.Notify.NotifyUserRegistration_EmailVerification(newUserInst.Email, submissionCountry, r.Context())
-	if err != nil {
-		log.Println("Error sending user registration email. " + err.Error())
-		commonapi.RespondError(w, "Internal server error.", http.StatusInternalServerError)
-		return
-	}
-
 	err = h.Notify.NotifyUserRegistration_AccountValidation(newUserInst.Email, services.NotifyPayload{
 		TargetEmail:   newUserInst.Email,
-		VendorName:    newUserInst.Name,
+		VendorName:    additonalInfo.Name,
 		VendorPhone:   additonalInfo.Phone,
-		VendorCompany: newUserInst.Company,
+		VendorCompany: additonalInfo.Company,
 	}, submissionCountry, r.Context())
 	if err != nil {
 		log.Println("Error sending user verification email. " + err.Error())

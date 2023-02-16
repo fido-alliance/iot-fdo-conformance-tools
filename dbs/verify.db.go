@@ -29,7 +29,7 @@ type VerifyType string
 
 const (
 	VT_Email                VerifyType = "verify_email"
-	VT_User                 VerifyType = "approve_user"
+	VT_AccountValidation    VerifyType = "approve_user"
 	VT_PasswordReset        VerifyType = "password_reset"
 	VT_RegistrationRejected VerifyType = "registration_denied"
 	VT_RegistrationApproved VerifyType = "registration_approved"

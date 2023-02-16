@@ -36,10 +36,6 @@ func (h *OAuth2API) checkAutzAndGetSession(r *http.Request) (*dbs.SessionEntry, 
 		return nil, errors.New("Session expired. " + err.Error())
 	}
 
-	if !sessionInst.LoggedIn {
-		return nil, errors.New("User is not logged in!" + err.Error())
-	}
-
 	return sessionInst, nil
 }
 

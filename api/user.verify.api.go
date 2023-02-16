@@ -107,7 +107,7 @@ func (h *UserVerify) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if entry.Type != dbs.VT_User {
+	if entry.Type != dbs.VT_AccountValidation {
 		commonapi.RespondError(w, "Unauthorized!", http.StatusUnauthorized)
 		return
 	}
@@ -172,7 +172,7 @@ func (h *UserVerify) Check(w http.ResponseWriter, r *http.Request) {
 
 	if entry.Type == dbs.VT_Email {
 		userInst.EmailVerified = true
-	} else if entry.Type == dbs.VT_User {
+	} else if entry.Type == dbs.VT_AccountValidation {
 		userInst.Status = dbs.AS_Validated
 	} else {
 		commonapi.RespondError(w, "Bad request!", http.StatusBadRequest)

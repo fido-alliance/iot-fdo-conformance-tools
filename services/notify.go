@@ -105,7 +105,7 @@ func (h *NotifyService) NotifyUserRegistration_EmailVerification(email string, s
 
 // Send FIDO email about new user
 func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, userInfo NotifyPayload, submissionCountry string, ctx context.Context) error {
-	entryId, err := h.createNotifyUserSession(email, dbs.VT_User)
+	entryId, err := h.createNotifyUserSession(email, dbs.VT_AccountValidation)
 	if err != nil {
 		return nil
 	}
@@ -118,15 +118,9 @@ func (h *NotifyService) NotifyUserRegistration_AccountValidation(email string, u
 	reqPayload.RejectLink = userRejectLink
 	reqPayload.TargetEmail = email
 	reqPayload.SubmissionCountry = submissionCountry
-	reqPayload.Type = dbs.VT_User
+	reqPayload.Type = dbs.VT_AccountValidation
 
-	return h.sendEmailNotification(NotifyPayload{
-		TargetEmail:       email,
-		ApproveLink:       userApprovalLink,
-		RejectLink:        userRejectLink,
-		SubmissionCountry: submissionCountry,
-		Type:              dbs.VT_Email,
-	})
+	return h.sendEmailNotification(reqPayload)
 }
 
 // Send FIDO email about new user
