@@ -249,7 +249,7 @@ func (h *UserAPI) AdditionalInfo(w http.ResponseWriter, r *http.Request) {
 	submissionCountry := commonapi.ExtractCloudflareLocation(r)
 
 	err = h.Notify.NotifyUserRegistration_AccountValidation(newUserInst.Email, services.NotifyPayload{
-		TargetEmail:   newUserInst.Email,
+		VendorEmail:   newUserInst.Email,
 		VendorName:    additonalInfo.Name,
 		VendorPhone:   additonalInfo.Phone,
 		VendorCompany: additonalInfo.Company,
