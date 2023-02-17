@@ -1,6 +1,5 @@
 <script lang="ts">
     import {resetPasswordInit} from '../lib/User.api'
-    import {push} from "svelte-spa-router"
 
     let errorMsg: string = ""
     let email: string = ""

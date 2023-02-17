@@ -175,6 +175,33 @@ export const register = async (password: String, passwordRepeat:string, email: s
     }
 }
 
+export const requestNewEmailValidationEmail = async (): Promise<any> => {
+    let result = await fetch("/api/user/email/resendverification", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    let resultJson = await result.json()
+
+    if (result.status !== 200) {
+        let statusText = result.statusText
+
+        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
+            statusText = resultJson.errorMessage
+        }
+
+        throw new Error(`Error sending request: ${statusText}`);
+    }
+
+    if (resultJson.status === "ok") {
+        return Promise.resolve()
+    } else {
+        throw new Error("Unexpected error");
+    }
+}
+
 export const completeOAuth2Reg = async (company:string, name:string, phone:string): Promise<any> => {
     if (name.length == 0
     || company.length == 0

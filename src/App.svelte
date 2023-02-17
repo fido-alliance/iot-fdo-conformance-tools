@@ -14,6 +14,7 @@
     import PasswordResetInit from './routes/PasswordResetInit.svelte';
     import PasswordResetApply from './routes/PasswordResetApply.svelte';
     import AdditionalInfo from './routes/AdditionalInfo.svelte';
+    import ErrorEmailValidation from './routes/ErrorEmailValidation.svelte';
 
     let routes = {
         "/": Login,
@@ -29,6 +30,7 @@
         "/resetpassword/apply": PasswordResetApply,
         "/resetpassword": PasswordResetInit,
         "/error/notverified": ErrorNotVerified,
+        "/error/emailvalidation": ErrorEmailValidation,
         "*": NotFound,
     }
 

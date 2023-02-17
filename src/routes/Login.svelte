@@ -122,7 +122,7 @@
                     </div>
                     <div class="col-3">
                         <ul class="actions">
-                            <li><a href="/#/passwordreset/init">Reset password</a></li>
+                            <li><a href="/#/resetpassword">Reset password</a></li>
                         </ul>
                     </div>
 

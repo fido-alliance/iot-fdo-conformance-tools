@@ -47,7 +47,7 @@
                         <input class="login_input" bind:value={name} type="text" placeholder="Name">
                     </div>
                     <div class="col-6 col-12-xsmall">
-                        <input class="login_input" bind:value={email} type="text" placeholder="Email">
+                        <input class="login_input" bind:value={email} type="email" placeholder="Email">
                     </div>
                     <div class="col-6 col-12-xsmall">
                         <input class="login_input" bind:value={company} type="text" placeholder="Company">
