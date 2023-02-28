@@ -1,9 +1,9 @@
-module github.com/WebauthnWorks/fdo-shared
+module github.com/fido-alliance/fdo-shared
 
 go 1.17
 
 require (
-	github.com/WebauthnWorks/dhkx v0.3.3
+	github.com/fido-alliance/dhkx v0.3.3
 	github.com/dgraph-io/badger/v3 v3.2103.4
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/fxamacker/cbor/v2 v2.4.0

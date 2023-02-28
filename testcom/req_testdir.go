@@ -1,6 +1,6 @@
 package testcom
 
-import fdoshared "github.com/WebauthnWorks/fdo-shared"
+import fdoshared "github.com/fido-alliance/fdo-shared"
 
 type FDOTestID string
 

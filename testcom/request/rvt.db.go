@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	"github.com/WebauthnWorks/fdo-shared/testcom"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	"github.com/fido-alliance/fdo-shared/testcom"
 	"github.com/google/uuid"
 )
 

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/WebauthnWorks/dhkx"
+	"github.com/fido-alliance/dhkx"
 	"github.com/fxamacker/cbor/v2"
 )
 

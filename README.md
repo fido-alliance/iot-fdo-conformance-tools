@@ -4,9 +4,9 @@ fdo-shared Golang
 A shared common module that hold all crypto, shared structs, and 
 
 ## Other modules that use it
-- [FDO: DO Service](https://github.com/WebauthnWorks/fdo-do) - Device Onboarding Service with full implementation of FDO DO TO0 and TO2 protocols. It also contains all related tests.
-- [FDO: RV Service](https://github.com/WebauthnWorks/fdo-rv) - Rendezvous Service with full implementation of FDO DO TO0 and TO1 protocols. It also contains all related tests.
-- [FDO: Device Implementation Service](https://github.com/WebauthnWorks/fdo-device-implementation) - Virtual Device Implementation with full implementation of FDO DO TO1 and TO2 protocols. It also contains all related tests.
+- [FDO: DO Service](https://github.com/fido-alliance/fdo-do) - Device Onboarding Service with full implementation of FDO DO TO0 and TO2 protocols. It also contains all related tests.
+- [FDO: RV Service](https://github.com/fido-alliance/fdo-rv) - Rendezvous Service with full implementation of FDO DO TO0 and TO1 protocols. It also contains all related tests.
+- [FDO: Device Implementation Service](https://github.com/fido-alliance/fdo-device-implementation) - Virtual Device Implementation with full implementation of FDO DO TO1 and TO2 protocols. It also contains all related tests.
 
 
 ## Structure
