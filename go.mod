@@ -1,4 +1,4 @@
-module github.com/WebauthnWorks/fdo-do
+module github.com/fido-alliance/fdo-do
 
 go 1.17
 
@@ -9,8 +9,8 @@ require (
 )
 
 require (
-	github.com/WebauthnWorks/dhkx v0.3.3 // indirect
-	github.com/WebauthnWorks/fdo-shared v0.9.85 // indirect
+	github.com/fido-alliance/dhkx v0.3.3 // indirect
+	github.com/fido-alliance/fdo-shared v0.9.85 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
@@ -31,4 +31,4 @@ require (
 )
 
 // For when you are doing local dev
-// replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
+// replace github.com/fido-alliance/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-shared

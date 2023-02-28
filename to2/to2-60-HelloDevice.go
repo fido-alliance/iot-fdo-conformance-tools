@@ -7,10 +7,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/WebauthnWorks/fdo-do/dbs"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	"github.com/WebauthnWorks/fdo-shared/testcom"
-	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
+	"github.com/fido-alliance/fdo-do/dbs"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	"github.com/fido-alliance/fdo-shared/testcom"
+	listenertestsdeps "github.com/fido-alliance/fdo-shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 

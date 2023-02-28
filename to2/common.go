@@ -7,11 +7,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/WebauthnWorks/fdo-do/dbs"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	tdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
-	listenertestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/listener"
 	"github.com/dgraph-io/badger/v3"
+	"github.com/fido-alliance/fdo-do/dbs"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	tdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
+	listenertestsdeps "github.com/fido-alliance/fdo-shared/testcom/listener"
 )
 
 const MAX_NUM_OVENTRIES = 255

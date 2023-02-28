@@ -3,8 +3,8 @@ package fdodo
 import (
 	"net/http"
 
-	"github.com/WebauthnWorks/fdo-do/to2"
 	"github.com/dgraph-io/badger/v3"
+	"github.com/fido-alliance/fdo-do/to2"
 )
 
 func SetupServer(db *badger.DB) {
