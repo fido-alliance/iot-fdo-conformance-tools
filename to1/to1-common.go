@@ -1,9 +1,9 @@
 package to1
 
 import (
-	"github.com/WebauthnWorks/fdo-device-implementation/common"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	"github.com/WebauthnWorks/fdo-shared/testcom"
+	"github.com/fido-alliance/fdo-device-implementation/common"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	"github.com/fido-alliance/fdo-shared/testcom"
 )
 
 type To1Requestor struct {

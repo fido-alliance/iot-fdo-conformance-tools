@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	fdoshared "github.com/fido-alliance/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 
