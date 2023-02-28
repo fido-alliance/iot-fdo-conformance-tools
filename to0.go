@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	tdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
 	"github.com/dgraph-io/badger/v3"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	tdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
 	"github.com/fxamacker/cbor/v2"
 )
 
