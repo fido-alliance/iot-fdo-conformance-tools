@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/fdo-fido-conformance-server/services"
+	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 func (h *UserAPI) isLoggedIn(r *http.Request) (bool, *dbs.SessionEntry, *dbs.UserTestDBEntry) {

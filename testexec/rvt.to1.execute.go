@@ -1,13 +1,13 @@
 package testexec
 
 import (
-	fdodocommon "github.com/WebauthnWorks/fdo-device-implementation/common"
-	"github.com/WebauthnWorks/fdo-device-implementation/to1"
-	"github.com/WebauthnWorks/fdo-do/to0"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-shared/testcom"
-	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
+	fdodocommon "github.com/fido-alliance/fdo-device-implementation/common"
+	"github.com/fido-alliance/fdo-device-implementation/to1"
+	"github.com/fido-alliance/fdo-do/to0"
+	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/fdo-shared/testcom"
+	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
 )
 
 func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {

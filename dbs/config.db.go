@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
 	"github.com/dgraph-io/badger/v3"
+	fdoshared "github.com/fido-alliance/fdo-shared"
 	"github.com/fxamacker/cbor/v2"
 )
 

@@ -1,6 +1,6 @@
 package commonapi
 
-import fdoshared "github.com/WebauthnWorks/fdo-shared"
+import fdoshared "github.com/fido-alliance/fdo-shared"
 
 type User_UserReq struct {
 	Name     string `json:"name"`

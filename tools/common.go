@@ -1,6 +1,6 @@
 package tools
 
-import fdoshared "github.com/WebauthnWorks/fdo-shared"
+import fdoshared "github.com/fido-alliance/fdo-shared"
 
 const (
 	CFG_DEV_ENV fdoshared.CONFIG_ENTRY = "DEV"

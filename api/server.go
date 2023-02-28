@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	dodbs "github.com/WebauthnWorks/fdo-do/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/testapi"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/services"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/tools"
-	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
+	dodbs "github.com/fido-alliance/fdo-do/dbs"
+	"github.com/fido-alliance/fdo-fido-conformance-server/api/testapi"
+	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/fdo-fido-conformance-server/services"
+	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
+	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/gorilla/mux"

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	"github.com/WebauthnWorks/fdo-shared/testcom"
 	"github.com/dgraph-io/badger/v3"
+	fdodeviceimplementation "github.com/fido-alliance/fdo-device-implementation"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	"github.com/fido-alliance/fdo-shared/testcom"
 	"github.com/fxamacker/cbor/v2"
 )
 

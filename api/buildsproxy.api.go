@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 type BuildsProxyAPI struct {

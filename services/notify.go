@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 const FIDO_NOTIFY_EMAIL = "certification@fidoalliance.org"

@@ -53,10 +53,10 @@ build_frontend:
 # Build frontend
 update_fdo_packages:
 	echo "\n----- Updating FDO packages... -----\n"
-	GOSUMDB=off go get github.com/WebauthnWorks/fdo-shared
-	GOSUMDB=off go get github.com/WebauthnWorks/fdo-do
-	GOSUMDB=off go get github.com/WebauthnWorks/fdo-rv
-	GOSUMDB=off go get github.com/WebauthnWorks/fdo-device-implementation
+	GOSUMDB=off go get github.com/fido-alliance/fdo-shared
+	GOSUMDB=off go get github.com/fido-alliance/fdo-do
+	GOSUMDB=off go get github.com/fido-alliance/fdo-rv
+	GOSUMDB=off go get github.com/fido-alliance/fdo-device-implementation
 
 
 # Build frontend
@@ -74,7 +74,7 @@ fdotools__restart_docker_compose:
 	echo "\n----- Restarting docker compose... -----\n"
 	ssh ${FDO_BUILD_PUSH_HOST} "cd $(fdotools_infra_loc) && docker-compose up --build --force -d"
 
-fdotools__restart_docker_update:
+# fdotools__restart_docker_update:
 
 
 build: build_frontend compile_all

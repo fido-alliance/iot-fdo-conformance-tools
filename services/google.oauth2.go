@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	fdoshared "github.com/fido-alliance/fdo-shared"
 	"golang.org/x/oauth2"
 )
 

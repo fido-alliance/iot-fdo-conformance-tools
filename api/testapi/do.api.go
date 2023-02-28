@@ -12,13 +12,13 @@ import (
 	"net/http"
 	"net/url"
 
-	fdodeviceimplementation "github.com/WebauthnWorks/fdo-device-implementation"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/dbs"
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/testexec"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	testdbs "github.com/WebauthnWorks/fdo-shared/testcom/dbs"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
+	fdodeviceimplementation "github.com/fido-alliance/fdo-device-implementation"
+	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/fdo-fido-conformance-server/testexec"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
 	"github.com/gorilla/mux"
 )
 

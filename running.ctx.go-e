@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/tools"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
+	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 const APIKEY_RESULT_SUBMISSION = "010203040506"

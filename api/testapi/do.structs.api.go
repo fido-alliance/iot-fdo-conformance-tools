@@ -1,9 +1,9 @@
 package testapi
 
 import (
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
-	fdoshared "github.com/WebauthnWorks/fdo-shared"
-	reqtestsdeps "github.com/WebauthnWorks/fdo-shared/testcom/request"
+	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	fdoshared "github.com/fido-alliance/fdo-shared"
+	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
 )
 
 type DOT_CreateTestCase struct {

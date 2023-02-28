@@ -5,7 +5,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/WebauthnWorks/fdo-fido-conformance-server/api/commonapi"
+	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
 )
 
 func ProxyDevUI(w http.ResponseWriter, r *http.Request) {

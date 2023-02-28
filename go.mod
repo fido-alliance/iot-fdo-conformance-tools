@@ -1,4 +1,4 @@
-module github.com/WebauthnWorks/fdo-fido-conformance-server
+module github.com/fido-alliance/fdo-fido-conformance-server
 
 go 1.18
 
@@ -12,15 +12,15 @@ require (
 )
 
 require (
-	github.com/WebauthnWorks/fdo-device-implementation v0.3.1
-	github.com/WebauthnWorks/fdo-do v0.3.1
-	github.com/WebauthnWorks/fdo-rv v0.3.1
-	github.com/WebauthnWorks/fdo-shared v0.9.85
+	github.com/fido-alliance/fdo-device-implementation v0.3.1
+	github.com/fido-alliance/fdo-do v0.3.1
+	github.com/fido-alliance/fdo-rv v0.3.1
+	github.com/fido-alliance/fdo-shared v0.9.85
 	golang.org/x/oauth2 v0.3.0
 )
 
 require (
-	github.com/WebauthnWorks/dhkx v0.3.3 // indirect
+	github.com/fido-alliance/dhkx v0.3.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -46,7 +46,7 @@ require (
 )
 
 // For when you are doing local dev
-// replace github.com/WebauthnWorks/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-do
-// replace github.com/WebauthnWorks/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-rv
-// replace github.com/WebauthnWorks/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-device-implementation
-// replace github.com/WebauthnWorks/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/WebauthnWorks/fdo-shared
+// replace github.com/fido-alliance/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-do
+// replace github.com/fido-alliance/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-rv
+// replace github.com/fido-alliance/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-device-implementation
+// replace github.com/fido-alliance/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-shared
