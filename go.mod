@@ -12,21 +12,21 @@ require (
 )
 
 require (
-	github.com/fido-alliance/fdo-device-implementation v0.3.1
-	github.com/fido-alliance/fdo-do v0.3.1
-	github.com/fido-alliance/fdo-rv v0.3.1
-	github.com/fido-alliance/fdo-shared v0.9.85
+	github.com/fido-alliance/fdo-device-implementation v0.3.2
+	github.com/fido-alliance/fdo-do v0.3.2
+	github.com/fido-alliance/fdo-rv v0.3.2
+	github.com/fido-alliance/fdo-shared v0.9.86
 	golang.org/x/oauth2 v0.3.0
 )
 
 require (
-	github.com/fido-alliance/dhkx v0.3.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/fido-alliance/dhkx v0.3.4 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
