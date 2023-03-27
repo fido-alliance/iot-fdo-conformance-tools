@@ -9,13 +9,13 @@ require (
 )
 
 require (
-	github.com/fido-alliance/dhkx v0.3.3 // indirect
-	github.com/fido-alliance/fdo-shared v0.9.85 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/fido-alliance/dhkx v0.3.4 // indirect
+	github.com/fido-alliance/fdo-shared v0.9.86 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
