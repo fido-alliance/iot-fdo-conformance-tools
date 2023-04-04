@@ -168,7 +168,7 @@ var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
 type SigInfo struct {
 	_      struct{} `cbor:",toarray"`
 	SgType DeviceSgType
-	Info   string
+	Info   []byte
 }
 
 type CoseConsts int
