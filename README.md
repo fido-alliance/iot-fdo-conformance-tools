@@ -76,3 +76,9 @@ To update packages without GOSUM check use env `GOSUMDB=off`
 - [FDO: Shared /testcom/request](https://github.com/fido-alliance/fdo-shared/testcom/request) - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
 
 - `/frontend` - Contains frontend git submodule. See https://github.com/fido-alliance/fdo-fido-conformance-frontend
+
+
+### Common issues
+
+**If you have issues with `WebAuthnWorks` legacy repositories**
+- Run `go clean -modcache && go get`
