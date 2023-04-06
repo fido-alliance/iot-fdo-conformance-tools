@@ -171,7 +171,7 @@ func Conf_RandomTestFuzzSigInfo(sigInfo SigInfo) SigInfo {
 	if randomNumber < 50 {
 		newSigInfo.SgType = DeviceSgType(NewRandomInt(12, 6312))
 	} else {
-		newSigInfo.Info = ""
+		newSigInfo.Info = []byte{}
 	}
 
 	return newSigInfo

@@ -246,7 +246,7 @@ func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredent
 
 	dcSigInfo := SigInfo{
 		SgType: deviceCredBase.DCSgType,
-		Info:   "random-info",
+		Info:   []byte("random-info"),
 	}
 
 	return &WawDeviceCredential{
