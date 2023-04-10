@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/dgraph-io/badger/v3 v3.2103.4
-	github.com/fido-alliance/fdo-shared v0.9.86
+	github.com/fido-alliance/fdo-shared v0.9.87
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/google/uuid v1.3.0
 )
