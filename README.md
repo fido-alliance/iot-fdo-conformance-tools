@@ -69,7 +69,7 @@ To update packages without GOSUM check use env `GOSUMDB=off`
     - `do.api.go`, `rv.api.go`, `device.api.go` - Contain DO/RV/Device conformance test, user facing APIs. 
     - `user.api.go` - Contain user management APIs. 
 
-- `testexec` - Contains TO0 DO, TO1 Device, TO2 Device conformance testing execution.
+- `/testexec` - Contains TO0 DO, TO1 Device, TO2 Device conformance testing execution.
 
 - [FDO: Shared /testcom/](https://github.com/fido-alliance/fdo-shared/testcom/) - Contains common test methods, dbs, etc
 - [FDO: Shared /testcom/listener](https://github.com/fido-alliance/fdo-shared/testcom/listener) - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
@@ -77,8 +77,11 @@ To update packages without GOSUM check use env `GOSUMDB=off`
 
 - `/frontend` - Contains frontend git submodule. See https://github.com/fido-alliance/fdo-fido-conformance-frontend
 
+- `running.ctx.go` - Contain default context values
 
 ### Common issues
 
-**If you have issues with `WebAuthnWorks` legacy repositories**
-- Run `go clean -modcache && go get`
+- If you have issues with `WebAuthnWorks` legacy repositories
+
+> Run `go clean -modcache && go get`
+
