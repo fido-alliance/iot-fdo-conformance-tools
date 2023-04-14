@@ -15,7 +15,7 @@ require (
 	github.com/fido-alliance/fdo-device-implementation v0.3.2
 	github.com/fido-alliance/fdo-do v0.3.2
 	github.com/fido-alliance/fdo-rv v0.3.2
-	github.com/fido-alliance/fdo-shared v0.9.86
+	github.com/fido-alliance/fdo-shared v0.9.87
 	golang.org/x/oauth2 v0.3.0
 )
 

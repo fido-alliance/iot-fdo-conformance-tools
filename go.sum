@@ -44,6 +44,8 @@ github.com/fido-alliance/fdo-rv v0.3.2 h1:b8TXXoXdCZGAGz+MnepMFqwJog9zo7gFNxDsj3
 github.com/fido-alliance/fdo-rv v0.3.2/go.mod h1:v1ZI7HWXkpt9zXNSBLf8wCqPuGPl+Mgg7xWd8p86aCk=
 github.com/fido-alliance/fdo-shared v0.9.86 h1:JDNykwu9yqF0D817gsq+LFpr5uc4PkfCutqwTsR9wdI=
 github.com/fido-alliance/fdo-shared v0.9.86/go.mod h1:7HjEiSqMXS/Xo9VcjQ1ruy5kF9CR7QkRSx3TMqxfdNE=
+github.com/fido-alliance/fdo-shared v0.9.87 h1:ODmkmTXNYeY/Bwkey0tGk1ktCpvGOsme5BVEbYH+4/o=
+github.com/fido-alliance/fdo-shared v0.9.87/go.mod h1:7HjEiSqMXS/Xo9VcjQ1ruy5kF9CR7QkRSx3TMqxfdNE=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD88=
 github.com/fxamacker/cbor/v2 v2.4.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
