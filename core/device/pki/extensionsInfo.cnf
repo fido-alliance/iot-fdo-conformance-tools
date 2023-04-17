@@ -1,0 +1,2 @@
+basicConstraints=CA:TRUE
+subjectKeyIdentifier = hash
