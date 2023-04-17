@@ -13,6 +13,7 @@ import (
 	fdodeviceimplementation "github.com/fido-alliance/fdo-device-implementation"
 	fdodocommon "github.com/fido-alliance/fdo-device-implementation/common"
 	"github.com/fido-alliance/fdo-device-implementation/to1"
+	"github.com/fido-alliance/fdo-device-implementation/to2"
 	fdodo "github.com/fido-alliance/fdo-do"
 	"github.com/fido-alliance/fdo-fido-conformance-server/api"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
@@ -207,6 +208,149 @@ func main() {
 							}
 
 							log.Println(to1dPayload.To1dRV)
+
+							return nil
+						},
+					},
+					{
+						Name:      "to2",
+						Usage:     "Execute TO exchange with RV server",
+						UsageText: "[FDO RV Server URL] [Path to DI file]",
+						Action: func(c *cli.Context) error {
+							if c.Args().Len() != 2 {
+								log.Println("Missing URL or Filename")
+								return nil
+							}
+
+							url := c.Args().Get(0)
+							filepath := c.Args().Get(1)
+
+							wawcred, err := TryReadingWawDIFile(filepath)
+							if err != nil {
+								return err
+							}
+
+							to2inst := to2.NewTo2Requestor(fdodocommon.SRVEntry{
+								SrvURL: url,
+							}, *wawcred, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM)
+
+							to2proveOvhdrPayload, _, err := to2inst.HelloDevice60(testcom.NULL_TEST)
+							if err != nil {
+								log.Printf("Error running HelloDevice60. %s", err.Error())
+								return nil
+							}
+
+							// 62
+							var ovEntries []fdoshared.CoseSignature
+							for i := 0; i < int(to2proveOvhdrPayload.NumOVEntries); i++ {
+								log.Printf("Requesting GetOVNextEntry62 for entry %d \n", i)
+								nextEntry, _, err := to2inst.GetOVNextEntry62(uint8(i), testcom.NULL_TEST)
+								if err != nil {
+									log.Panic(err)
+								}
+
+								if nextEntry.OVEntryNum != uint8(i) {
+									log.Panicf("Server retured wrong entry. Expected %d. Got %d", i, nextEntry.OVEntryNum)
+								}
+
+								ovEntries = append(ovEntries, nextEntry.OVEntry)
+							}
+
+							ovEntriesS := fdoshared.OVEntryArray(ovEntries)
+							err = ovEntriesS.VerifyEntries(to2proveOvhdrPayload.OVHeader, to2proveOvhdrPayload.HMac)
+							if err != nil {
+								log.Panic(err)
+							}
+
+							lastOvEntry := ovEntries[len(ovEntries)-1]
+							loePubKey, _ := lastOvEntry.GetOVEntryPubKey()
+
+							err = to2inst.ProveOVHdr61PubKey.Equals(loePubKey)
+							if err != nil {
+								log.Panic(err)
+							}
+
+							//64
+							log.Println("Starting ProveDevice64")
+							_, _, err = to2inst.ProveDevice64(testcom.NULL_TEST)
+							if err != nil {
+								log.Println("I AM HERE")
+								log.Panic(err)
+							}
+
+							//66
+							log.Println("Starting DeviceServiceInfoReady66")
+							_, _, err = to2inst.DeviceServiceInfoReady66(testcom.NULL_TEST)
+							if err != nil {
+								log.Panic(err)
+							}
+
+							//68
+							var deviceSims []fdoshared.ServiceInfoKV = []fdoshared.ServiceInfoKV{
+								{
+									ServiceInfoKey: "device:test1",
+									ServiceInfoVal: []byte("1234"),
+								},
+								{
+									ServiceInfoKey: "device:test2",
+									ServiceInfoVal: []byte("1234"),
+								},
+								{
+									ServiceInfoKey: "device:test3",
+									ServiceInfoVal: []byte("1234"),
+								},
+								{
+									ServiceInfoKey: "device:test4",
+									ServiceInfoVal: []byte("1234"),
+								},
+								{
+									ServiceInfoKey: "device:test5",
+									ServiceInfoVal: []byte("1234"),
+								},
+								{
+									ServiceInfoKey: "device:test6",
+									ServiceInfoVal: []byte("1234"),
+								},
+							}
+
+							var ownerSims []fdoshared.ServiceInfoKV // TODO
+
+							for i, deviceSim := range deviceSims {
+								log.Println("Sending DeviceServiceInfo68 for sim " + deviceSim.ServiceInfoKey)
+								_, _, err := to2inst.DeviceServiceInfo68(fdoshared.DeviceServiceInfo68{
+									ServiceInfo:       &deviceSim,
+									IsMoreServiceInfo: i+1 <= len(deviceSims),
+								}, testcom.NULL_TEST)
+								if err != nil {
+									log.Panic(err)
+								}
+							}
+
+							for {
+								ownerSim, _, err := to2inst.DeviceServiceInfo68(fdoshared.DeviceServiceInfo68{
+									ServiceInfo:       nil,
+									IsMoreServiceInfo: false,
+								}, testcom.NULL_TEST)
+								if err != nil {
+									log.Panic(err)
+								}
+
+								log.Println("Receiving OwnerSim DeviceServiceInfo68 " + ownerSim.ServiceInfo.ServiceInfoKey)
+
+								ownerSims = append(ownerSims, *ownerSim.ServiceInfo)
+
+								if ownerSim.IsDone {
+									break
+								}
+							}
+
+							log.Println("Starting Done70")
+							_, _, err = to2inst.Done70(testcom.NULL_TEST)
+							if err != nil {
+								log.Panic(err)
+							}
+
+							log.Println("Success To2")
 
 							return nil
 						},
