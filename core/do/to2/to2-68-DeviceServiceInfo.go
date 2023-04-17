@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	listenertestsdeps "github.com/fido-alliance/fdo-shared/testcom/listener"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 

@@ -1,4 +1,4 @@
-package fdodeviceimplementation
+package device
 
 import (
 	"encoding/pem"
@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	fdoshared "github.com/fido-alliance/fdo-shared"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fxamacker/cbor/v2"
 )
 

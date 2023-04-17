@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/fido-alliance/fdo-device-implementation/common"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	"github.com/fxamacker/cbor/v2"
 )
 

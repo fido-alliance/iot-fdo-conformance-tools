@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/fido-alliance/fdo-shared/testcom"
-	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/fxamacker/cbor/v2"

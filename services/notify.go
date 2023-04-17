@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
-	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 const FIDO_NOTIFY_EMAIL = "certification@fidoalliance.org"
@@ -30,7 +30,6 @@ type NotifyPayload struct {
 	SubmissionCountry string         `json:"submission_country"`
 	RandomKss         string         `json:"randomkss,omitempty"`
 }
-
 
 type NotifyService struct {
 	ResultsApiKey string

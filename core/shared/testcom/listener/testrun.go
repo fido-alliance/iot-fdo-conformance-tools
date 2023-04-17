@@ -3,8 +3,8 @@ package listener
 import (
 	"time"
 
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	"github.com/google/uuid"
 )
 

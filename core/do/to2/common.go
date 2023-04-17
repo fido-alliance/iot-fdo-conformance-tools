@@ -8,10 +8,10 @@ import (
 	"net/http"
 
 	"github.com/dgraph-io/badger/v3"
-	"github.com/fido-alliance/fdo-do/dbs"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	tdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
-	listenertestsdeps "github.com/fido-alliance/fdo-shared/testcom/listener"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	tdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
+	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
 )
 
 const MAX_NUM_OVENTRIES = 255

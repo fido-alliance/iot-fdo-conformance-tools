@@ -1,9 +1,9 @@
 package to2
 
 import (
-	"github.com/fido-alliance/fdo-device-implementation/common"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 )
 
 var MaxDeviceMessageSize uint16 = 2048

@@ -10,11 +10,11 @@ import (
 	"net/url"
 
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/testexec"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
-	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
 	"github.com/gorilla/mux"
 )
 

@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/services"
-	fdoshared "github.com/fido-alliance/fdo-shared"
 	"github.com/gorilla/mux"
 )
 

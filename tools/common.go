@@ -1,6 +1,6 @@
 package tools
 
-import fdoshared "github.com/fido-alliance/fdo-shared"
+import fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 
 const (
 	CFG_DEV_ENV fdoshared.CONFIG_ENTRY = "DEV"

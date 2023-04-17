@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/services"
-	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 func (h *UserAPI) isLoggedIn(r *http.Request) (bool, *dbs.SessionEntry, *dbs.UserTestDBEntry) {

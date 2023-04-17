@@ -1,12 +1,12 @@
 package testexec
 
 import (
-	fdodocommon "github.com/fido-alliance/fdo-device-implementation/common"
-	"github.com/fido-alliance/fdo-device-implementation/to2"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
-	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
-	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
+	fdodocommon "github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to2"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 )
 
 func executeTo2_60_Vouchers(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB) {

@@ -1,7 +1,7 @@
 package testcom
 
 import (
-	fdoshared "github.com/fido-alliance/fdo-shared"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/google/uuid"
 )
 

@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	dodbs "github.com/fido-alliance/fdo-do/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/testapi"
+	dodbs "github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
+	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/services"
 	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
-	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/gorilla/mux"

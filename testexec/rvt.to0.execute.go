@@ -1,12 +1,12 @@
 package testexec
 
 import (
-	"github.com/fido-alliance/fdo-do/to0"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
+	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
-	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
 
-	"github.com/fido-alliance/fdo-shared/testcom"
-	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 )
 
 func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {

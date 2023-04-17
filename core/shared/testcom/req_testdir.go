@@ -1,6 +1,6 @@
 package testcom
 
-import fdoshared "github.com/fido-alliance/fdo-shared"
+import fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 
 type FDOTestID string
 

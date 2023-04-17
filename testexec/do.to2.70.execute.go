@@ -3,12 +3,12 @@ package testexec
 import (
 	"errors"
 
-	fdodocommon "github.com/fido-alliance/fdo-device-implementation/common"
-	"github.com/fido-alliance/fdo-device-implementation/to2"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
-	testdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
-	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
+	fdodocommon "github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to2"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 )
 
 func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, error) {

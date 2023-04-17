@@ -2,7 +2,7 @@ package testapi
 
 import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	listenertestsdeps "github.com/fido-alliance/fdo-shared/testcom/listener"
+	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
 )
 
 type Device_CreateTestCase struct {

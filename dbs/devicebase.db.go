@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/dgraph-io/badger/v3"
-	fdodeviceimplementation "github.com/fido-alliance/fdo-device-implementation"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
+	fdodeviceimplementation "github.com/fido-alliance/fdo-fido-conformance-server/core/device"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	"github.com/fxamacker/cbor/v2"
 )
 

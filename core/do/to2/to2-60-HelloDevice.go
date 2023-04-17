@@ -7,10 +7,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fido-alliance/fdo-do/dbs"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
-	listenertestsdeps "github.com/fido-alliance/fdo-shared/testcom/listener"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
 	"github.com/fxamacker/cbor/v2"
 )
 

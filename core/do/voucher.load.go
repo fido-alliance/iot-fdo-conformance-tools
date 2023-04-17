@@ -1,4 +1,4 @@
-package fdodo
+package do
 
 import (
 	"encoding/hex"
@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	fdoshared "github.com/fido-alliance/fdo-shared"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fxamacker/cbor/v2"
 )
 

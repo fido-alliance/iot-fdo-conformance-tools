@@ -10,15 +10,15 @@ import (
 	"net/http"
 	"strconv"
 
-	fdodocommon "github.com/fido-alliance/fdo-device-implementation/common"
-	dodbs "github.com/fido-alliance/fdo-do/dbs"
-	"github.com/fido-alliance/fdo-do/to0"
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	fdodocommon "github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
+	dodbs "github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	testcomdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
+	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	"github.com/fido-alliance/fdo-shared/testcom"
-	testcomdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
-	listenertestsdeps "github.com/fido-alliance/fdo-shared/testcom/listener"
 
 	"github.com/gorilla/mux"
 )

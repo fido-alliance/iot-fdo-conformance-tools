@@ -7,8 +7,8 @@ import (
 	"math"
 	"sync"
 
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
-	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 const SeedingSize = 10000

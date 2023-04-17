@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	fdoshared "github.com/fido-alliance/fdo-shared"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 )
 
 func Conf_RespondFDOError(w http.ResponseWriter, r *http.Request, errorCode fdoshared.FdoErrorCode, prevMsgId fdoshared.FdoCmd, messageStr string, httpStatusCode int, testcomListener *RequestListenerInst, fdoProtocol fdoshared.FdoToProtocol) {

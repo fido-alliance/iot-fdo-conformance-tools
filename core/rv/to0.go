@@ -1,4 +1,4 @@
-package fdorv
+package rv
 
 import (
 	"bytes"
@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/dgraph-io/badger/v3"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	tdbs "github.com/fido-alliance/fdo-shared/testcom/dbs"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	tdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fxamacker/cbor/v2"
 )
 

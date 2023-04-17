@@ -1,8 +1,8 @@
 package main
 
 import (
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
-	fdoshared "github.com/fido-alliance/fdo-shared"
 )
 
 // Domain to access FDO endpoints. Will be returned in RVInfo etc.

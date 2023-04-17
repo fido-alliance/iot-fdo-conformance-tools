@@ -1,11 +1,11 @@
-package fdorv
+package rv
 
 import (
 	"errors"
 	"time"
 
 	"github.com/dgraph-io/badger/v3"
-	fdoshared "github.com/fido-alliance/fdo-shared"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/google/uuid"
 )

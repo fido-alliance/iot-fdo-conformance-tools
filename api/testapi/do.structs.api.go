@@ -2,8 +2,8 @@ package testapi
 
 import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	fdoshared "github.com/fido-alliance/fdo-shared"
-	reqtestsdeps "github.com/fido-alliance/fdo-shared/testcom/request"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 )
 
 type DOT_CreateTestCase struct {
