@@ -77,7 +77,7 @@ func Conf_RandomTestHashHmac(hashHmac HashOrHmac, originalPayload []byte, origin
 		}
 	}
 
-	return &hashHmac
+	return &newHashHmac
 }
 
 type Conf_CborTypes string
