@@ -41,14 +41,14 @@ func (h *To1Requestor) HelloRV30(fdoTestID testcom.FDOTestID) (*fdoshared.HelloR
 	}
 
 	if err != nil {
-		return nil, nil, errors.New("HelloRV30: Error sending RV request: " + err.Error())
+		return nil, &testState, errors.New("HelloRV30: Error sending RV request: " + err.Error())
 	}
 
 	h.authzHeader = authzHeader
 
 	err = cbor.Unmarshal(resultBytes, &helloRVAck31)
 	if err != nil {
-		return nil, nil, errors.New("HelloRV30: Failed to unmarshal HelloRvAck31. " + err.Error())
+		return nil, &testState, errors.New("HelloRV30: Failed to unmarshal HelloRvAck31. " + err.Error())
 	}
 
 	return &helloRVAck31, &testState, nil
