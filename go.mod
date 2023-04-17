@@ -15,7 +15,7 @@ require (
 	github.com/fido-alliance/fdo-device-implementation v0.3.2
 	github.com/fido-alliance/fdo-do v0.3.2
 	github.com/fido-alliance/fdo-rv v0.3.2
-	github.com/fido-alliance/fdo-shared v0.9.87
+	github.com/fido-alliance/fdo-shared v0.9.88-0.20230417124855-c36b352fe551
 	golang.org/x/oauth2 v0.3.0
 )
 
@@ -46,7 +46,8 @@ require (
 )
 
 // For when you are doing local dev
-// replace github.com/fido-alliance/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-do
+replace github.com/fido-alliance/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-do
+
 // replace github.com/fido-alliance/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-rv
 // replace github.com/fido-alliance/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-device-implementation
 // replace github.com/fido-alliance/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-shared
