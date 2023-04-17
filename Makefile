@@ -48,6 +48,7 @@ compile_all: compile_win compile_linux compile_osx
 build_frontend:
 	echo "\n----- Building frontend... -----\n"
 	cd ./frontend && npm run build
+	rm -rf $(build_loc)/frontend
 	cp -Rf ./frontend/dist $(build_loc)/frontend
 
 # Build frontend
