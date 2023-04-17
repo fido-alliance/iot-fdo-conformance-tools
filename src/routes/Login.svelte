@@ -130,16 +130,14 @@
 
                         <div class="col-6">
                             <ul class="actions">
-                                <li><a href="/#/" style="color:#ffffffcc !important" class="button oauth github" on:click={handleGithubLogin} ><span class="fab fa-github"></span> Login with Github </a></li>
-                                <!-- <li><a href="/#/" dis class="button oauth google"><span class="fab fa-google"></span> Login with Google</a></li> -->
+                                <li><a href="/#/" style="color:#ffffffcc !important" class="button oauth github" on:click={handleGithubLogin} ><span class="fab fa-github"></span>Login with Github </a></li>
                             </ul>
                         </div>
 
 
                         <div class="col-6">
                             <ul class="actions">
-                                <li><a href="/#/" style="color:#000000cc !important" class="button oauth google" on:click={handleGoogleLogin} ><span class="fab fa-google"></span> Login with Google </a></li>
-                                <!-- <li><a href="/#/" dis class="button oauth google"><span class="fab fa-google"></span> Login with Google</a></li> -->
+                                <li><a href="/#/" style="color:#000000cc !important" class="button oauth google" on:click={handleGoogleLogin} ><span class="fab fa-google"></span>Login with Google </a></li>
                             </ul>
                         </div>
                     {/if}
