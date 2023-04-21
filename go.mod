@@ -12,10 +12,8 @@ require (
 )
 
 require (
-	github.com/fido-alliance/fdo-device-implementation v0.3.2
-	github.com/fido-alliance/fdo-do v0.3.2
-	github.com/fido-alliance/fdo-rv v0.3.2
-	github.com/fido-alliance/fdo-shared v0.9.88-0.20230417124855-c36b352fe551
+	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
+	github.com/fido-alliance/dhkx v0.3.4
 	golang.org/x/oauth2 v0.3.0
 )
 
@@ -24,9 +22,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/fido-alliance/dhkx v0.3.4 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -44,10 +40,3 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
-
-// For when you are doing local dev
-replace github.com/fido-alliance/fdo-do v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-do
-
-// replace github.com/fido-alliance/fdo-rv v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-rv
-// replace github.com/fido-alliance/fdo-device-implementation v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-device-implementation
-// replace github.com/fido-alliance/fdo-shared v0.0.0 => /Users/yuriy/go/src/github.com/fido-alliance/fdo-shared
