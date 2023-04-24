@@ -241,8 +241,7 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 
 func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredential, error) {
 	// Generate HmacSecret
-	var hmacSecret []byte
-	rand.Read(hmacSecret)
+	var hmacSecret []byte = NewHmacKey(deviceCredBase.DCHmacAlg)
 
 	dcSigInfo := SigInfo{
 		SgType: deviceCredBase.DCSgType,

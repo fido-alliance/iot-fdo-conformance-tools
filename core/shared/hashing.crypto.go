@@ -135,3 +135,14 @@ func VerifyHMac(data []byte, inputHmac HashOrHmac, key []byte) error {
 		return fmt.Errorf("Error verifying hmac. %d is unknown hmac algorithm", inputHmac.Type)
 	}
 }
+
+func NewHmacKey(hashType HashType) []byte {
+	switch hashType {
+	case HASH_HMAC_SHA256:
+		return NewRandomBuffer(sha256.New().Size())
+	case HASH_HMAC_SHA384:
+		return NewRandomBuffer(sha512.New384().Size())
+	default:
+		return []byte{}
+	}
+}
