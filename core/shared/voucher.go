@@ -77,7 +77,16 @@ const (
 type RendezvousInstr struct {
 	_     struct{} `cbor:",toarray"`
 	Key   RVVariable
-	Value *[]byte
+	Value []byte
+}
+
+func NewRendezvousInstr(key RVVariable, val interface{}) RendezvousInstr {
+	valBytes, _ := cbor.Marshal(val)
+
+	return RendezvousInstr{
+		Key:   key,
+		Value: valBytes,
+	}
 }
 
 type RendezvousInstrList []RendezvousInstr

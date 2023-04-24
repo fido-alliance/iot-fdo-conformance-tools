@@ -74,9 +74,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 		OVGuid:     newDi.DCGuid,
 		OVRvInfo: []fdoshared.RendezvousInstrList{
 			{ // TODO
-				fdoshared.RendezvousInstr{
-					Key: fdoshared.RVBypass,
-				},
+				fdoshared.NewRendezvousInstr(fdoshared.RVBypass, nil),
 			},
 		},
 		OVDeviceInfo:       newDi.DCDeviceInfo,
