@@ -370,10 +370,10 @@ func GenerateVoucherKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, er
 func MarshalPrivateKey(privKey interface{}, sgType DeviceSgType) ([]byte, error) {
 	switch sgType {
 	case StSECP256R1, StSECP384R1:
-		return x509.MarshalECPrivateKey(privKey.(*ecdsa.PrivateKey))
+		return x509.MarshalPKCS8PrivateKey(privKey.(*ecdsa.PrivateKey))
 
 	case StRSA2048, StRSA3072:
-		return x509.MarshalPKCS1PrivateKey(privKey.(*rsa.PrivateKey)), nil
+		return x509.MarshalPKCS8PrivateKey(privKey.(*rsa.PrivateKey))
 
 	default:
 		return []byte{}, fmt.Errorf("%d is an unsupported SgType!", sgType)
