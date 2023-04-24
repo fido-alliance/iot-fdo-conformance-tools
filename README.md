@@ -6,14 +6,14 @@ FIDO Device Onboarding Conformance Server
 FDO conformance tools are build in Golang for the backend, and Svelte NodeJS frontend framework for the frontend. Uses on disk key-value DB, so you do not need SQL or Mongo to run it.
 
 The backend consists of five modules:
-- [FDO: Shared](https://github.com/fido-alliance/fdo-shared) - a common module for all FDO operations that has all the crypto, structs definitions, and registry for commands, codes, and algorithms.
-
-- [FDO: DO Service](https://github.com/fido-alliance/fdo-do) - Device Onboarding Service with full implementation of FDO DO TO0 and TO2 protocols. It also contains all related tests.
-- [FDO: RV Service](https://github.com/fido-alliance/fdo-rv) - Rendezvous Service with full implementation of FDO DO TO0 and TO1 protocols. It also contains all related tests.
-- [FDO: Device Implementation Service](https://github.com/fido-alliance/fdo-device-implementation) - Virtual Device Implementation with full implementation of FDO DO TO1 and TO2 protocols. It also contains all related tests.
+- [Core](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core) - contains all core protocol submodules, such as RV, DO, Device, and Shared.
+    + [FDO: Shared](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core/shared) - a common module for all FDO operations that has all the crypto, structs definitions, and registry for commands, codes, and algorithms.
+    + [FDO: DO Service](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core/do) - Device Onboarding Service with full implementation of FDO DO TO0 and TO2 protocols. It also contains all related tests.
+    + [FDO: RV Service](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core/rv) - Rendezvous Service with full implementation of FDO DO TO0 and TO1 protocols. It also contains all related tests.
+    + [FDO: Device Implementation Service](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core/device) - Virtual Device Implementation with full implementation of FDO DO TO1 and TO2 protocols. It also contains all related tests.
 
 - [FIDO Conformance Server](https://github.com/fido-alliance/fdo-fido-conformance-server) - A user facing conformance server. Has testing structs, conformance APIs, conformance tests ID and much much more.
-- [FIDO Conformance Server - Frontend](https://github.com/fido-alliance/fdo-fido-conformance-frontend) - A frontend for FIDO Conformance Server
+- [FIDO Conformance Server - Frontend](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/frontend) - A frontend for FIDO Conformance Server
 
 ## Pre requisites:
 - Node JS 16+ https://nodejs.org/en/
@@ -57,7 +57,7 @@ The backend consists of five modules:
 
 To update packages without GOSUM check use env `GOSUMDB=off`
 
- * Example `GOSUMDB=off go get github.com/fido-alliance/fdo-device-implementation`
+ * Example `GOSUMDB=off go get github.com/fido-alliance/fdo-fido-conformance-server/core/device`
  * To update all `make update_fdo_packages`
 
 ### Structure
@@ -71,9 +71,11 @@ To update packages without GOSUM check use env `GOSUMDB=off`
 
 - `/testexec` - Contains TO0 DO, TO1 Device, TO2 Device conformance testing execution.
 
-- [FDO: Shared /testcom/](https://github.com/fido-alliance/fdo-shared/testcom/) - Contains common test methods, dbs, etc
-- [FDO: Shared /testcom/listener](https://github.com/fido-alliance/fdo-shared/testcom/listener) - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
-- [FDO: Shared /testcom/request](https://github.com/fido-alliance/fdo-shared/testcom/request) - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
+- `/core` - Core implementations of RV, DO, Device see [General Info](#general-info)
+
+- [FDO: Shared /testcom/](https://github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/) - Contains common test methods, dbs, etc
+- [FDO: Shared /testcom/listener](https://github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener) - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
+- [FDO: Shared /testcom/request](https://github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request) - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
 
 - `/frontend` - Contains frontend git submodule. See https://github.com/fido-alliance/fdo-fido-conformance-frontend
 
