@@ -292,11 +292,6 @@ func (h *DOTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	receivedContentType := r.Header.Get("Content-Type")
-	if receivedContentType != commonapi.CONTENT_TYPE_JSON {
-		commonapi.RespondError(w, "Unsupported media types!", http.StatusUnsupportedMediaType)
-	}
-
 	userInst, err := h.checkAutzAndGetUser(r)
 	if err != nil {
 		log.Println("Failed to read cookie. " + err.Error())
@@ -304,41 +299,24 @@ func (h *DOTestMgmtAPI) DeleteTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println("Failed to read body. " + err.Error())
-		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
-		return
-	}
+	vars := mux.Vars(r)
+	testinsthex := vars["testinsthex"]
+	testrunid := vars["testrunid"]
 
-	var execReq RVT_RequestInfo
-	err = json.Unmarshal(bodyBytes, &execReq)
+	dotId, err := hex.DecodeString(testinsthex)
 	if err != nil {
-		log.Println("Failed to decode body. " + err.Error())
-		commonapi.RespondError(w, "Failed to decode body!", http.StatusBadRequest)
-		return
-	}
-
-	if len(execReq.TestRunId) == 0 {
-		log.Println("Missing test run id field")
-		commonapi.RespondError(w, "Missing test run id field!", http.StatusBadRequest)
-		return
-	}
-
-	rvtId, err := hex.DecodeString(execReq.Id)
-	if err != nil {
-		log.Println("Can not decode hex rvtid " + err.Error())
+		log.Println("Can not decode hex dotId " + err.Error())
 		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
-	if !userInst.DOT_ContainID(rvtId) {
+	if !userInst.DOT_ContainID(dotId) {
 		log.Println("Id does not belong to user")
 		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
-	h.ReqTDB.RemoveTestRun(rvtId, execReq.TestRunId)
+	h.ReqTDB.RemoveTestRun(dotId, testrunid)
 
 	commonapi.RespondSuccess(w)
 }
