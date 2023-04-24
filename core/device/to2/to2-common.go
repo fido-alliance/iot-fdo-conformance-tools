@@ -43,11 +43,22 @@ func NewTo2Requestor(srvEntry common.SRVEntry, credential fdoshared.WawDeviceCre
 
 func (h *To2Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDOTestID, httpStatusCode int) testcom.FDOTestState {
 	switch fdoTestID {
-
-	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DEVT_30, fdoTestID):
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DOT_60, fdoTestID):
 		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
-	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DEVT_32, fdoTestID):
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DOT_62, fdoTestID):
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DOT_64, fdoTestID):
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DOT_66, fdoTestID):
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DOT_68, fdoTestID):
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DOT_70, fdoTestID):
 		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
 	}
