@@ -348,20 +348,20 @@ func (h *DOTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rvtId, err := hex.DecodeString(execReq.Id)
+	dotId, err := hex.DecodeString(execReq.Id)
 	if err != nil {
-		log.Println("Can not decode hex rvtid " + err.Error())
+		log.Println("Can not decode hex dotId " + err.Error())
 		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
-	if !userInst.RVT_ContainID(rvtId) {
+	if !userInst.DOT_ContainID(dotId) {
 		log.Println("Id does not belong to user")
 		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
 		return
 	}
 
-	rvte, err := h.ReqTDB.Get(rvtId)
+	rvte, err := h.ReqTDB.Get(dotId)
 	if err != nil {
 		log.Println("Can get RVT entry. " + err.Error())
 		commonapi.RespondError(w, "Internal server error!", http.StatusBadRequest)
