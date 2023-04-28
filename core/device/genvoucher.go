@@ -16,7 +16,14 @@ import (
 const DIS_LOCATION string = "./_dis/"
 const VOUCHERS_LOCATION string = "./_vouchers/"
 
-func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashOrHmac, mfgPrivateKey interface{}, prevEntrySgType fdoshared.DeviceSgType, newEntrySgType fdoshared.DeviceSgType, testId testcom.FDOTestID) (interface{}, []byte, *fdoshared.CoseSignature, error) {
+func GenerateOvEntry(
+	prevEntryHash fdoshared.HashOrHmac,
+	hdrHash fdoshared.HashOrHmac,
+	mfgPrivateKey interface{},
+	prevEntrySgType fdoshared.DeviceSgType,
+	newEntrySgType fdoshared.DeviceSgType,
+	testId testcom.FDOTestID,
+) (interface{}, []byte, *fdoshared.CoseSignature, error) {
 
 	// Generate manufacturer private key.
 	newOVEPrivateKey, newOVEPublicKey, err := fdoshared.GenerateVoucherKeypair(newEntrySgType)
@@ -37,7 +44,7 @@ func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashO
 
 	ovEntryPayloadBytes, err := cbor.Marshal(ovEntryPayload)
 	if err != nil {
-		return nil, []byte{}, nil, errors.New("Error mashaling OVEntry. " + err.Error())
+		return nil, []byte{}, nil, errors.New("Error marshaling OVEntry. " + err.Error())
 	}
 
 	protectedHeader := fdoshared.ProtectedHeader{
@@ -51,7 +58,7 @@ func GenerateOvEntry(prevEntryHash fdoshared.HashOrHmac, hdrHash fdoshared.HashO
 
 	marshaledPrivateKey, err := fdoshared.MarshalPrivateKey(newOVEPrivateKey, newEntrySgType)
 	if err != nil {
-		return nil, []byte{}, nil, errors.New("Error mashaling private key. " + err.Error())
+		return nil, []byte{}, nil, errors.New("Error marshaling private key. " + err.Error())
 	}
 
 	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
