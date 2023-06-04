@@ -4,13 +4,6 @@ build_loc := ./bin/
 fdotools_bin_loc := ~/conformance-test-infrastructure-new/iot-fdo-conformance/
 fdotools_infra_loc := ~/conformance-test-infrastructure-new/
 
-# Setting up project
-preconfig_submodules:
-	echo "\n----- Preconfig: Updating git submodules -----\n"
-
-	git submodule init
-	git submodule update
-
 preconfig_frontend:
 	echo "\n----- Preconfig: Setting up svelte frontend nodejs dependencies -----\n"
 
@@ -21,7 +14,7 @@ preconfig_conformance_server:
 
 	go get
 
-setup: preconfig_submodules preconfig_frontend preconfig_conformance_server
+setup: preconfig_frontend preconfig_conformance_server
 
 build_config_onprem:
 	sed -i -e 's/const TOOLS_MODE.*/const TOOLS_MODE = fdoshared.CFG_MODE_ONPREM/' running.ctx.go
@@ -52,15 +45,6 @@ build_frontend:
 	cp -Rf ./frontend/dist $(build_loc)/frontend
 
 # Build frontend
-update_fdo_packages:
-	echo "\n----- Updating FDO packages... -----\n"
-	GOSUMDB=off go get github.com/fido-alliance/fdo-shared
-	GOSUMDB=off go get github.com/fido-alliance/fdo-do
-	GOSUMDB=off go get github.com/fido-alliance/fdo-rv
-	GOSUMDB=off go get github.com/fido-alliance/fdo-device-implementation
-
-
-# Build frontend
 fdotools__push_new_bin:
 	echo "\n----- Updating FDO tools binary... -----\n"
 	scp bin/fdo-fido-conformance-server-linux ${FDO_BUILD_PUSH_HOST}:$(fdotools_bin_loc)
@@ -76,6 +60,5 @@ fdotools__restart_docker_compose:
 	ssh ${FDO_BUILD_PUSH_HOST} "cd $(fdotools_infra_loc) && docker-compose up --build --force -d"
 
 # fdotools__restart_docker_update:
-
 
 build: build_frontend compile_all
