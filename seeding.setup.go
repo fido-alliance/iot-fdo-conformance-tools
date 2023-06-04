@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math"
 	"sync"
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
@@ -41,7 +40,7 @@ func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *
 
 	for i := 0; i < seedSize; i++ {
 		if i != 0 && i%(seedSize/10) == 0 {
-			log.Printf("[%d] %d. %d%% completed\n", threadID, sgType, int(math.Floor(float64(i/(seedSize/10))))*10)
+			log.Printf("[%d] %d. %d%% completed\n", threadID, sgType, int(float64(i/(seedSize/10)))*10)
 		}
 
 		newDeviceBase, err := fdoshared.NewWawDeviceCredBase(getSgAlgInfo.HmacType, sgType)
@@ -84,13 +83,11 @@ func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 		SeededGuids: fdoshared.FdoSeedIDs{},
 	}
 
-	var results []SeedRunResult = []SeedRunResult{}
 	for i := 0; i < totalChannels; i++ {
 		result := <-chn
-		results = append(results, result)
 
 		if result.Error != nil {
-			return fmt.Errorf("Failed to pre-generate creds for %d. %s ", result.DeviceSgType, result.Error)
+			return fmt.Errorf("failed to pre-generate creds for %d. %s ", result.DeviceSgType, result.Error)
 		}
 
 		for _, newDeviceBase := range result.CredBases {
@@ -105,7 +102,7 @@ func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 
 	err := configdb.Save(newConfig)
 	if err != nil {
-		return fmt.Errorf("Error saving config. " + err.Error())
+		return fmt.Errorf("error saving config. " + err.Error())
 	}
 
 	log.Println("Done!")

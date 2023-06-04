@@ -33,16 +33,16 @@ const DEFAULT_PORT = 8080
 func TryReadingWawDIFile(filepath string) (*fdoshared.WawDeviceCredential, error) {
 	fileBytes, err := os.ReadFile(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("Error reading file \"%s\". %s ", filepath, err.Error())
+		return nil, fmt.Errorf("error reading file \"%s\". %s ", filepath, err.Error())
 	}
 
 	if len(fileBytes) == 0 {
-		return nil, fmt.Errorf("Error reading file \"%s\". The file is empty.", filepath)
+		return nil, fmt.Errorf("error reading file \"%s\". The file is empty", filepath)
 	}
 
 	wawdicredBlock, _ := pem.Decode(fileBytes)
 	if wawdicredBlock == nil {
-		return nil, fmt.Errorf("%s: Could not find voucher PEM data!", filepath)
+		return nil, fmt.Errorf("%s: Could not find voucher PEM data", filepath)
 	}
 
 	if wawdicredBlock.Type != fdoshared.CREDENTIAL_PEM_TYPE {
@@ -131,7 +131,7 @@ func main() {
 				UsageText: "Generates one hundred thousand cred bases to be used in testing",
 				Action: func(c *cli.Context) error {
 					log.Println("---------- NOTE ----------")
-					log.Println("\nPlease wait while tools pre-generate testing private keys. This may take up to five minutes...\n")
+					log.Println("\nPlease wait while tools pre-generate testing private keys. This may take up to five minutes...")
 					log.Println("---------- NOTE ENDS ----------")
 
 					time.Sleep(4 * time.Second)
@@ -204,7 +204,7 @@ func main() {
 							var to1dPayload fdoshared.To1dBlobPayload
 							err = cbor.Unmarshal(to1d.Payload, &to1dPayload)
 							if err != nil {
-								return fmt.Errorf("Error decoding TO1D payload! %s", err.Error())
+								return fmt.Errorf("error decoding TO1D payload! %s", err.Error())
 							}
 
 							log.Println(to1dPayload.To1dRV)
