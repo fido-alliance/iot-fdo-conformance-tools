@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dgraph-io/badger/v3"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	tdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"

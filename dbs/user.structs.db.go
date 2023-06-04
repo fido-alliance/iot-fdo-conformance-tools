@@ -3,7 +3,7 @@ package dbs
 import (
 	"bytes"
 
-	"github.com/dgraph-io/badger/v3"
+	"github.com/dgraph-io/badger/v4"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/google/uuid"
 )

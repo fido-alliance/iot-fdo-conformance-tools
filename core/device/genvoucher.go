@@ -24,7 +24,6 @@ func GenerateOvEntry(
 	newEntrySgType fdoshared.DeviceSgType,
 	testId testcom.FDOTestID,
 ) (interface{}, []byte, *fdoshared.CoseSignature, error) {
-
 	// Generate manufacturer private key.
 	newOVEPrivateKey, newOVEPublicKey, err := fdoshared.GenerateVoucherKeypair(newEntrySgType)
 	if err != nil {

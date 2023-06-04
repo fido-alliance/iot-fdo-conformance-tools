@@ -3,7 +3,6 @@ module github.com/fido-alliance/fdo-fido-conformance-server
 go 1.18
 
 require (
-	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
@@ -12,6 +11,7 @@ require (
 )
 
 require (
+	github.com/dgraph-io/badger/v4 v4.1.0
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/fido-alliance/dhkx v0.3.4
 	golang.org/x/oauth2 v0.3.0
@@ -35,8 +35,8 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )

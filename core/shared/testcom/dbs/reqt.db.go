@@ -10,7 +10,7 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 
-	"github.com/dgraph-io/badger/v3"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fxamacker/cbor/v2"
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/services"
 	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
 
-	"github.com/dgraph-io/badger/v3"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/gorilla/mux"
 )
 

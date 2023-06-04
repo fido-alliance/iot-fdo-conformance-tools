@@ -18,12 +18,12 @@ import (
 	fdodo "github.com/fido-alliance/fdo-fido-conformance-server/core/do"
 	fdorv "github.com/fido-alliance/fdo-fido-conformance-server/core/rv"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	testcomdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
 
-	"github.com/dgraph-io/badger/v3"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/urfave/cli/v2"
 )

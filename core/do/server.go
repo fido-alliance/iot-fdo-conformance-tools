@@ -3,7 +3,7 @@ package do
 import (
 	"net/http"
 
-	"github.com/dgraph-io/badger/v3"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to2"
 )
 

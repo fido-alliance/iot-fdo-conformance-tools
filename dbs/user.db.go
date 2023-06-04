@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/dgraph-io/badger/v3"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fxamacker/cbor/v2"
 )
 
