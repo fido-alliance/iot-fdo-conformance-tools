@@ -77,7 +77,7 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 	switch fdoTestID {
 	case testcom.FIDO_RVT_21_CHECK_RESP:
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(bodyBytes)
-		if err == nil {
+		if err != nil {
 			return testcom.NewFailTestState(fdoTestID, fmt.Sprintf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode))
 		}
 
@@ -85,6 +85,20 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 		err = cbor.Unmarshal(bodyBytes, &helloAck21)
 		if err != nil {
 			return testcom.NewFailTestState(fdoTestID, "Error decoding HelloAck21. "+err.Error())
+		}
+
+		return testcom.NewSuccessTestState(fdoTestID)
+
+	case testcom.FIDO_RVT_23_CHECK_RESP:
+		fdoErrInst, err := fdoshared.DecodeErrorResponse(bodyBytes)
+		if err != nil {
+			return testcom.NewFailTestState(fdoTestID, fmt.Sprintf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode))
+		}
+
+		var acceptOwner fdoshared.AcceptOwner23
+		err = cbor.Unmarshal(bodyBytes, &acceptOwner)
+		if err != nil {
+			return testcom.NewFailTestState(fdoTestID, "Error decoding AcceptOwner23. "+err.Error())
 		}
 
 		return testcom.NewSuccessTestState(fdoTestID)
