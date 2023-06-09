@@ -170,8 +170,8 @@ func Sp800108CounterKDF(sizeBytes int, hmacAlg HashType, key []byte, contextRand
 		mac.Write([]byte{byte(0x00)}) // Separator
 		mac.Write([]byte(CONST_KDF_CONTEXT))
 		mac.Write(contextRand)
-		l2 := []byte{byte((l >> 8) & 0xff), byte((l & 0xff))}
-		mac.Write(l2)
+		Lbigend := []byte{byte((l & 0xff)), byte((l >> 8) & 0xff)}
+		mac.Write(Lbigend)
 
 		result = append(result, mac.Sum(nil)...)
 		mac.Reset()
