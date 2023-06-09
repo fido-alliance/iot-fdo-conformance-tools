@@ -63,9 +63,15 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 	}
 
 	// TO1D CoseSignature
-	lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
-	if err != nil {
-		return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
+
+	var lastOvEntryPubKeyPkType fdoshared.FdoPkType = fdoshared.SECP256R1
+	if fdoTestID != testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
+		lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
+		if err != nil {
+			return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
+		}
+
+		lastOvEntryPubKeyPkType = lastOvEntryPubKey.PkType
 	}
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.voucherDBEntry.PrivateKeyX509)
@@ -73,7 +79,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Error extracting private key. " + err.Error())
 	}
 
-	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKey.PkType, deviceHashAlg)
+	sgType, err := fdoshared.GetDeviceSgType(lastOvEntryPubKeyPkType, deviceHashAlg)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Error getting device SgType. " + err.Error())
 	}
@@ -115,7 +121,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 
 	fdoErrInst, err := fdoshared.DecodeErrorResponse(resultBytes)
 	if err == nil {
-		return nil, nil, fmt.Errorf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
+		return nil, nil, fmt.Errorf("server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
 	}
 
 	err = cbor.Unmarshal(resultBytes, &acceptOwner23)
