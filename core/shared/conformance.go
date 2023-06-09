@@ -272,7 +272,7 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 		}
 
 	default:
-		return nil, fmt.Errorf("Unsupported encryption scheme! %d", cipherSuite)
+		return nil, fmt.Errorf("unsupported encryption scheme! %d", cipherSuite)
 	}
 
 	return encryptedBytes, err

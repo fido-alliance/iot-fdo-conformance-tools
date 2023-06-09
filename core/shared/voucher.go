@@ -171,7 +171,7 @@ func (h OwnershipVoucher) GetOVHeader() (OwnershipVoucherHeader, error) {
 	err := cbor.Unmarshal(h.OVHeaderTag, &ovHeader)
 
 	if err != nil {
-		return OwnershipVoucherHeader{}, errors.New("Error decoding OVHeader. " + err.Error())
+		return OwnershipVoucherHeader{}, errors.New("error decoding OVHeader. " + err.Error())
 	}
 
 	return ovHeader, nil
@@ -179,7 +179,7 @@ func (h OwnershipVoucher) GetOVHeader() (OwnershipVoucherHeader, error) {
 
 func (h OwnershipVoucher) GetFinalOwnerPublicKey() (FdoPublicKey, error) {
 	if len(h.OVEntryArray) == 0 {
-		return FdoPublicKey{}, errors.New("Error OVEntryArray is empty!")
+		return FdoPublicKey{}, errors.New("error OVEntryArray is empty")
 	}
 
 	finalOVEntry := h.OVEntryArray[len(h.OVEntryArray)-1]
@@ -187,7 +187,7 @@ func (h OwnershipVoucher) GetFinalOwnerPublicKey() (FdoPublicKey, error) {
 	var finalOVEntryPayload OVEntryPayload
 	err := cbor.Unmarshal(finalOVEntry.Payload, &finalOVEntryPayload)
 	if err != nil {
-		return FdoPublicKey{}, errors.New("Error decoding last OVEntry payload!")
+		return FdoPublicKey{}, errors.New("error decoding last OVEntry payload")
 	}
 
 	return finalOVEntryPayload.OVEPubKey, nil
@@ -197,7 +197,7 @@ func (h CoseSignature) GetOVEntryPubKey() (FdoPublicKey, error) {
 	var finalOVEntryPayload OVEntryPayload
 	err := cbor.Unmarshal(h.Payload, &finalOVEntryPayload)
 	if err != nil {
-		return FdoPublicKey{}, errors.New("Error decoding OVEntry payload!")
+		return FdoPublicKey{}, errors.New("error decoding OVEntry payload")
 	}
 
 	return finalOVEntryPayload.OVEPubKey, nil
@@ -212,14 +212,14 @@ func (h OVEntryArray) VerifyEntries(ovHeaderTag []byte, ovHeaderHMac HashOrHmac)
 	var voucherHeader OwnershipVoucherHeader
 	err := cbor.Unmarshal(ovHeaderTag, &voucherHeader)
 	if err != nil {
-		return errors.New("Error decoding VoucherHeader: " + err.Error())
+		return errors.New("error decoding VoucherHeader: " + err.Error())
 	}
 
 	for i, OVEntry := range h {
 		var OVEntryPayload OVEntryPayload
 		err := cbor.Unmarshal(OVEntry.Payload, &OVEntryPayload)
 		if err != nil {
-			return errors.New("Error decoding OVEntry payload: " + err.Error())
+			return errors.New("error decoding OVEntry payload: " + err.Error())
 		}
 
 		if i == 0 {
@@ -227,24 +227,24 @@ func (h OVEntryArray) VerifyEntries(ovHeaderTag []byte, ovHeaderHMac HashOrHmac)
 			firstEntryHashContents := append(ovHeaderTag, headerHmacBytes...)
 			err := VerifyHash(firstEntryHashContents, OVEntryPayload.OVEHashPrevEntry)
 			if err != nil {
-				return errors.New("Error verifying OVEntry Hash: " + err.Error())
+				return errors.New("error verifying OVEntry Hash: " + err.Error())
 			}
 
 			err = VerifyCoseSignature(OVEntry, voucherHeader.OVPublicKey)
 			if err != nil {
-				return errors.New("Error verifying OVEntry Signature: " + err.Error())
+				return errors.New("error verifying OVEntry Signature: " + err.Error())
 			}
 		} else {
 			lastOVEntryBytes, _ := cbor.Marshal(lastOVEntry)
 
 			err := VerifyHash(lastOVEntryBytes, OVEntryPayload.OVEHashPrevEntry)
 			if err != nil {
-				return errors.New("Error verifying OVEntry Hash: " + err.Error())
+				return errors.New("error verifying OVEntry Hash: " + err.Error())
 			}
 
 			err = VerifyCoseSignature(OVEntry, lastOVEntryPublicKey)
 			if err != nil {
-				return errors.New("Error verifying OVEntry Signature: " + err.Error())
+				return errors.New("error verifying OVEntry Signature: " + err.Error())
 			}
 		}
 
@@ -261,16 +261,16 @@ func (h OwnershipVoucher) VerifyOVEntries() error {
 func ValidateVoucherStructFromCert(voucherFileBytes []byte) (*OwnershipVoucher, error) {
 	voucherBlock, rest := pem.Decode(voucherFileBytes)
 	if voucherBlock == nil {
-		return nil, errors.New("Detected bytes != actual length")
+		return nil, errors.New("missing voucher")
 	}
 
 	if voucherBlock.Type != OWNERSHIP_VOUCHER_PEM_TYPE {
-		return nil, errors.New("Detected bytes != actual length")
+		return nil, errors.New("error. PEM type is not \"OWNERSHIP VOUCHER\"")
 	}
 
 	privateKeyBytes, _ := pem.Decode(rest)
 	if privateKeyBytes == nil {
-		return nil, errors.New("Detected bytes != actual length")
+		return nil, errors.New("missing private key")
 	}
 
 	// CBOR decode voucher
@@ -278,7 +278,7 @@ func ValidateVoucherStructFromCert(voucherFileBytes []byte) (*OwnershipVoucher, 
 	var voucherInst OwnershipVoucher
 	err := cbor.Unmarshal(voucherBlock.Bytes, &voucherInst)
 	if err != nil {
-		return nil, errors.New("Detected bytes != actual length")
+		return nil, errors.New("failed to CBOR decode voucher")
 	}
 
 	return &voucherInst, nil
@@ -315,17 +315,17 @@ func GeneratePKIXECKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, err
 		curve = elliptic.P384()
 		pkType = SECP384R1
 	} else {
-		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
+		return nil, nil, fmt.Errorf("%d is an unsupported SgType", sgType)
 	}
 
 	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
-		return nil, nil, errors.New("Error generating new private key. " + err.Error())
+		return nil, nil, errors.New("error generating new private key. " + err.Error())
 	}
 
 	publicKeyPkix, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
 	if err != nil {
-		return nil, nil, errors.New("Error marshaling public key. " + err.Error())
+		return nil, nil, errors.New("error marshaling public key. " + err.Error())
 	}
 
 	return privateKey, &FdoPublicKey{
@@ -344,18 +344,18 @@ func GeneratePKIXRSAKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, er
 	} else if sgType == StRSA3072 {
 		rsaKeySize = 3072
 	} else {
-		return nil, nil, fmt.Errorf("%d is an unsupported RSA SgType!", sgType)
+		return nil, nil, fmt.Errorf("%d is an unsupported RSA SgType", sgType)
 	}
 
 	privatekey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
 	if err != nil {
-		return nil, nil, errors.New("Error generating new RSA private key. " + err.Error())
+		return nil, nil, errors.New("error generating new RSA private key. " + err.Error())
 	}
 	publickey := &privatekey.PublicKey
 
 	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publickey)
 	if err != nil {
-		return nil, nil, errors.New("Error marshaling RSA public key. " + err.Error())
+		return nil, nil, errors.New("error marshaling RSA public key. " + err.Error())
 	}
 
 	return privatekey, &FdoPublicKey{
@@ -372,7 +372,7 @@ func GenerateVoucherKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, er
 	case StRSA2048, StRSA3072:
 		return GeneratePKIXRSAKeypair(sgType)
 	default:
-		return nil, nil, fmt.Errorf("%d is an unsupported SgType!", sgType)
+		return nil, nil, fmt.Errorf("%d is an unsupported SgType", sgType)
 	}
 }
 
@@ -385,6 +385,6 @@ func MarshalPrivateKey(privKey interface{}, sgType DeviceSgType) ([]byte, error)
 		return x509.MarshalPKCS8PrivateKey(privKey.(*rsa.PrivateKey))
 
 	default:
-		return []byte{}, fmt.Errorf("%d is an unsupported SgType!", sgType)
+		return []byte{}, fmt.Errorf("%d is an unsupported SgType", sgType)
 	}
 }

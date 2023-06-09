@@ -154,7 +154,7 @@ func Sp800108CounterKDF(sizeBytes int, hmacAlg HashType, key []byte, contextRand
 	} else if hmacAlg == HASH_HMAC_SHA384 {
 		mac = hmac.New(sha512.New384, key)
 	} else {
-		return nil, fmt.Errorf("Unknown HMAC algorithm! %d", hmacAlg)
+		return nil, fmt.Errorf("unknown HMAC algorithm! %d", hmacAlg)
 	}
 
 	h := mac.Size() * 8
@@ -323,7 +323,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	if innerProtected.Alg != int(algInfo.CryptoAlg) {
-		return nil, errors.New("Error! Encryption algorithms don't match!")
+		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
 	IvBytes := inner.Unprotected.AESIV
@@ -339,7 +339,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		stream := cipher.NewCTR(block, IvBytes)
 		stream.XORKeyStream(plaintext, inner.Ciphertext)
 	default:
-		return nil, fmt.Errorf("Unsupported encryption algorithm! %d", innerProtected.Alg)
+		return nil, fmt.Errorf("unsupported encryption algorithm! %d", innerProtected.Alg)
 	}
 
 	return plaintext, nil
@@ -349,9 +349,11 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 ;;Simple encrypted message, using one COSE
 ;; (authenticated) encryption mechanism.
 EMBlock = [
-    protected:   { 1:COSEEncType },
-    unprotected: { COSEUnProtFields }
-    ciphertext:     bstr # encrypted ProtocolMessage
+
+	protected:   { 1:COSEEncType },
+	unprotected: { COSEUnProtFields }
+	ciphertext:     bstr # encrypted ProtocolMessage
+
 ]
 */
 type EMBlock struct {
@@ -440,7 +442,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	if protected.Alg != int(algInfo.CryptoAlg) {
-		return nil, errors.New("Error! Encryption algorithms don't match!")
+		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
 	IvBytes := embInst.Unprotected.AESIV
@@ -478,7 +480,7 @@ func AddEncryptionWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 	case CIPHER_A128GCM, CIPHER_A256GCM:
 		return encryptEMB(payload, sessionKeyInfo, cipherSuite)
 	default:
-		return nil, fmt.Errorf("Unsupported encryption scheme! %s", cipherSuite)
+		return nil, fmt.Errorf("unsupported encryption scheme! %d", cipherSuite)
 	}
 }
 
@@ -489,6 +491,6 @@ func RemoveEncryptionWrapping(encryptedPayload []byte, sessionKeyInfo SessionKey
 	case CIPHER_A128GCM, CIPHER_A256GCM:
 		return decryptEMB(encryptedPayload, sessionKeyInfo, cipherSuite)
 	default:
-		return nil, fmt.Errorf("Unsupported encryption scheme! %s", cipherSuite)
+		return nil, fmt.Errorf("unsupported encryption scheme! %d", cipherSuite)
 	}
 }

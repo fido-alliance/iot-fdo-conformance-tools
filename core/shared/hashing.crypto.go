@@ -53,7 +53,7 @@ func GenerateFdoHash(data []byte, hashType HashType) (HashOrHmac, error) {
 			Hash: hashDigest[:],
 		}, nil
 	default:
-		return HashOrHmac{}, fmt.Errorf("Error generating hash. %d is unknown hashing algorithm", hashType)
+		return HashOrHmac{}, fmt.Errorf("error generating hash. %d is unknown hashing algorithm", hashType)
 	}
 }
 
@@ -76,7 +76,7 @@ func GenerateFdoHmac(data []byte, hashType HashType, key []byte) (HashOrHmac, er
 			Hash: macInst.Sum(nil),
 		}, nil
 	default:
-		return HashOrHmac{}, fmt.Errorf("Error generating hmac. %d is unknown hmac algorithm", hashType)
+		return HashOrHmac{}, fmt.Errorf("error generating hmac. %d is unknown hmac algorithm", hashType)
 	}
 }
 
@@ -84,28 +84,28 @@ func VerifyHash(data []byte, fdoHashB HashOrHmac) error {
 	switch fdoHashB.Type {
 	case HASH_SHA256:
 		if len(fdoHashB.Hash) != sha256.New().Size() {
-			return errors.New("Failed to verify hash. The input hash does not match expected hash size.")
+			return errors.New("failed to verify hash. The input hash does not match expected hash size")
 		}
 
 		fdoHashA, _ := GenerateFdoHash(data, fdoHashB.Type)
 		if bytes.Equal(fdoHashB.Hash, fdoHashA.Hash) {
 			return nil
 		} else {
-			return errors.New("Failed to verify hash. Hashes don't match")
+			return errors.New("failed to verify hash. Hashes don't match")
 		}
 	case HASH_SHA384:
 		if len(fdoHashB.Hash) != sha512.New384().Size() {
-			return errors.New("Failed to verify hash. The input hash does not match expected hash size.")
+			return errors.New("failed to verify hash. The input hash does not match expected hash size")
 		}
 
 		fdoHashA, _ := GenerateFdoHash(data, fdoHashB.Type)
 		if bytes.Equal(fdoHashB.Hash, fdoHashA.Hash) {
 			return nil
 		} else {
-			return errors.New("Failed to verify hash. Hashes don't match")
+			return errors.New("failed to verify hash. Hashes don't match")
 		}
 	default:
-		return fmt.Errorf("Error verifying hash. %d is an unknown hash algorithm", fdoHashB.Type)
+		return fmt.Errorf("error verifying hash. %d is an unknown hash algorithm", fdoHashB.Type)
 	}
 }
 
@@ -119,7 +119,7 @@ func VerifyHMac(data []byte, inputHmac HashOrHmac, key []byte) error {
 		if bytes.Equal(inputHmac.Hash, computedMac) {
 			return nil
 		} else {
-			return errors.New("Failed to verify HMAC. HMACs don't match.")
+			return errors.New("failed to verify HMAC. HMACs do not match")
 		}
 	case HASH_HMAC_SHA384:
 		macInst := hmac.New(sha512.New384, key)
@@ -129,10 +129,10 @@ func VerifyHMac(data []byte, inputHmac HashOrHmac, key []byte) error {
 		if bytes.Equal(inputHmac.Hash, computedMac) {
 			return nil
 		} else {
-			return errors.New("Failed to verify HMAC. HMACs don't match.")
+			return errors.New("failed to verify HMAC. HMACs do not match")
 		}
 	default:
-		return fmt.Errorf("Error verifying hmac. %d is unknown hmac algorithm", inputHmac.Type)
+		return fmt.Errorf("error verifying hmac. %d is unknown hmac algorithm", inputHmac.Type)
 	}
 }
 

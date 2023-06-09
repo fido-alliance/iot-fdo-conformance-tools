@@ -207,7 +207,7 @@ func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
 
 		return &resultKex, nil
 	default:
-		return nil, fmt.Errorf("Unknown KeyExchange algorithm: %s", kexSuitName)
+		return nil, fmt.Errorf("nnknown KeyExchange algorithm: %s", kexSuitName)
 	}
 }
 
@@ -225,7 +225,7 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*Se
 		// Compute the key
 		sharedPubKey, err := dhkxPrivKeyA.Group.ComputeKey(dhkxBPubKey, dhkxPrivKeyA)
 		if err != nil {
-			return nil, fmt.Errorf("Error deriving shared key for KEX_DHKEX id14/id15. %s", err.Error())
+			return nil, fmt.Errorf("error deriving shared key for KEX_DHKEX id14/id15. %s", err.Error())
 		}
 
 		return &SessionKeyInfo{
@@ -240,7 +240,7 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*Se
 	case KEX_ECDH256:
 		expectedLen := 2 + 32 + 2 + 32 + 2 + int(KEX_ECDH256_RANDOM_LEN)
 		if len(xBKeyExchange) != expectedLen {
-			return nil, fmt.Errorf("Unexpected xBKeyExchange for ECDH256 length. Expected %d bytes long", expectedLen)
+			return nil, fmt.Errorf("unexpected xBKeyExchange for ECDH256 length. Expected %d bytes long", expectedLen)
 		}
 
 		deviceX := xBKeyExchange[2:34]
@@ -285,7 +285,7 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*Se
 	case KEX_ECDH384:
 		expectedLen := 2 + 48 + 2 + 48 + 2 + int(KEX_ECDH384_RANDOM_LEN)
 		if len(xBKeyExchange) != expectedLen {
-			return nil, fmt.Errorf("Unexpected xBKeyExchange for ECDH384 length. Expected %d bytes long", expectedLen)
+			return nil, fmt.Errorf("unexpected xBKeyExchange for ECDH384 length. Expected %d bytes long", expectedLen)
 		}
 
 		deviceX := xBKeyExchange[2:50]

@@ -19,20 +19,20 @@ func VerifyCertificateChain(chain []X509CertificateBytes) ([]*x509.Certificate, 
 	var finalChain []*x509.Certificate
 
 	if len(chain) < 2 {
-		return finalChain, errors.New("Failed to verify certificate chain. The length must be at least two!")
+		return finalChain, errors.New("failed to verify certificate chain. The length must be at least two")
 	}
 
 	leafCertBytes := chain[0]
 	leafCert, err := x509.ParseCertificate(leafCertBytes)
 	if err != nil {
-		return finalChain, errors.New("Error decoding leaf certificate. " + err.Error())
+		return finalChain, errors.New("error decoding leaf certificate. " + err.Error())
 
 	}
 
 	rootCertBytes := chain[len(chain)-1]
 	rootCert, err := x509.ParseCertificate(rootCertBytes)
 	if err != nil {
-		return finalChain, errors.New("Error decoding root certificate. " + err.Error())
+		return finalChain, errors.New("error decoding root certificate. " + err.Error())
 	}
 
 	rootPool := x509.NewCertPool()
@@ -44,7 +44,7 @@ func VerifyCertificateChain(chain []X509CertificateBytes) ([]*x509.Certificate, 
 		for i, interCertBytes := range chain[1 : len(chain)-1] {
 			interCert, err := x509.ParseCertificate(interCertBytes)
 			if err != nil {
-				return finalChain, fmt.Errorf("Error decoding intermediate %d certificate. %s", i, err.Error())
+				return finalChain, fmt.Errorf("error decoding intermediate %d certificate. %s", i, err.Error())
 			}
 			interPool.AddCert(interCert)
 		}
@@ -55,7 +55,7 @@ func VerifyCertificateChain(chain []X509CertificateBytes) ([]*x509.Certificate, 
 		Roots:         rootPool,
 	})
 	if err != nil {
-		return nil, errors.New("Error verifying certificate chain! " + err.Error())
+		return nil, errors.New("error verifying certificate chain! " + err.Error())
 	}
 	finalChain = verificationChain[0]
 
@@ -76,12 +76,12 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 	switch pkType {
 	case SECP256R1:
 		if len(signature) != SECP256R1_SIG_LEN {
-			return errors.New("For ES256, signature must be 64 bytes long!")
+			return errors.New("for ES256, signature must be 64 bytes long")
 		}
 
 		pubKeyCasted, ok := publicKeyInst.(*ecdsa.PublicKey)
 		if !ok {
-			return errors.New("Error verifying SECP384R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
+			return errors.New("error verifying SECP384R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
 		}
 
 		payloadHash := sha256.Sum256(payload)
@@ -93,18 +93,18 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 		s.SetBytes(signature[32:64])
 
 		if !ecdsa.Verify(pubKeyCasted, payloadHash[:], r, s) {
-			return errors.New("Failed to verify signature")
+			return errors.New("failed to verify signature")
 		} else {
 			return nil
 		}
 	case SECP384R1:
 		if len(signature) != SECP384R1_SIG_LEN {
-			return errors.New("For ES384, signature must be 96 bytes long!")
+			return errors.New("for ES384, signature must be 96 bytes long")
 		}
 
 		pubKeyCasted, ok := publicKeyInst.(*ecdsa.PublicKey)
 		if !ok {
-			return errors.New("Error verifying SECP384R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
+			return errors.New("error verifying SECP384R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
 		}
 
 		payloadHash := sha512.Sum384(payload)
@@ -116,14 +116,14 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 		s.SetBytes(signature[48:96])
 
 		if !ecdsa.Verify(pubKeyCasted, payloadHash[:], r, s) {
-			return errors.New("Failed to verify signature")
+			return errors.New("failed to verify signature")
 		} else {
 			return nil
 		}
 	case RSAPKCS, RSA2048RESTR:
 		rsaPubKeyCasted, ok := publicKeyInst.(*rsa.PublicKey)
 		if !ok {
-			return errors.New("Error verifying RS2RSAPKCS56 cose signature. Could not cast pubKey instance to RSA PubKey")
+			return errors.New("error verifying RS2RSAPKCS56 cose signature. Could not cast pubKey instance to RSA PubKey")
 		}
 
 		rsaPubKeyLen := len(rsaPubKeyCasted.N.Bytes())
@@ -144,9 +144,9 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 
 		return rsa.VerifyPKCS1v15(rsaPubKeyCasted, hashingAlg, payloadHash, signature)
 	case RSAPSS:
-		return errors.New("RSAPSS is not currently implemented!")
+		return errors.New("RSAPSS is not currently implemented")
 	default:
-		return fmt.Errorf("PublicKey type %d is not supported!", pkType)
+		return fmt.Errorf("PublicKey type %d is not supported", pkType)
 	}
 }
 
@@ -158,23 +158,23 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) error {
 
 	switch publicKey.PkEnc {
 	case Crypto:
-		return errors.New("EPID signatures are not currently supported!")
+		return errors.New("ePID signatures are not currently supported")
 	case X509:
 		publicKeyCasted, ok := publicKey.PkBody.([]byte)
 		if !ok {
-			return errors.New("Failed to cast pubkey PkBody to []byte")
+			return errors.New("failed to cast pubkey PkBody to []byte")
 		}
 
 		pubKeyInst, err := x509.ParsePKIXPublicKey(publicKeyCasted)
 		if err != nil {
-			return errors.New("Error parsing PKIX X509 Public Key. " + err.Error())
+			return errors.New("error parsing PKIX X509 Public Key. " + err.Error())
 		}
 
 		return VerifySignature(coseSigPayloadBytes, coseSig.Signature, pubKeyInst, publicKey.PkType)
 	case X5CHAIN:
 		decCertBytes, ok := publicKey.PkBody.([]X509CertificateBytes)
 		if !ok {
-			return errors.New("Failed to cast pubkey PkBody to []X509CertificateBytes")
+			return errors.New("failed to cast pubkey PkBody to []X509CertificateBytes")
 		}
 
 		successChain, err := VerifyCertificateChain(decCertBytes)
@@ -187,9 +187,9 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) error {
 		return VerifySignature(coseSigPayloadBytes, coseSig.Signature, leafCert.PublicKey, publicKey.PkType)
 
 	case COSEKEY:
-		return errors.New("CoseKey is not currently supported!") // TODO
+		return errors.New("CoseKey is not currently supported") // TODO
 	default:
-		return fmt.Errorf("PublicKey encoding %d is not supported!", publicKey.PkEnc)
+		return fmt.Errorf("PublicKey encoding %d is not supported", publicKey.PkEnc)
 	}
 }
 
@@ -202,13 +202,13 @@ func ExtractPrivateKey(privateKeyDer []byte) (interface{}, error) {
 		case *rsa.PrivateKey, *ecdsa.PrivateKey:
 			return key, nil
 		default:
-			return nil, fmt.Errorf("Found unknown private key type in PKCS#8 wrapping")
+			return nil, fmt.Errorf("found unknown private key type in PKCS#8 wrapping")
 		}
 	}
 	if key, err := x509.ParseECPrivateKey(privateKeyDer); err == nil {
 		return key, nil
 	}
-	return nil, fmt.Errorf("Failed to parse private key")
+	return nil, fmt.Errorf("failed to parse private key")
 }
 
 func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType DeviceSgType) (*CoseSignature, error) {
@@ -226,12 +226,12 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 		payloadHash := sha256.Sum256(coseSigPayloadBytes)
 		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
 		if !ok {
-			return nil, errors.New("Error generating ES256 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
+			return nil, errors.New("error generating ES256 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
 		}
 
 		r, s, err := ecdsa.Sign(rand.Reader, privKeyCasted, payloadHash[:])
 		if err != nil {
-			return nil, errors.New("Error generating ES256 cose signature. " + err.Error())
+			return nil, errors.New("error generating ES256 cose signature. " + err.Error())
 		}
 
 		signature = append(r.Bytes(), s.Bytes()...)
@@ -240,12 +240,12 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 
 		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
 		if !ok {
-			return nil, errors.New("Error generating ES384 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
+			return nil, errors.New("error generating ES384 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
 		}
 
 		r, s, err := ecdsa.Sign(rand.Reader, privKeyCasted, payloadHash[:])
 		if err != nil {
-			return nil, errors.New("Error generating ES384 cose signature. " + err.Error())
+			return nil, errors.New("error generating ES384 cose signature. " + err.Error())
 		}
 
 		signature = append(r.Bytes(), s.Bytes()...)
@@ -254,12 +254,12 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 
 		privKeyCasted, ok := privateKeyInterface.(*rsa.PrivateKey)
 		if !ok {
-			return nil, errors.New("Error generating RSA3072 cose signature. Could not cast privKey instance to RSA PrivateKey")
+			return nil, errors.New("error generating RSA3072 cose signature. Could not cast privKey instance to RSA PrivateKey")
 		}
 
 		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privKeyCasted, crypto.SHA384, payloadHash[:])
 		if err != nil {
-			return nil, errors.New("Error generating RSA3072 cose signature. " + err.Error())
+			return nil, errors.New("error generating RSA3072 cose signature. " + err.Error())
 		}
 
 		signature = tSignature
@@ -268,19 +268,19 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 
 		privKeyCasted, ok := privateKeyInterface.(*rsa.PrivateKey)
 		if !ok {
-			return nil, errors.New("Error generating RSA2048 cose signature. Could not cast privKey instance to RSA PrivateKey")
+			return nil, errors.New("error generating RSA2048 cose signature. Could not cast privKey instance to RSA PrivateKey")
 		}
 
 		tSignature, err := rsa.SignPKCS1v15(rand.Reader, privKeyCasted, crypto.SHA256, payloadHash[:])
 		if err != nil {
-			return nil, errors.New("Error generating RSA2048 cose signature. " + err.Error())
+			return nil, errors.New("error generating RSA2048 cose signature. " + err.Error())
 		}
 
 		signature = tSignature
 	case StEPID10:
-		return nil, errors.New("StEPID10 is not currently implemented!")
+		return nil, errors.New("StEPID10 is not currently implemented")
 	default:
-		return nil, fmt.Errorf("Alg %d is not supported!", sgType)
+		return nil, fmt.Errorf("alg %d is not supported", sgType)
 	}
 
 	return &CoseSignature{

@@ -130,16 +130,16 @@ type FdoPublicKey struct {
 func (h FdoPublicKey) Equals(bKey FdoPublicKey) error {
 	aBytes, err := cbor.Marshal(h)
 	if err != nil {
-		return errors.New("Error comparing FDO public keys. Can not CBOR marshal pubKeyA")
+		return errors.New("error comparing FDO public keys. Can not CBOR marshal pubKeyA")
 	}
 
 	bBytes, err := cbor.Marshal(bKey)
 	if err != nil {
-		return errors.New("Error comparing FDO public keys. Can not CBOR marshal pubKeyB")
+		return errors.New("error comparing FDO public keys. Can not CBOR marshal pubKeyB")
 	}
 
 	if !bytes.Equal(aBytes, bBytes) {
-		return errors.New("Error comparing FDO public keys. Keys do not match")
+		return errors.New("error comparing FDO public keys. Keys do not match")
 	}
 
 	return nil
@@ -201,10 +201,10 @@ func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) 
 		} else if hashType == HASH_SHA384 {
 			return StRSA3072, nil
 		} else {
-			return 0, fmt.Errorf("For RSA: %d is an unsupported hash type!", hashType)
+			return 0, fmt.Errorf("for RSA: %d is an unsupported hash type", hashType)
 		}
 	default:
-		return 0, fmt.Errorf("For RSA: %d is an unsupported public key type!", pkType)
+		return 0, fmt.Errorf("for RSA: %d is an unsupported public key type", pkType)
 	}
 }
 
@@ -247,6 +247,6 @@ func GetAlgInfoFromSgType(sgType DeviceSgType) (*SgTypeInfo, error) {
 	// 	break
 
 	default:
-		return nil, fmt.Errorf("Unsupported sgType: %d", sgType)
+		return nil, fmt.Errorf("unsupported sgType: %d", sgType)
 	}
 }
