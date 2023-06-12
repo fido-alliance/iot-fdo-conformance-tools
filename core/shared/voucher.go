@@ -141,26 +141,30 @@ type OVEntryPayload struct {
 
 func (h OwnershipVoucher) Validate() error {
 	if h.OVProtVer != ProtVer101 {
-		return errors.New("error verifying ownershipVoucher. OVProtVer is not 101. ")
+		return errors.New("OVProtVer is not 101. ")
 	}
 
 	ovHeader, err := h.GetOVHeader()
 	if err != nil {
-		return errors.New("error verifying ownershipVoucher. " + err.Error())
+		return errors.New(err.Error())
+	}
+
+	if h.OVDevCertChain == nil { // TODO: Future
+		return errors.New("EPID not supported")
 	}
 
 	ovDevCertChainCert, err := ComputeOVDevCertChainHash(*h.OVDevCertChain, ovHeader.OVDevCertChainHash.Type)
 	if err != nil {
-		return errors.New("error verifying ownershipVoucher. Could not compute OVDevCertChain hash ")
+		return errors.New("could not compute OVDevCertChain hash ")
 	}
 
 	if !bytes.Equal(ovDevCertChainCert.Hash, ovHeader.OVDevCertChainHash.Hash) {
-		return errors.New("error verifying ownershipVoucher. Could not verify OVDevCertChain hash")
+		return errors.New("could not verify OVDevCertChain hash")
 	}
 
 	err = h.VerifyOVEntries()
 	if err != nil {
-		return errors.New("error verifying ownershipVoucher. " + err.Error())
+		return errors.New("" + err.Error())
 	}
 
 	return nil
