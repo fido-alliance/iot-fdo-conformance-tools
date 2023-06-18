@@ -75,18 +75,23 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		return nil, nil, err
 	}
 
+	err = proveOvdrPayload.EBSigInfo.Equal(helloDevice60.EASigInfo)
+	if err != nil {
+		return nil, nil, errors.New("HelloDevice60: Failed SigInfo check. " + err.Error())
+	}
+
 	if !bytes.Equal(proveOvdrPayload.NonceTO2ProveOV[:], h.NonceTO2ProveOV60[:]) {
-		return nil, nil, errors.New("HelloDevice60: DO returned wrong NonceTO2ProveOV!")
+		return nil, nil, errors.New("HelloDevice60: DO returned wrong NonceTO2ProveOV")
 	}
 
 	err = fdoshared.VerifyHMac(proveOvdrPayload.OVHeader, proveOvdrPayload.HMac, h.Credential.DCHmacSecret)
 	if err != nil {
-		return nil, nil, errors.New("HelloDevice60: Unknown Header HMac!")
+		return nil, nil, errors.New("HelloDevice60: Unknown Header HMac")
 	}
 
 	err = fdoshared.VerifyHash(helloDevice60Byte, proveOvdrPayload.HelloDeviceHash)
 	if err != nil {
-		return nil, nil, errors.New("HelloDevice60: Failed to verify hello device Hash!")
+		return nil, nil, errors.New("HelloDevice60: Failed to verify hello device Hash")
 	}
 
 	h.NonceTO2ProveDv61 = proveOVHdr61.Unprotected.CUPHNonce

@@ -1,6 +1,7 @@
 package to2
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
@@ -109,6 +110,10 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	err = cbor.Unmarshal(setupDevice.Payload, &to2SetupDevicePayload)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error decoding SetupDevice65 Payload... " + err.Error())
+	}
+
+	if !bytes.Equal(to2SetupDevicePayload.NonceTO2SetupDv[:], h.NonceTO2SetupDv64[:]) {
+		return nil, nil, errors.New("ProveDevice64: NonceTO2SetupDv64 nonces don't match...")
 	}
 
 	return &to2SetupDevicePayload, &testState, nil

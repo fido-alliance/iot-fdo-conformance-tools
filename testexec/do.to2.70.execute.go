@@ -50,7 +50,7 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 	lastOvEntry := ovEntries[len(ovEntries)-1]
 	loePubKey, _ := lastOvEntry.GetOVEntryPubKey()
 
-	err = to2requestor.ProveOVHdr61PubKey.Equals(loePubKey)
+	err = to2requestor.ProveOVHdr61PubKey.Equal(loePubKey)
 	if err != nil {
 		return nil, err
 	}

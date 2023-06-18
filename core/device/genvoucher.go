@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	"github.com/fxamacker/cbor/v2"
 )
 
-const DIS_LOCATION string = "./_dis/"
-const VOUCHERS_LOCATION string = "./_vouchers/"
+const DIS_LOCATION string = "./_dis"
+const VOUCHERS_LOCATION string = "./_vouchers"
 
 func GenerateOvEntry(
 	prevEntryHash fdoshared.HashOrHmac,
@@ -277,10 +278,13 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 
 	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
 
-	voucherWriteLocation := fmt.Sprintf("%s%s.voucher.pem", VOUCHERS_LOCATION, hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:]))
+	filetimestamp := time.Now().Format("2006-01-02_15.04.05")
+	filename := filetimestamp + hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:])
+
+	voucherWriteLocation := fmt.Sprintf("%s/%s.voucher.pem", VOUCHERS_LOCATION, filename)
 	err = os.WriteFile(voucherWriteLocation, voucherFileBytes, 0644)
 	if err != nil {
-		return fmt.Errorf("Error saving di \"%s\". %s", voucherWriteLocation, err.Error())
+		return fmt.Errorf("error saving di \"%s\". %s", voucherWriteLocation, err.Error())
 	}
 
 	// Di bytes
@@ -290,13 +294,15 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 	}
 
 	diBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.CREDENTIAL_PEM_TYPE, Bytes: diBytes})
-	disWriteLocation := fmt.Sprintf("%s%s.dis.pem", DIS_LOCATION, hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:]))
+	disWriteLocation := fmt.Sprintf("%s/%s.dis.pem", DIS_LOCATION, filename)
 	err = os.WriteFile(disWriteLocation, diBytesPem, 0644)
 	if err != nil {
-		return fmt.Errorf("Error saving di \"%s\". %s", disWriteLocation, err.Error())
+		return fmt.Errorf("error saving di \"%s\". %s", disWriteLocation, err.Error())
 	}
 
-	log.Println("Successfully generate voucher " + hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:]))
+	log.Println("Successfully generate voucher and di files.")
+	log.Println(voucherWriteLocation)
+	log.Println(disWriteLocation)
 
 	return nil
 }

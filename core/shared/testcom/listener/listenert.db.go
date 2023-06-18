@@ -70,7 +70,7 @@ func (h *RequestListenerRunnerInst) CheckCmdTestingIsCompleted(currentCmd fdosha
 }
 
 func (h *RequestListenerRunnerInst) StartNewTestRun() {
-	if len(h.TestRunHistory) != 0 && h.Running {
+	if len(h.TestRunHistory) != 0 {
 		h.TestRunHistory = append([]ListenerTestRun{h.CurrentTestRun}, h.TestRunHistory...)
 	}
 

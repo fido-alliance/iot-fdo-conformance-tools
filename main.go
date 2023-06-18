@@ -173,7 +173,7 @@ func main() {
 						UsageText: "[FDO RV Server URL] [Path to DI file]",
 						Action: func(c *cli.Context) error {
 							if c.Args().Len() != 2 {
-								log.Println("Missing URL or Filename")
+								log.Println("Missing URL or Filename. Expected: [FDO RV Server URL] [Path to DI file]")
 								return nil
 							}
 
@@ -246,11 +246,13 @@ func main() {
 								log.Printf("Requesting GetOVNextEntry62 for entry %d \n", i)
 								nextEntry, _, err := to2inst.GetOVNextEntry62(uint8(i), testcom.NULL_TEST)
 								if err != nil {
-									log.Panic(err)
+									log.Println(err.Error())
+									return nil
 								}
 
 								if nextEntry.OVEntryNum != uint8(i) {
-									log.Panicf("Server retured wrong entry. Expected %d. Got %d", i, nextEntry.OVEntryNum)
+									log.Printf("Server retured wrong entry. Expected %d. Got %d", i, nextEntry.OVEntryNum)
+									return nil
 								}
 
 								ovEntries = append(ovEntries, nextEntry.OVEntry)
@@ -259,15 +261,17 @@ func main() {
 							ovEntriesS := fdoshared.OVEntryArray(ovEntries)
 							err = ovEntriesS.VerifyEntries(to2proveOvhdrPayload.OVHeader, to2proveOvhdrPayload.HMac)
 							if err != nil {
-								log.Panic(err)
+								log.Println(err)
+								return nil
 							}
 
 							lastOvEntry := ovEntries[len(ovEntries)-1]
 							loePubKey, _ := lastOvEntry.GetOVEntryPubKey()
 
-							err = to2inst.ProveOVHdr61PubKey.Equals(loePubKey)
+							err = to2inst.ProveOVHdr61PubKey.Equal(loePubKey)
 							if err != nil {
-								log.Panic(err)
+								log.Println(err)
+								return nil
 							}
 
 							//64
@@ -275,14 +279,16 @@ func main() {
 							_, _, err = to2inst.ProveDevice64(testcom.NULL_TEST)
 							if err != nil {
 								log.Println("I AM HERE")
-								log.Panic(err)
+								log.Println(err)
+								return nil
 							}
 
 							//66
 							log.Println("Starting DeviceServiceInfoReady66")
 							_, _, err = to2inst.DeviceServiceInfoReady66(testcom.NULL_TEST)
 							if err != nil {
-								log.Panic(err)
+								log.Println(err)
+								return nil
 							}
 
 							//68
@@ -322,7 +328,8 @@ func main() {
 									IsMoreServiceInfo: i+1 <= len(deviceSims),
 								}, testcom.NULL_TEST)
 								if err != nil {
-									log.Panic(err)
+									log.Println(err)
+									return nil
 								}
 							}
 
@@ -332,7 +339,8 @@ func main() {
 									IsMoreServiceInfo: false,
 								}, testcom.NULL_TEST)
 								if err != nil {
-									log.Panic(err)
+									log.Println(err)
+									return nil
 								}
 
 								log.Println("Receiving OwnerSim DeviceServiceInfo68 " + ownerSim.ServiceInfo.ServiceInfoKey)
@@ -347,7 +355,8 @@ func main() {
 							log.Println("Starting Done70")
 							_, _, err = to2inst.Done70(testcom.NULL_TEST)
 							if err != nil {
-								log.Panic(err)
+								log.Println(err)
+								return nil
 							}
 
 							log.Println("Success To2")

@@ -127,7 +127,7 @@ type FdoPublicKey struct {
 	PkBody interface{}
 }
 
-func (h FdoPublicKey) Equals(bKey FdoPublicKey) error {
+func (h FdoPublicKey) Equal(bKey FdoPublicKey) error {
 	aBytes, err := cbor.Marshal(h)
 	if err != nil {
 		return errors.New("error comparing FDO public keys. Can not CBOR marshal pubKeyA")
@@ -169,6 +169,18 @@ type SigInfo struct {
 	_      struct{} `cbor:",toarray"`
 	SgType DeviceSgType
 	Info   []byte
+}
+
+func (h SigInfo) Equal(bsiginfo SigInfo) error {
+	if bsiginfo.SgType != h.SgType {
+		return errors.New("sgTypes don't match")
+	}
+
+	if !bytes.Equal(bsiginfo.Info, h.Info) {
+		return errors.New("info's don't match")
+	}
+
+	return nil
 }
 
 type CoseConsts int

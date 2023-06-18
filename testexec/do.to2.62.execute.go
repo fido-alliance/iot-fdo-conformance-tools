@@ -77,7 +77,7 @@ func executeTo2_62(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 			lastOvEntry := ovEntries[len(ovEntries)-1]
 			loePubKey, _ := lastOvEntry.GetOVEntryPubKey()
 
-			err = to2requestor.ProveOVHdr61PubKey.Equals(loePubKey)
+			err = to2requestor.ProveOVHdr61PubKey.Equal(loePubKey)
 			if err != nil {
 				reqtDB.ReportTest(reqte.Uuid, testId, testcom.FDOTestState{
 					Passed: false,

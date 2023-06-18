@@ -223,8 +223,8 @@ func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// Request params
 	vars := mux.Vars(r)
-
 	toprotocol := vars["toprotocol"]
 	testinsthex := vars["testinsthex"]
 
@@ -233,30 +233,30 @@ func (h *DeviceTestMgmtAPI) StartNewTestRun(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	testIstIdBytes, err := hex.DecodeString(testinsthex)
+	testInstIdBytes, err := hex.DecodeString(testinsthex)
 	if err != nil {
 		commonapi.RespondError(w, "Failed to decode test inst id!", http.StatusBadRequest)
 		return
 	}
 
-	if !userInst.DeviceT_ContainID(testIstIdBytes) {
-		commonapi.RespondError(w, "Invalid id!", http.StatusBadRequest)
+	if !userInst.DeviceT_ContainID(testInstIdBytes) {
+		commonapi.RespondError(w, "Invalid test id!", http.StatusBadRequest)
 		return
 	}
 
-	topInt, err := strconv.ParseInt(toprotocol, 10, 64)
+	toPInt, err := strconv.ParseInt(toprotocol, 10, 64)
 	if err != nil {
 		commonapi.RespondError(w, "Failed to decode TO Protocol ID!", http.StatusBadRequest)
 		return
 	}
 
-	reqListInst, err := h.ListenerDB.Get(testIstIdBytes)
+	reqListInst, err := h.ListenerDB.Get(testInstIdBytes)
 	if err != nil {
 		commonapi.RespondError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	runnerInst, err := reqListInst.GetProtocolInst(int(topInt))
+	runnerInst, err := reqListInst.GetProtocolInst(int(toPInt))
 	if err != nil {
 		commonapi.RespondError(w, err.Error(), http.StatusBadRequest)
 		return
