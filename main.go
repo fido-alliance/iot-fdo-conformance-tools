@@ -278,7 +278,6 @@ func main() {
 							log.Println("Starting ProveDevice64")
 							_, _, err = to2inst.ProveDevice64(testcom.NULL_TEST)
 							if err != nil {
-								log.Println("I AM HERE")
 								log.Println(err)
 								return nil
 							}
