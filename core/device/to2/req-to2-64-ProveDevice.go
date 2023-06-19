@@ -12,6 +12,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+// REQUESTOR
 func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO2SetupDevicePayload, *testcom.FDOTestState, error) {
 	var testState testcom.FDOTestState
 
