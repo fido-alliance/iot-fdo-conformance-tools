@@ -70,9 +70,9 @@ func Conf_RandomTestHashHmac(hashHmac HashOrHmac, originalPayload []byte, origin
 
 		case HASH_HMAC_SHA256, HASH_HMAC_SHA384:
 			if newHashHmac.Type == HASH_SHA256 {
-				newHashHmac, _ = GenerateFdoHash(originalPayload, HASH_HMAC_SHA384)
+				newHashHmac, _ = GenerateFdoHmac(originalPayload, HASH_HMAC_SHA384, originalMasterSecret)
 			} else {
-				newHashHmac, _ = GenerateFdoHash(originalPayload, HASH_HMAC_SHA256)
+				newHashHmac, _ = GenerateFdoHmac(originalPayload, HASH_HMAC_SHA256, originalMasterSecret)
 			}
 		}
 	}
@@ -295,7 +295,6 @@ var Conf_CoseSign_Field_List []Conf_CoseSign_Field = []Conf_CoseSign_Field{
 }
 
 func Conf_Fuzz_CoseSignature(coseSignature CoseSignature) CoseSignature {
-
 	var chosenType Conf_CoseSign_Field = Conf_CoseSign_Field_List[NewRandomInt(0, len(Conf_CoseSign_Field_List)-1)]
 
 	switch chosenType {
