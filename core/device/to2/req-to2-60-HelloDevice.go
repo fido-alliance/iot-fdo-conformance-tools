@@ -86,7 +86,11 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 
 	err = fdoshared.VerifyHMac(proveOvdrPayload.OVHeader, proveOvdrPayload.HMac, h.Credential.DCHmacSecret)
 	if err != nil {
-		return nil, nil, errors.New("HelloDevice60: Unknown Header HMac")
+		return nil, nil, errors.New("HelloDevice60: Unknown Header HMac. " + err.Error())
+	}
+
+	if proveOvdrPayload.HelloDeviceHash.Type != h.Credential.DCHashAlg {
+		return nil, nil, errors.New("HelloDevice60: Failed to verify HelloDeviceHash. Types don't match")
 	}
 
 	err = fdoshared.VerifyHash(helloDevice60Byte, proveOvdrPayload.HelloDeviceHash)
