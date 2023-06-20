@@ -102,6 +102,16 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To2.CheckExpectedCmd(currentCmd) {
+		testcomListener.To2.PushSuccess()
+		testcomListener.To2.CompleteCmdAndSetNext(fdoshared.TO2_68_DEVICE_SERVICE_INFO)
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
+		}
+	}
+
 	w.Header().Set("Authorization", authorizationHeader)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
 	w.Header().Set("Message-Type", fdoshared.TO2_67_OWNER_SERVICE_INFO_READY.ToString())
