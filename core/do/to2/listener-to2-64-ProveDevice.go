@@ -99,6 +99,8 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		Owner2Key:       ownerHeader.OVPublicKey,
 	}
 
+	session.NonceTO2SetupDv64 = proveDevice64.Unprotected.EUPHNonce
+
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_NONCE_TO2SETUPDV {
 		setupDevicePayload.NonceTO2SetupDv = fdoshared.NewFdoNonce()
 	}
