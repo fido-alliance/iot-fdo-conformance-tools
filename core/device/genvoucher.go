@@ -141,7 +141,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 
 	var finalOvEntryPrivateKeyBytes []byte
 
-	var prevEntrySgType fdoshared.DeviceSgType = deviceCredBase.DCSgType
+	var prevEntrySgType fdoshared.DeviceSgType = fdoshared.DeviceSgTypeOVMapping[deviceCredBase.DCSgType]
 
 	for i := 0; i < ovEntriesCount; i++ {
 		if i == 0 {

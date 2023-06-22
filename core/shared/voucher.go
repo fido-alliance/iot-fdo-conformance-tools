@@ -376,7 +376,7 @@ func GenerateVoucherKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, er
 	case StRSA2048, StRSA3072:
 		return GeneratePKIXRSAKeypair(sgType)
 	default:
-		return nil, nil, fmt.Errorf("%d is an unsupported SgType", sgType)
+		return nil, nil, fmt.Errorf("%d is an unsupported SgType for the device.", sgType)
 	}
 }
 
