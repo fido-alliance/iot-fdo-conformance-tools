@@ -47,7 +47,7 @@ build_frontend:
 # Build frontend
 fdotools__push_new_bin:
 	echo "\n----- Updating FDO tools binary... -----\n"
-	scp bin/fdo-fido-conformance-server-linux ${FDO_BUILD_PUSH_HOST}:$(fdotools_bin_loc)
+	scp -P ${FDO_BUILD_PUSH_PORT} bin/fdo-fido-conformance-server-linux ${FDO_BUILD_PUSH_HOST}:$(fdotools_bin_loc)
 
 # Build frontend
 fdotools__push_new_ui:
