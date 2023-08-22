@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
-	"crypto/rand"
 	"crypto/sha256"
 	"crypto/sha512"
 	"errors"
@@ -12,6 +11,7 @@ import (
 	"hash"
 	"math"
 
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/ccm"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -20,10 +20,10 @@ type CipherSuiteName int
 const (
 	CIPHER_A128GCM            CipherSuiteName = 1
 	CIPHER_A256GCM            CipherSuiteName = 3
-	CIPHER_AES_CCM_16_128_128 CipherSuiteName = 30 //prev spec uses 32 and 33 64
-	CIPHER_AES_CCM_16_128_256 CipherSuiteName = 31
-	CIPHER_AES_CCM_64_128_128 CipherSuiteName = 32 //prev spec uses 32 and 33 64
-	CIPHER_AES_CCM_64_128_256 CipherSuiteName = 33
+	CIPHER_AES_CCM_16_128_128 CipherSuiteName = 30        // AES-CCM mode 128-bit key, 128-bit tag, 13-byte nonce | prev spec uses 32 and 33 64
+	CIPHER_AES_CCM_16_128_256 CipherSuiteName = 31        // AES-CCM mode 256-bit key, 128-bit tag, 13-byte nonce
+	CIPHER_AES_CCM_64_128_128 CipherSuiteName = 32        // AES-CCM mode 128-bit key, 128-bit tag, 7-byte nonce  | prev spec uses 32 and 33 64
+	CIPHER_AES_CCM_64_128_256 CipherSuiteName = 33        // AES-CCM mode 256-bit key, 128-bit tag, 7-byte nonce
 	CIPHER_COSE_AES128_CBC    CipherSuiteName = -17760703 // CS_AES128_CBC_HMAC-SHA256
 	CIPHER_COSE_AES128_CTR    CipherSuiteName = -17760704 // CS_AES128_CTR_HMAC-SHA256
 	CIPHER_COSE_AES256_CBC    CipherSuiteName = -17760705 // CS_AES256_CTR_HMAC-SHA384
@@ -38,6 +38,9 @@ type CipherInfo struct {
 	SekLen     int // Len of encryption key for CTR/CBC
 	SvkLen     int // Len of verification key for CTR/CBC
 	SevkLength int // Len of encryption and verification key for GCM/CCM
+
+	NonceLen int // Length of mandatory nonce for CCM
+	TagSize  int // Block size for CCM
 }
 
 var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]CipherInfo{
@@ -82,16 +85,46 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 	},
 	CIPHER_A256GCM: {
 		CryptoAlg:  CIPHER_A256GCM,
-		HmacAlg:    HASH_HMAC_SHA256,
-		HashAlg:    HASH_SHA256,
+		HmacAlg:    HASH_HMAC_SHA384,
+		HashAlg:    HASH_SHA384,
 		IvLen:      12,
 		SevkLength: 32,
 	},
-	// CIPHER_AES_CCM_16_128_128: {
-	// 	CryptoAlg: CIPHER_AES_CCM_16_128_128,
-	// 	SevkLength: 32,
+	CIPHER_AES_CCM_16_128_128: {
+		CryptoAlg:  CIPHER_AES_CCM_16_128_128,
+		HmacAlg:    HASH_HMAC_SHA256,
+		HashAlg:    HASH_SHA256,
+		SevkLength: 32,
+		NonceLen:   13,
+		TagSize:    16,
+	},
 
-	// }
+	CIPHER_AES_CCM_16_128_256: {
+		CryptoAlg:  CIPHER_AES_CCM_16_128_256,
+		HmacAlg:    HASH_HMAC_SHA384,
+		HashAlg:    HASH_SHA384,
+		SevkLength: 16,
+		NonceLen:   13,
+		TagSize:    16,
+	},
+
+	CIPHER_AES_CCM_64_128_128: {
+		CryptoAlg:  CIPHER_AES_CCM_64_128_128,
+		HmacAlg:    HASH_HMAC_SHA256,
+		HashAlg:    HASH_SHA256,
+		SevkLength: 16,
+		NonceLen:   7,
+		TagSize:    64,
+	},
+
+	CIPHER_AES_CCM_64_128_256: {
+		CryptoAlg:  CIPHER_AES_CCM_64_128_256,
+		HmacAlg:    HASH_HMAC_SHA384,
+		HashAlg:    HASH_SHA384,
+		SevkLength: 32,
+		NonceLen:   7,
+		TagSize:    64,
+	},
 }
 
 /*
@@ -193,8 +226,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error encoding protected header. " + err.Error())
 	}
 
-	IvBytes := make([]byte, algInfo.IvLen)
-	rand.Read(IvBytes)
+	IvBytes := NewRandomBuffer(algInfo.IvLen)
 
 	unprotectedHeaderInner := UnprotectedHeader{
 		AESIV: IvBytes,
@@ -376,8 +408,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error encoding protected header. " + err.Error())
 	}
 
-	IvBytes := make([]byte, algInfo.IvLen)
-	rand.Read(IvBytes)
+	IvBytes := NewRandomBuffer(algInfo.IvLen)
 
 	unprotectedHeaderInner := UnprotectedHeader{
 		AESIV: IvBytes,
@@ -403,6 +434,17 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		}
 
 		ciphertext = aesgcm.Seal(nil, IvBytes, plaintext, nil)
+
+	case CIPHER_AES_CCM_16_128_128, CIPHER_AES_CCM_16_128_256, CIPHER_AES_CCM_64_128_128, CIPHER_AES_CCM_64_128_256:
+		nonce := NewRandomBuffer(algInfo.NonceLen)
+
+		aesccm, err := ccm.NewCCM(block, algInfo.TagSize, algInfo.NonceLen)
+		if err != nil {
+			return []byte{}, errors.New("Error generating new CCM instance. " + err.Error())
+		}
+
+		ciphertext = aesccm.Seal(nil, nonce, plaintext, nil)
+
 	default:
 		return nil, errors.New("%s Error encoding EMB. " + err.Error())
 	}
@@ -462,7 +504,20 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 		prepPlaintext, err := aesgcm.Open(nil, IvBytes, embInst.Ciphertext, nil)
 		if err != nil {
-			return []byte{}, errors.New("Error decrypting EMB. " + err.Error())
+			return []byte{}, errors.New("Error decrypting EMB GCM. " + err.Error())
+		}
+
+		plaintext = prepPlaintext
+
+	case CIPHER_AES_CCM_16_128_128, CIPHER_AES_CCM_16_128_256, CIPHER_AES_CCM_64_128_128, CIPHER_AES_CCM_64_128_256:
+		aesccm, err := ccm.NewCCM(block, algInfo.TagSize, algInfo.NonceLen)
+		if err != nil {
+			return []byte{}, errors.New("Error generating new CCM instance. " + err.Error())
+		}
+
+		prepPlaintext, err := aesccm.Open(nil, IvBytes, embInst.Ciphertext, nil)
+		if err != nil {
+			return []byte{}, errors.New("Error decrypting EMB CCM. " + err.Error())
 		}
 
 		plaintext = prepPlaintext
@@ -477,7 +532,7 @@ func AddEncryptionWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 	switch cipherSuite {
 	case CIPHER_COSE_AES128_CBC, CIPHER_COSE_AES128_CTR, CIPHER_COSE_AES256_CBC, CIPHER_COSE_AES256_CTR:
 		return encryptETM(payload, sessionKeyInfo, cipherSuite)
-	case CIPHER_A128GCM, CIPHER_A256GCM:
+	case CIPHER_A128GCM, CIPHER_A256GCM, CIPHER_AES_CCM_16_128_128, CIPHER_AES_CCM_16_128_256, CIPHER_AES_CCM_64_128_128, CIPHER_AES_CCM_64_128_256:
 		return encryptEMB(payload, sessionKeyInfo, cipherSuite)
 	default:
 		return nil, fmt.Errorf("unsupported encryption scheme! %d", cipherSuite)
@@ -488,7 +543,7 @@ func RemoveEncryptionWrapping(encryptedPayload []byte, sessionKeyInfo SessionKey
 	switch cipherSuite {
 	case CIPHER_COSE_AES128_CBC, CIPHER_COSE_AES128_CTR, CIPHER_COSE_AES256_CBC, CIPHER_COSE_AES256_CTR:
 		return decryptETM(encryptedPayload, sessionKeyInfo, cipherSuite)
-	case CIPHER_A128GCM, CIPHER_A256GCM:
+	case CIPHER_A128GCM, CIPHER_A256GCM, CIPHER_AES_CCM_16_128_128, CIPHER_AES_CCM_16_128_256, CIPHER_AES_CCM_64_128_128, CIPHER_AES_CCM_64_128_256:
 		return decryptEMB(encryptedPayload, sessionKeyInfo, cipherSuite)
 	default:
 		return nil, fmt.Errorf("unsupported encryption scheme! %d", cipherSuite)
