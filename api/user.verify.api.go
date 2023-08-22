@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -63,8 +62,7 @@ func (h *UserVerify) deleteSession(r *http.Request) error {
 }
 
 func (h *UserVerify) generatePasswordHash(password string) ([]byte, error) {
-	salt := make([]byte, 8)
-	rand.Read(salt)
+	salt := fdoshared.NewRandomBuffer(8)
 
 	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
 	if err != nil {

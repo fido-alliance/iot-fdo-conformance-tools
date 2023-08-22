@@ -2,12 +2,12 @@ package api
 
 import (
 	"bytes"
-	"crypto/rand"
 	"errors"
 	"net/http"
 	"regexp"
 
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/services"
 	"golang.org/x/crypto/scrypt"
@@ -27,8 +27,7 @@ func isEmailValid(e string) bool {
 }
 
 func (h *UserAPI) generatePasswordHash(password string) ([]byte, error) {
-	salt := make([]byte, 8)
-	rand.Read(salt)
+	salt := fdoshared.NewRandomBuffer(8)
 
 	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
 	if err != nil {

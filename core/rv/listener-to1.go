@@ -188,7 +188,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var proveToRV32 fdoshared.CoseSignature
 	err = cbor.Unmarshal(bodyBytes, &proveToRV32)
 	if err != nil {
-		log.Println(err)
+		log.Println("Failed to decode proveToRV32 request: " + err.Error())
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
@@ -196,7 +196,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var pb fdoshared.EATPayloadBase
 	err = cbor.Unmarshal(proveToRV32.Payload, &pb)
 	if err != nil {
-		log.Println(err)
+		log.Println("Failed to decode proveToRV32 payload: " + err.Error())
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body payload!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}

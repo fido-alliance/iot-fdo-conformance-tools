@@ -317,7 +317,6 @@ func MarshalVoucherAndPrivateKey(vdbEntry fdoshared.VoucherDBEntry) ([]byte, err
 
 	// LastOVEntry private key to PEM
 	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.PRIVATE_KEY_PEM_TYPE, Bytes: vdbEntry.PrivateKeyX509})
-
 	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
 
 	return voucherFileBytes, nil
