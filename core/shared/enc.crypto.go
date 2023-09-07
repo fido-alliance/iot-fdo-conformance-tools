@@ -112,7 +112,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		HashAlg:    HASH_SHA256,
 		SevkLength: 16,
 		NonceIvLen: 7,
-		TagSize:    64,
+		TagSize:    16,
 	},
 
 	CIPHER_AES_CCM_64_128_256: {
@@ -121,7 +121,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		HashAlg:    HASH_SHA384,
 		SevkLength: 32,
 		NonceIvLen: 7,
-		TagSize:    64,
+		TagSize:    16,
 	},
 }
 
