@@ -62,12 +62,12 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 
 	// Signature verification
 	probableOwnerPubKey := proveOVHdr61.Unprotected.CUPHOwnerPubKey
-	err = fdoshared.VerifyCoseSignature(proveOVHdr61, probableOwnerPubKey)
+	err = fdoshared.VerifyCoseSignature(proveOVHdr61, *probableOwnerPubKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	h.ProveOVHdr61PubKey = probableOwnerPubKey
+	h.ProveOVHdr61PubKey = *probableOwnerPubKey
 
 	var proveOvdrPayload fdoshared.TO2ProveOVHdrPayload
 	err = cbor.Unmarshal(proveOVHdr61.Payload, &proveOvdrPayload)
@@ -98,7 +98,7 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		return nil, nil, errors.New("HelloDevice60: Failed to verify hello device Hash")
 	}
 
-	h.NonceTO2ProveDv61 = proveOVHdr61.Unprotected.CUPHNonce
+	h.NonceTO2ProveDv61 = *proveOVHdr61.Unprotected.CUPHNonce
 	h.XAKex = proveOvdrPayload.XAKeyExchange
 	h.OvHmac = proveOvdrPayload.HMac
 

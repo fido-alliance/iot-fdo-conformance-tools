@@ -132,8 +132,8 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	proveOVHdrUnprotectedHeader := fdoshared.UnprotectedHeader{
-		CUPHNonce:       NonceTO2ProveDv,
-		CUPHOwnerPubKey: lastOwnerPubKey,
+		CUPHNonce:       &NonceTO2ProveDv,
+		CUPHOwnerPubKey: &lastOwnerPubKey,
 	}
 
 	newSessionInst := dbs.SessionEntry{

@@ -9,11 +9,11 @@ import (
 )
 
 type UnprotectedHeader struct {
-	CUPHNonce       FdoNonce     `cbor:"256,keyasint,omitempty"`
-	CUPHOwnerPubKey FdoPublicKey `cbor:"257,keyasint,omitempty"`
-	EATMAROEPrefix  []byte       `cbor:"-258,keyasint,omitempty"`
-	EUPHNonce       FdoNonce     `cbor:"-259,keyasint,omitempty"`
-	AESIV           []byte       `cbor:"5,keyasint,omitempty"`
+	CUPHNonce       *FdoNonce     `cbor:"256,keyasint,omitempty"`
+	CUPHOwnerPubKey *FdoPublicKey `cbor:"257,keyasint,omitempty"`
+	EATMAROEPrefix  *[]byte       `cbor:"-258,keyasint,omitempty"`
+	EUPHNonce       *FdoNonce     `cbor:"-259,keyasint,omitempty"`
+	AESIV           *[]byte       `cbor:"5,keyasint,omitempty"`
 }
 
 type ProtectedHeader struct {

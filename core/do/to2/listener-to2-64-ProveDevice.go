@@ -95,11 +95,11 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	setupDevicePayload := fdoshared.TO2SetupDevicePayload{
 		RendezvousInfo:  []fdoshared.RendezvousInstrList{},
 		Guid:            session.Guid,
-		NonceTO2SetupDv: proveDevice64.Unprotected.EUPHNonce,
+		NonceTO2SetupDv: *proveDevice64.Unprotected.EUPHNonce,
 		Owner2Key:       ownerHeader.OVPublicKey,
 	}
 
-	session.NonceTO2SetupDv64 = proveDevice64.Unprotected.EUPHNonce
+	session.NonceTO2SetupDv64 = *proveDevice64.Unprotected.EUPHNonce
 
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_NONCE_TO2SETUPDV {
 		setupDevicePayload.NonceTO2SetupDv = fdoshared.NewFdoNonce()

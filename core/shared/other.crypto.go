@@ -8,7 +8,7 @@ import (
 
 type FdoNonce [16]byte
 
-func NewFdoNonce() [16]byte {
+func NewFdoNonce() FdoNonce {
 	nonceBuff := make([]byte, 16)
 	rand.Read(nonceBuff)
 

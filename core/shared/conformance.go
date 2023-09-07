@@ -235,7 +235,8 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 		}
 
 		if chosenType == Conf_EncFuzz_IV {
-			innerBlock.Unprotected.AESIV = NewRandomBuffer(len(innerBlock.Unprotected.AESIV))
+			randBuff := NewRandomBuffer(len(*innerBlock.Unprotected.AESIV))
+			innerBlock.Unprotected.AESIV = &randBuff
 			innerBytes, _ := cbor.Marshal(innerBlock)
 			outerBlock.Payload = innerBytes
 		}
@@ -262,7 +263,8 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 		}
 
 		if chosenType == Conf_EncFuzz_IV {
-			embBlock.Unprotected.AESIV = NewRandomBuffer(len(embBlock.Unprotected.AESIV))
+			randBuff := NewRandomBuffer(len(*embBlock.Unprotected.AESIV))
+			embBlock.Unprotected.AESIV = &randBuff
 		}
 
 		encryptedBytes, err = cbor.Marshal(embBlock)

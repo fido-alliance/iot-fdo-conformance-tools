@@ -227,7 +227,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	nonceIvBytes := NewRandomBuffer(algInfo.NonceIvLen)
 
 	unprotectedHeaderInner := UnprotectedHeader{
-		AESIV: nonceIvBytes,
+		AESIV: &nonceIvBytes,
 	}
 
 	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
@@ -366,7 +366,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	plaintext := make([]byte, len(inner.Ciphertext))
 	switch innerProtected.Alg {
 	case int(CIPHER_COSE_AES128_CTR):
-		stream := cipher.NewCTR(block, nonceIvBytes)
+		stream := cipher.NewCTR(block, *nonceIvBytes)
 		stream.XORKeyStream(plaintext, inner.Ciphertext)
 	default:
 		return nil, fmt.Errorf("unsupported encryption algorithm! %d", innerProtected.Alg)
@@ -409,7 +409,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	nonceIvBytes := NewRandomBuffer(algInfo.NonceIvLen)
 
 	unprotectedHeaderInner := UnprotectedHeader{
-		AESIV: nonceIvBytes,
+		AESIV: &nonceIvBytes,
 	}
 
 	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
@@ -498,7 +498,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new GCM instance. " + err.Error())
 		}
 
-		prepPlaintext, err := aesgcm.Open(nil, nonceIvBytes, embInst.Ciphertext, nil)
+		prepPlaintext, err := aesgcm.Open(nil, *nonceIvBytes, embInst.Ciphertext, nil)
 		if err != nil {
 			return []byte{}, errors.New("Error decrypting EMB GCM. " + err.Error())
 		}
@@ -511,7 +511,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new CCM instance. " + err.Error())
 		}
 
-		prepPlaintext, err := aesccm.Open(nil, nonceIvBytes, embInst.Ciphertext, nil)
+		prepPlaintext, err := aesccm.Open(nil, *nonceIvBytes, embInst.Ciphertext, nil)
 		if err != nil {
 			return []byte{}, errors.New("Error decrypting EMB CCM. " + err.Error())
 		}
