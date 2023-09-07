@@ -34,60 +34,58 @@ type CipherInfo struct {
 	CryptoAlg  CipherSuiteName
 	HmacAlg    HashType
 	HashAlg    HashType
-	IvLen      int
 	SekLen     int // Len of encryption key for CTR/CBC
 	SvkLen     int // Len of verification key for CTR/CBC
 	SevkLength int // Len of encryption and verification key for GCM/CCM
-
-	NonceLen int // Length of mandatory nonce for CCM
-	TagSize  int // Block size for CCM
+	NonceIvLen int // Length of nonce or iv
+	TagSize    int // Block size for CCM
 }
 
 var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]CipherInfo{
 	CIPHER_COSE_AES128_CBC: {
-		CryptoAlg: CIPHER_COSE_AES128_CBC,
-		HmacAlg:   HASH_HMAC_SHA256,
-		HashAlg:   HASH_SHA256,
-		IvLen:     16,
-		SekLen:    16,
-		SvkLen:    32,
+		CryptoAlg:  CIPHER_COSE_AES128_CBC,
+		HmacAlg:    HASH_HMAC_SHA256,
+		HashAlg:    HASH_SHA256,
+		NonceIvLen: 16,
+		SekLen:     16,
+		SvkLen:     32,
 	},
 	CIPHER_COSE_AES128_CTR: {
-		CryptoAlg: CIPHER_COSE_AES128_CTR,
-		HmacAlg:   HASH_HMAC_SHA256,
-		HashAlg:   HASH_SHA256,
-		IvLen:     16,
-		SekLen:    16,
-		SvkLen:    32,
+		CryptoAlg:  CIPHER_COSE_AES128_CTR,
+		HmacAlg:    HASH_HMAC_SHA256,
+		HashAlg:    HASH_SHA256,
+		NonceIvLen: 16,
+		SekLen:     16,
+		SvkLen:     32,
 	},
 	CIPHER_COSE_AES256_CBC: {
-		CryptoAlg: CIPHER_COSE_AES256_CBC,
-		HmacAlg:   HASH_HMAC_SHA384,
-		HashAlg:   HASH_SHA384,
-		IvLen:     32,
-		SekLen:    32,
-		SvkLen:    64,
+		CryptoAlg:  CIPHER_COSE_AES256_CBC,
+		HmacAlg:    HASH_HMAC_SHA384,
+		HashAlg:    HASH_SHA384,
+		NonceIvLen: 32,
+		SekLen:     32,
+		SvkLen:     64,
 	},
 	CIPHER_COSE_AES256_CTR: {
-		CryptoAlg: CIPHER_COSE_AES256_CTR,
-		HmacAlg:   HASH_HMAC_SHA384,
-		HashAlg:   HASH_SHA384,
-		IvLen:     32,
-		SekLen:    32,
-		SvkLen:    64,
+		CryptoAlg:  CIPHER_COSE_AES256_CTR,
+		HmacAlg:    HASH_HMAC_SHA384,
+		HashAlg:    HASH_SHA384,
+		NonceIvLen: 32,
+		SekLen:     32,
+		SvkLen:     64,
 	},
 	CIPHER_A128GCM: {
 		CryptoAlg:  CIPHER_A128GCM,
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
-		IvLen:      12,
+		NonceIvLen: 12,
 		SevkLength: 16,
 	},
 	CIPHER_A256GCM: {
 		CryptoAlg:  CIPHER_A256GCM,
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
-		IvLen:      12,
+		NonceIvLen: 12,
 		SevkLength: 32,
 	},
 	CIPHER_AES_CCM_16_128_128: {
@@ -95,7 +93,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
 		SevkLength: 32,
-		NonceLen:   13,
+		NonceIvLen: 13,
 		TagSize:    16,
 	},
 
@@ -104,7 +102,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
 		SevkLength: 16,
-		NonceLen:   13,
+		NonceIvLen: 13,
 		TagSize:    16,
 	},
 
@@ -113,7 +111,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
 		SevkLength: 16,
-		NonceLen:   7,
+		NonceIvLen: 7,
 		TagSize:    64,
 	},
 
@@ -122,7 +120,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
 		SevkLength: 32,
-		NonceLen:   7,
+		NonceIvLen: 7,
 		TagSize:    64,
 	},
 }
@@ -226,10 +224,10 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error encoding protected header. " + err.Error())
 	}
 
-	IvBytes := NewRandomBuffer(algInfo.IvLen)
+	nonceIvBytes := NewRandomBuffer(algInfo.NonceIvLen)
 
 	unprotectedHeaderInner := UnprotectedHeader{
-		AESIV: IvBytes,
+		AESIV: nonceIvBytes,
 	}
 
 	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
@@ -249,7 +247,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	switch algInfo.CryptoAlg {
 	case CIPHER_COSE_AES128_CTR:
-		stream := cipher.NewCTR(block, IvBytes)
+		stream := cipher.NewCTR(block, nonceIvBytes)
 		stream.XORKeyStream(ciphertext, plaintext)
 	default:
 		return nil, errors.New("%s Error encoding inner ETM. " + err.Error())
@@ -358,7 +356,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
-	IvBytes := inner.Unprotected.AESIV
+	nonceIvBytes := inner.Unprotected.AESIV
 
 	block, err := aes.NewCipher(sek)
 	if err != nil {
@@ -368,7 +366,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	plaintext := make([]byte, len(inner.Ciphertext))
 	switch innerProtected.Alg {
 	case int(CIPHER_COSE_AES128_CTR):
-		stream := cipher.NewCTR(block, IvBytes)
+		stream := cipher.NewCTR(block, nonceIvBytes)
 		stream.XORKeyStream(plaintext, inner.Ciphertext)
 	default:
 		return nil, fmt.Errorf("unsupported encryption algorithm! %d", innerProtected.Alg)
@@ -408,10 +406,10 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error encoding protected header. " + err.Error())
 	}
 
-	IvBytes := NewRandomBuffer(algInfo.IvLen)
+	nonceIvBytes := NewRandomBuffer(algInfo.NonceIvLen)
 
 	unprotectedHeaderInner := UnprotectedHeader{
-		AESIV: IvBytes,
+		AESIV: nonceIvBytes,
 	}
 
 	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
@@ -433,17 +431,15 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new GCM instance. " + err.Error())
 		}
 
-		ciphertext = aesgcm.Seal(nil, IvBytes, plaintext, nil)
+		ciphertext = aesgcm.Seal(nil, nonceIvBytes, plaintext, nil)
 
 	case CIPHER_AES_CCM_16_128_128, CIPHER_AES_CCM_16_128_256, CIPHER_AES_CCM_64_128_128, CIPHER_AES_CCM_64_128_256:
-		nonce := NewRandomBuffer(algInfo.NonceLen)
-
-		aesccm, err := ccm.NewCCM(block, algInfo.TagSize, algInfo.NonceLen)
+		aesccm, err := ccm.NewCCM(block, algInfo.TagSize, algInfo.NonceIvLen)
 		if err != nil {
 			return []byte{}, errors.New("Error generating new CCM instance. " + err.Error())
 		}
 
-		ciphertext = aesccm.Seal(nil, nonce, plaintext, nil)
+		ciphertext = aesccm.Seal(nil, nonceIvBytes, plaintext, nil)
 
 	default:
 		return nil, errors.New("%s Error encoding EMB. " + err.Error())
@@ -487,7 +483,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
-	IvBytes := embInst.Unprotected.AESIV
+	nonceIvBytes := embInst.Unprotected.AESIV
 
 	block, err := aes.NewCipher(sevk)
 	if err != nil {
@@ -502,7 +498,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new GCM instance. " + err.Error())
 		}
 
-		prepPlaintext, err := aesgcm.Open(nil, IvBytes, embInst.Ciphertext, nil)
+		prepPlaintext, err := aesgcm.Open(nil, nonceIvBytes, embInst.Ciphertext, nil)
 		if err != nil {
 			return []byte{}, errors.New("Error decrypting EMB GCM. " + err.Error())
 		}
@@ -510,12 +506,12 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		plaintext = prepPlaintext
 
 	case CIPHER_AES_CCM_16_128_128, CIPHER_AES_CCM_16_128_256, CIPHER_AES_CCM_64_128_128, CIPHER_AES_CCM_64_128_256:
-		aesccm, err := ccm.NewCCM(block, algInfo.TagSize, algInfo.NonceLen)
+		aesccm, err := ccm.NewCCM(block, algInfo.TagSize, algInfo.NonceIvLen)
 		if err != nil {
 			return []byte{}, errors.New("Error generating new CCM instance. " + err.Error())
 		}
 
-		prepPlaintext, err := aesccm.Open(nil, IvBytes, embInst.Ciphertext, nil)
+		prepPlaintext, err := aesccm.Open(nil, nonceIvBytes, embInst.Ciphertext, nil)
 		if err != nil {
 			return []byte{}, errors.New("Error decrypting EMB CCM. " + err.Error())
 		}
