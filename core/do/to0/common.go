@@ -77,7 +77,7 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 	switch fdoTestID {
 	case testcom.FIDO_RVT_21_CHECK_RESP:
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(bodyBytes)
-		if err != nil {
+		if err == nil {
 			return testcom.NewFailTestState(fdoTestID, fmt.Sprintf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode))
 		}
 
@@ -91,7 +91,7 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 
 	case testcom.FIDO_RVT_23_CHECK_RESP:
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(bodyBytes)
-		if err != nil {
+		if err == nil {
 			return testcom.NewFailTestState(fdoTestID, fmt.Sprintf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode))
 		}
 
