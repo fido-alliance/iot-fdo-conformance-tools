@@ -45,7 +45,8 @@ type TO2ProveDevicePayload struct {
 
 type CoseContext string
 
-const Signature1 CoseContext = "Signature1"
+const CoseContext_Signature1 CoseContext = "Signature1"
+const CoseContext_Encrypt CoseContext = "Encrypt"
 
 // Signature must be computed over a sig_structure:
 // Sig_structure = [
@@ -67,7 +68,7 @@ type CoseSignatureStructure struct {
 
 func NewSig1Payload(protectedHeader []byte, payload []byte) ([]byte, error) {
 	sig1Inst := CoseSignatureStructure{
-		Context:     Signature1,
+		Context:     CoseContext_Signature1,
 		Protected:   protectedHeader,
 		ExternalAAD: []byte{},
 		Payload:     payload,

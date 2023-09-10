@@ -393,6 +393,13 @@ type EMBlock struct {
 	Ciphertext  []byte
 }
 
+type AEAD_Enc_Structure struct {
+	_           struct{} `cbor:",toarray"`
+	context     CoseContext
+	protected   ProtectedHeader
+	externalAad []byte
+}
+
 func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
@@ -411,6 +418,14 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	unprotectedHeaderInner := UnprotectedHeader{
 		AESIV: &nonceIvBytes,
 	}
+
+	aadStruct := AEAD_Enc_Structure{
+		context:     CoseContext_Encrypt,
+		protected:   protectedHeaderInner,
+		externalAad: []byte{},
+	}
+
+	aadBytes, _ := cbor.Marshal(aadStruct)
 
 	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
@@ -431,7 +446,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new GCM instance. " + err.Error())
 		}
 
-		ciphertext = aesgcm.Seal(nil, nonceIvBytes, plaintext, nil)
+		ciphertext = aesgcm.Seal(nil, nonceIvBytes, plaintext, aadBytes)
 
 	case CIPHER_AES_CCM_16_128_128, CIPHER_AES_CCM_16_128_256, CIPHER_AES_CCM_64_128_128, CIPHER_AES_CCM_64_128_256:
 		aesccm, err := ccm.NewCCM(block, algInfo.TagSize, algInfo.NonceIvLen)
@@ -439,7 +454,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new CCM instance. " + err.Error())
 		}
 
-		ciphertext = aesccm.Seal(nil, nonceIvBytes, plaintext, nil)
+		ciphertext = aesccm.Seal(nil, nonceIvBytes, plaintext, aadBytes)
 
 	default:
 		return nil, errors.New("%s Error encoding EMB. " + err.Error())
