@@ -171,11 +171,6 @@ func (h FdoIPAddress) IsValid() bool {
 	return true
 }
 
-func (h FdoIPAddress) ToString() string {
-	// TODO
-	return ""
-}
-
 type TransportProtocol uint16
 
 const (
