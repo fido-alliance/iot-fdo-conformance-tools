@@ -146,17 +146,17 @@ func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
 		ownerRandom := NewRandomBuffer(int(KEX_ECDH256_RANDOM_LEN))
 
 		ownerRandomLenBytes := make([]byte, 2)
-		binary.LittleEndian.PutUint16(ownerRandomLenBytes, uint16(len(ownerRandom)))
+		binary.BigEndian.PutUint16(ownerRandomLenBytes, uint16(len(ownerRandom)))
 		ownerBlock := append(ownerRandomLenBytes, ownerRandom...)
 
 		xBytes := ownerKey.X.Bytes()
 		xLenBytes := make([]byte, 2)
-		binary.LittleEndian.PutUint16(xLenBytes, uint16(len(xBytes)))
+		binary.BigEndian.PutUint16(xLenBytes, uint16(len(xBytes)))
 		xBlock := append(xLenBytes, xBytes...)
 
 		yBytes := ownerKey.Y.Bytes()
 		yLenBytes := make([]byte, 2)
-		binary.LittleEndian.PutUint16(yLenBytes, uint16(len(yBytes)))
+		binary.BigEndian.PutUint16(yLenBytes, uint16(len(yBytes)))
 		yBlock := append(yLenBytes, yBytes...)
 
 		publicKeyBlock := append(xBlock, yBlock...)
