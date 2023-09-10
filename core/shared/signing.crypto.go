@@ -187,7 +187,18 @@ func VerifyCoseSignature(coseSig CoseSignature, publicKey FdoPublicKey) error {
 		return VerifySignature(coseSigPayloadBytes, coseSig.Signature, leafCert.PublicKey, publicKey.PkType)
 
 	case COSEKEY:
-		return errors.New("CoseKey is not currently supported") // TODO
+		publicKeyX509, err := CoseKeyToX509(publicKey)
+		if err != nil {
+			return err
+		}
+
+		pubKeyInst, err := x509.ParsePKIXPublicKey(publicKeyX509)
+		if err != nil {
+			return errors.New("error parsing PKIX X509 Public Key. " + err.Error())
+		}
+
+		return VerifySignature(coseSigPayloadBytes, coseSig.Signature, pubKeyInst, publicKey.PkType)
+
 	default:
 		return fmt.Errorf("PublicKey encoding %d is not supported", publicKey.PkEnc)
 	}

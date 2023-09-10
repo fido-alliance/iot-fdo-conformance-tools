@@ -195,24 +195,6 @@ func (h SigInfo) Equal(bsiginfo SigInfo) error {
 	return nil
 }
 
-type CoseConsts int
-
-const (
-	CoseOKP           CoseConsts = 1
-	CoseEC2           CoseConsts = 2
-	CoseRSA           CoseConsts = 3
-	CoseECDHESHKDF256 CoseConsts = -25
-	CoseES256         CoseConsts = -7
-)
-
-type CosePublicKey struct {
-	Kty    CoseConsts  `cbor:"1,keyasint"`
-	Alg    CoseConsts  `cbor:"3,keyasint"`
-	CrvOrN interface{} `cbor:"-1,keyasint,omitempty"` // Could be Curve(EC/ED) int or N(RSA) []byte
-	XorE   []byte      `cbor:"-2,keyasint,omitempty"` // Could be X(EC/ED) []byte or E(RSA) []byte
-	Y      []byte      `cbor:"-3,keyasint,omitempty"`
-}
-
 func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) {
 	switch pkType {
 	case SECP256R1:
