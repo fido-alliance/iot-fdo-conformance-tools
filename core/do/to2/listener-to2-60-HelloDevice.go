@@ -82,7 +82,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	NonceTO2ProveDv := fdoshared.NewFdoNonce()
 
 	// KEX Generation
-	kex, err := fdoshared.GenerateXABKeyExchange(helloDevice.KexSuiteName)
+	kex, err := fdoshared.GenerateXABKeyExchange(helloDevice.KexSuiteName, nil)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating XAKeyExchange...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
