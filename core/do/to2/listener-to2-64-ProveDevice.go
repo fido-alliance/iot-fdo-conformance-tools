@@ -23,6 +23,12 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	privateKeyInst, err := fdoshared.ExtractPrivateKey(session.PrivateKeyDER)
+	if err != nil {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Error decoding private key... "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		return
+	}
+
 	// Test stuff
 
 	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
@@ -83,7 +89,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// KEX
-	sessionKey, err := fdoshared.DeriveSessionKey(&session.XAKex, eatPayload.EatFDO.XBKeyExchange, false)
+	sessionKey, err := fdoshared.DeriveSessionKey(session.XAKex, eatPayload.EatFDO.XBKeyExchange, false, privateKeyInst)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error generating session shSe..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
@@ -112,12 +118,6 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Response signature
-	privateKeyInst, err := fdoshared.ExtractPrivateKey(session.PrivateKeyDER)
-	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_60_HELLO_DEVICE, "Error decoding private key... "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
-		return
-	}
-
 	setupDevice, err := fdoshared.GenerateCoseSignature(setupDevicePayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, session.SignatureType)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "ProveDevice64: Error generating setup device signature..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)

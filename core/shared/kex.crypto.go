@@ -4,6 +4,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -35,8 +38,10 @@ const (
 	KEX_ASYMKEX3072 KexSuiteName = "ASYMKEX3072"
 )
 
-const KEX_ECDH256_RANDOM_LEN uint8 = 128 / 8
-const KEX_ECDH384_RANDOM_LEN uint8 = 384 / 8
+const KEX_ECDH256_RANDOM_LEN int = 128 / 8
+const KEX_ECDH384_RANDOM_LEN int = 384 / 8
+const KEX_ASYMKEX2048_RANDOM_LEN int = 256 / 8
+const KEX_ASYMKEX3072_RANDOM_LEN int = 768 / 8
 
 var KexSuitNames [6]KexSuiteName = [6]KexSuiteName{
 	KEX_ECDH256,
@@ -95,7 +100,7 @@ func (h *DHKexPrivateKey) GetDHKEXPrivateKeyInst() *dhkx.DHKey {
 	return &dhKex
 }
 
-func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
+func GenerateXABKeyExchange(kexSuitName KexSuiteName, ownerPubKey *FdoPublicKey) (*KeXParams, error) {
 	switch kexSuitName {
 	case KEX_DHKEXid14:
 		g, _ := dhkx.GetGroup(dhkx.DHKX_ID14)
@@ -132,11 +137,7 @@ func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
 		}
 
 		return &resultKex, nil
-	// 	// TODO
-	// case CONST_KEX_ASYMKEX2048:
-	// 	// TODO
-	// case CONST_KEX_ASYMKEX3072:
-	// 	// TODO
+
 	case KEX_ECDH256:
 		ownerKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		if err != nil {
@@ -177,7 +178,7 @@ func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
 			return nil, errors.New("error generating ECDH key: " + err.Error())
 		}
 
-		ownerRandom := NewRandomBuffer(int(KEX_ECDH384_RANDOM_LEN))
+		ownerRandom := NewRandomBuffer(KEX_ECDH384_RANDOM_LEN)
 
 		ownerRandomLenBytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(ownerRandomLenBytes, uint16(len(ownerRandom)))
@@ -204,12 +205,39 @@ func GenerateXAKeyExchange(kexSuitName KexSuiteName) (*KeXParams, error) {
 		}
 
 		return &resultKex, nil
+
+	case KEX_ASYMKEX2048, KEX_ASYMKEX3072:
+		var kexLen int
+		if kexSuitName == KEX_ASYMKEX2048 {
+			kexLen = KEX_ASYMKEX2048_RANDOM_LEN
+		} else {
+			kexLen = KEX_ASYMKEX3072_RANDOM_LEN
+		}
+
+		ownerDeviceRandom := NewRandomBuffer(kexLen)
+		resultKex := KeXParams{
+			Private:       ownerDeviceRandom,
+			XAKeyExchange: ownerDeviceRandom,
+			KexSuit:       kexSuitName,
+		}
+
+		if ownerPubKey != nil {
+			ownerRandom, err := WrapOAEP(ownerDeviceRandom, *ownerPubKey)
+			if err != nil {
+				return nil, errors.New("error generating ASYM KEX XBKex. " + err.Error())
+			}
+
+			resultKex.XAKeyExchange = ownerRandom
+		}
+
+		return &resultKex, nil
+
 	default:
-		return nil, fmt.Errorf("nnknown KeyExchange algorithm: %s", kexSuitName)
+		return nil, fmt.Errorf("unknown KeyExchange algorithm: %s", kexSuitName)
 	}
 }
 
-func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*SessionKeyInfo, error) {
+func DeriveSessionKey(kexA KeXParams, xBKeyExchange []byte, isDevice bool, ownerPrivateKey interface{}) (*SessionKeyInfo, error) {
 	switch kexA.KexSuit {
 	case KEX_DHKEXid14, KEX_DHKEXid15:
 		privKeyStruct := DHKexPrivateKey{}
@@ -231,12 +259,8 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*Se
 			ContextRand: []byte{},
 		}, nil
 
-	// case CONST_KEX_ASYMKEX2048:
-	// 	// TODO
-	// case CONST_KEX_ASYMKEX3072:
-	// 	// TODO
 	case KEX_ECDH256:
-		expectedLen := 2 + 32 + 2 + 32 + 2 + int(KEX_ECDH256_RANDOM_LEN)
+		expectedLen := 2 + 32 + 2 + 32 + 2 + KEX_ECDH256_RANDOM_LEN
 		if len(xBKeyExchange) != expectedLen {
 			return nil, fmt.Errorf("unexpected xBKeyExchange for ECDH256 length. Expected %d bytes long", expectedLen)
 		}
@@ -281,7 +305,7 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*Se
 		}, nil
 
 	case KEX_ECDH384:
-		expectedLen := 2 + 48 + 2 + 48 + 2 + int(KEX_ECDH384_RANDOM_LEN)
+		expectedLen := 2 + 48 + 2 + 48 + 2 + KEX_ECDH384_RANDOM_LEN
 		if len(xBKeyExchange) != expectedLen {
 			return nil, fmt.Errorf("unexpected xBKeyExchange for ECDH384 length. Expected %d bytes long", expectedLen)
 		}
@@ -324,7 +348,55 @@ func DeriveSessionKey(kexA *KeXParams, xBKeyExchange []byte, isDevice bool) (*Se
 			ShSe:        shSe,
 			ContextRand: []byte{},
 		}, nil
+
+	case KEX_ASYMKEX2048, KEX_ASYMKEX3072:
+		if isDevice {
+			return &SessionKeyInfo{
+				ShSe:        kexA.Private,
+				ContextRand: xBKeyExchange,
+			}, nil
+		} else {
+			deviceRandom, err := UnwrapOAEP(xBKeyExchange, ownerPrivateKey)
+			if err != nil {
+				return nil, fmt.Errorf("error unwrapping OAEP for ASYM KEX. %s", err.Error())
+			}
+
+			return &SessionKeyInfo{
+				ShSe:        deviceRandom,
+				ContextRand: kexA.Private,
+			}, nil
+		}
+	default:
+		return nil, fmt.Errorf("unknown KeyExchange algorithm: %s", kexA.KexSuit)
+	}
+}
+
+func WrapOAEP(message []byte, ownerPubKey FdoPublicKey) ([]byte, error) {
+	publicKeyCasted, ok := ownerPubKey.PkBody.([]byte)
+	if !ok {
+		return nil, errors.New("failed to cast pubkey PkBody to []byte")
 	}
 
-	return nil, errors.New("unexpected error in deriving ECDH shared secret")
+	pubKeyInst, err := x509.ParsePKIXPublicKey(publicKeyCasted)
+	if err != nil {
+		return nil, errors.New("error parsing PKIX X509 Public Key. " + err.Error())
+	}
+
+	hash := sha256.New()
+	ciphertext, err := rsa.EncryptOAEP(hash, rand.Reader, pubKeyInst.(*rsa.PublicKey), message, []byte{})
+	if err != nil {
+		return nil, errors.New("error wrapping OAEP. " + err.Error())
+	}
+
+	return ciphertext, nil
+}
+
+func UnwrapOAEP(ciphertext []byte, privateKeyInterface interface{}) ([]byte, error) {
+	hash := sha256.New()
+	message, err := rsa.DecryptOAEP(hash, rand.Reader, privateKeyInterface.(*rsa.PrivateKey), ciphertext, []byte{})
+	if err != nil {
+		return nil, errors.New("error unwrapping OAEP. " + err.Error())
+	}
+
+	return message, nil
 }

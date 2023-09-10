@@ -17,14 +17,14 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	var testState testcom.FDOTestState
 
 	// KEX
-	kex, err := fdoshared.GenerateXAKeyExchange(h.KexSuiteName)
+	kex, err := fdoshared.GenerateXABKeyExchange(h.KexSuiteName, &h.ProveOVHdr61PubKey)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error generating XBKeyExchange... " + err.Error())
 	}
 	h.XBKEXParams = *kex
 
-	// KEX
-	newSessionKey, err := fdoshared.DeriveSessionKey(&h.XBKEXParams, h.XAKex, true)
+	// Session
+	newSessionKey, err := fdoshared.DeriveSessionKey(h.XBKEXParams, h.XAKex, true, nil)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error generating session ShSe... " + err.Error())
 	}
