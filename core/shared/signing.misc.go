@@ -40,6 +40,7 @@ type EATPayloadBase struct {
 }
 
 type TO2ProveDevicePayload struct {
+	_             struct{} `cbor:",toarray"`
 	XBKeyExchange []byte
 }
 
