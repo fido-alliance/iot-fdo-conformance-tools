@@ -48,7 +48,7 @@ func GenerateOvEntry(
 	}
 
 	protectedHeader := fdoshared.ProtectedHeader{
-		Alg: int(prevEntrySgType),
+		Alg: fdoshared.GetIntRef(prevEntrySgType),
 	}
 
 	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, prevEntrySgType)

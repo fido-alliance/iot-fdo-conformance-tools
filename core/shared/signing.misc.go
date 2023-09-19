@@ -17,10 +17,10 @@ type UnprotectedHeader struct {
 }
 
 type ProtectedHeader struct {
-	Alg       int    `cbor:"1,keyasint,omitempty"`
-	Kid       []byte `cbor:"4,keyasint,omitempty"`
-	IV        []byte `cbor:"5,keyasint,omitempty"`
-	PartialIV []byte `cbor:"6,keyasint,omitempty"`
+	Alg       *int    `cbor:"1,keyasint,omitempty"`
+	Kid       *[]byte `cbor:"4,keyasint,omitempty"`
+	IV        *[]byte `cbor:"5,keyasint,omitempty"`
+	PartialIV *[]byte `cbor:"6,keyasint,omitempty"`
 }
 
 type CoseSignature struct {
@@ -47,7 +47,6 @@ type TO2ProveDevicePayload struct {
 type CoseContext string
 
 const CoseContext_Signature1 CoseContext = "Signature1"
-const CoseContext_Encrypt CoseContext = "Encrypt"
 
 // Signature must be computed over a sig_structure:
 // Sig_structure = [

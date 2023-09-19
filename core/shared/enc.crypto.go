@@ -216,7 +216,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	// INNER ENCRYPTION BLOCK
 	protectedHeaderInner := ProtectedHeader{
-		Alg: int(algInfo.CryptoAlg),
+		Alg: GetIntRef(algInfo.CryptoAlg),
 	}
 
 	protectedHeaderBytes, err := cbor.Marshal(protectedHeaderInner)
@@ -267,7 +267,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	// OUTER HMAC BLOCK
 
 	outerProtectedHeader := ProtectedHeader{
-		Alg: int(algInfo.HmacAlg),
+		Alg: GetIntRef(algInfo.HmacAlg),
 	}
 	outerProtectedHeaderBytes, _ := cbor.Marshal(outerProtectedHeader)
 
@@ -352,7 +352,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
 
-	if innerProtected.Alg != int(algInfo.CryptoAlg) {
+	if innerProtected.Alg != GetIntRef(algInfo.CryptoAlg) {
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
@@ -364,7 +364,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	plaintext := make([]byte, len(inner.Ciphertext))
-	switch innerProtected.Alg {
+	switch *innerProtected.Alg {
 	case int(CIPHER_COSE_AES128_CTR):
 		stream := cipher.NewCTR(block, *nonceIvBytes)
 		stream.XORKeyStream(plaintext, inner.Ciphertext)
@@ -405,7 +405,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	// INNER ENCRYPTION BLOCK
 	protectedHeaderInner := ProtectedHeader{
-		Alg: int(algInfo.CryptoAlg),
+		Alg: GetIntRef(algInfo.CryptoAlg),
 	}
 
 	protectedHeaderBytes, err := cbor.Marshal(protectedHeaderInner)
@@ -420,7 +420,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	aadStruct := AEAD_Enc_Structure{
-		context:     CoseContext_Encrypt,
+		context:     CONST_ENC_COSE_LABEL_ENC0,
 		protected:   protectedHeaderInner,
 		externalAad: []byte{},
 	}
@@ -494,7 +494,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
 
-	if protected.Alg != int(algInfo.CryptoAlg) {
+	if protected.Alg != GetIntRef(algInfo.CryptoAlg) {
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
