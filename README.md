@@ -94,3 +94,9 @@ To update packages without GOSUM check use env `GOSUMDB=off`
  - I am getting `insecure algorithm SHA1-RSA`
 
  > Try running with environment variable `GODEBUG=x509sha1=1`
+
+ 
+
+ ### [License](LICENSE.md)
+
+This code is licensed under the Apache License 2.0. Please see the [License](LICENSE.md) for more information.
