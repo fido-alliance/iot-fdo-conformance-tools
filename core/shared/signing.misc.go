@@ -167,13 +167,13 @@ var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
 }
 
 // Maps DEVICE supported SG type, to what OVEntry must use to, since device may not be able to handle some owner algorithms
-var DeviceSgTypeOVMapping map[DeviceSgType]DeviceSgType = map[DeviceSgType]DeviceSgType{
+var SgType_OwnerToDeviceAttestation = map[DeviceSgType]DeviceSgType{
 	StSECP256R1: StSECP256R1,
 	StSECP384R1: StSECP384R1,
 	StRSA2048:   StSECP256R1,
 	StRSA3072:   StSECP384R1,
-	StEPID10:    StEPID10,
-	StEPID11:    StEPID11,
+	// StEPID10:    StEPID10,
+	// StEPID11:    StEPID11,
 }
 
 type SigInfo struct {

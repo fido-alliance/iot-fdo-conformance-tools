@@ -203,24 +203,29 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 			Locality:     []string{"San Francisco"},
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(10, 0, 0),
+		NotAfter:              time.Now().AddDate(10, 0, 0), // 10 years
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		BasicConstraintsValid: false,
 	}
 
-	newPrivateKeyInst, _, err := GenerateVoucherKeypair(sgType)
+	certSgType, ok := SgType_OwnerToDeviceAttestation[sgType]
+	if !ok {
+		return nil, fmt.Errorf("unsupported sgType %d", sgType)
+	}
+
+	newPrivateKeyInst, _, err := GenerateVoucherKeypair(certSgType)
 	if err != nil {
 		return nil, err
 	}
 
 	newCertBytes, err := x509.CreateCertificate(rand.Reader, newCertificate, intermCertInst, CastPublicFromPrivate(newPrivateKeyInst), intermPrivKey)
 	if err != nil {
-		return nil, errors.New("Error generating new x509 certificate! " + err.Error())
+		return nil, errors.New("error generating new x509 certificate! " + err.Error())
 	}
 
-	marshaledPrivateKey, err := MarshalPrivateKey(newPrivateKeyInst, sgType)
+	marshaledPrivateKey, err := MarshalPrivateKey(newPrivateKeyInst, certSgType)
 	if err != nil {
-		return nil, errors.New("Error mashaling private key. " + err.Error())
+		return nil, errors.New("error mashaling private key. " + err.Error())
 	}
 
 	dcCertificateChain := []X509CertificateBytes{
@@ -245,7 +250,7 @@ func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredent
 
 	dcSigInfo := SigInfo{
 		SgType: deviceCredBase.DCSgType,
-		Info:   []byte("random-info"),
+		Info:   []byte("virtual-device"),
 	}
 
 	return &WawDeviceCredential{

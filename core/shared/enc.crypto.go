@@ -217,7 +217,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	// INNER ENCRYPTION BLOCK
 	protectedHeaderInner := ProtectedHeader{
-		Alg: GetIntRef(algInfo.CryptoAlg),
+		Alg: GetIntRef(int(algInfo.CryptoAlg)),
 	}
 
 	protectedHeaderBytes, err := cbor.Marshal(protectedHeaderInner)
@@ -268,7 +268,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	// OUTER HMAC BLOCK
 
 	outerProtectedHeader := ProtectedHeader{
-		Alg: GetIntRef(algInfo.HmacAlg),
+		Alg: GetIntRef(int(algInfo.HmacAlg)),
 	}
 	outerProtectedHeaderBytes, _ := cbor.Marshal(outerProtectedHeader)
 
@@ -353,7 +353,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
 
-	if innerProtected.Alg != GetIntRef(algInfo.CryptoAlg) {
+	if innerProtected.Alg != GetIntRef(int(algInfo.CryptoAlg)) {
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
@@ -406,7 +406,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	// INNER ENCRYPTION BLOCK
 	protectedHeaderInner := ProtectedHeader{
-		Alg: GetIntRef(algInfo.CryptoAlg),
+		Alg: GetIntRef(int(algInfo.CryptoAlg)),
 	}
 
 	protectedHeaderBytes, err := cbor.Marshal(protectedHeaderInner)
@@ -497,7 +497,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
 
-	if protected.Alg != GetIntRef(algInfo.CryptoAlg) {
+	if protected.Alg != GetIntRef(int(algInfo.CryptoAlg)) {
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 

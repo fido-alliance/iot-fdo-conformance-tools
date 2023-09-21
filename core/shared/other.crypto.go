@@ -45,6 +45,6 @@ func (h *X509CertificateBytes) GetPEM() string {
 	return string(pemBytes)
 }
 
-func GetIntRef(intnum interface{}) *int {
-	return intnum.(*int)
+func GetIntRef(intnum int) *int {
+	return &intnum
 }

@@ -47,6 +47,7 @@ func NewFdoGuid() FdoGuid {
 	return newFdoGuid
 }
 
+/* Generates FIDO Alliance FDO prefixed GUID */
 func NewFdoGuid_FIDO() FdoGuid {
 	newUuid, _ := uuid.NewRandom()
 	uuidBytes, _ := newUuid.MarshalBinary()

@@ -223,8 +223,7 @@ func ExtractPrivateKey(privateKeyDer []byte) (interface{}, error) {
 }
 
 func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType DeviceSgType) (*CoseSignature, error) {
-
-	protected.Alg = GetIntRef(sgType)
+	protected.Alg = GetIntRef(int(sgType))
 
 	protectedBytes, _ := cbor.Marshal(protected)
 	coseSigPayloadBytes, err := NewSig1Payload(protectedBytes, payload)
@@ -236,7 +235,6 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 
 	switch sgType {
 	case StSECP256R1:
-
 		payloadHash := sha256.Sum256(coseSigPayloadBytes)
 		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
 		if !ok {

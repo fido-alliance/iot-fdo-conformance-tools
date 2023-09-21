@@ -48,7 +48,7 @@ func GenerateOvEntry(
 	}
 
 	protectedHeader := fdoshared.ProtectedHeader{
-		Alg: fdoshared.GetIntRef(prevEntrySgType),
+		Alg: fdoshared.GetIntRef(int(prevEntrySgType)),
 	}
 
 	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, prevEntrySgType)
@@ -96,7 +96,6 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_RVINFO_EMPTY {
 		voucherHeader.OVRvInfo = []fdoshared.RendezvousInstrList{}
-
 	}
 
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_DEVICEINFO_EMPTY {
@@ -141,7 +140,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 
 	var finalOvEntryPrivateKeyBytes []byte
 
-	var prevEntrySgType fdoshared.DeviceSgType = fdoshared.DeviceSgTypeOVMapping[deviceCredBase.DCSgType]
+	var prevEntrySgType fdoshared.DeviceSgType = deviceCredBase.DCSgType
 
 	for i := 0; i < ovEntriesCount; i++ {
 		if i == 0 {
