@@ -6,6 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
@@ -395,9 +396,9 @@ type EMBlock struct {
 
 type AEAD_Enc_Structure struct {
 	_           struct{} `cbor:",toarray"`
-	context     CoseContext
-	protected   ProtectedHeader
-	externalAad []byte
+	Context     CoseContext
+	Protected   []byte
+	ExternalAad []byte
 }
 
 func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
@@ -419,10 +420,12 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		AESIV: &nonceIvBytes,
 	}
 
+	unprotectedHeaderBytes, _ := cbor.Marshal(unprotectedHeaderInner)
+
 	aadStruct := AEAD_Enc_Structure{
-		context:     CONST_ENC_COSE_LABEL_ENC0,
-		protected:   protectedHeaderInner,
-		externalAad: []byte{},
+		Context:     CONST_ENC_COSE_LABEL_ENC0,
+		Protected:   unprotectedHeaderBytes,
+		ExternalAad: []byte{},
 	}
 
 	aadBytes, _ := cbor.Marshal(aadStruct)
