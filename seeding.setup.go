@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -30,9 +29,9 @@ func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *
 	defer wg.Done()
 
 	log.Printf("----- [%d] Starting SgType %d. -----\n", threadID, sgType)
-	getSgAlgInfo, err := fdoshared.GetAlgInfoFromSgType(sgType)
-	if err != nil {
-		result.Error = errors.New("Error getting AlgInfo. " + err.Error())
+	getSgAlgInfo, ok := fdoshared.SgTypeInfoMap[sgType]
+	if !ok {
+		result.Error = fmt.Errorf("unsupported sgType %d", sgType)
 		log.Println(result.Error.Error())
 		resultChannel <- result
 		return

@@ -65,13 +65,6 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Getting cipher suit params
-	cryptoParams, ok := fdoshared.CipherSuitesInfoMap[helloDevice.CipherSuiteName]
-	if !ok {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Unknown cipher suit!", http.StatusBadRequest, testcomListener, fdoshared.To2)
-		return
-	}
-
 	// Getting voucher from DB
 	voucherDBEntry, err := h.voucher.Get(helloDevice.Guid)
 	if err != nil {
@@ -88,8 +81,14 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sgTypeInfo, ok := fdoshared.SgTypeInfoMap[helloDevice.EASigInfo.SgType]
+	if !ok {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Unsupported sgType...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		return
+	}
+
 	// HelloDevice HASH
-	helloDeviceHash, _ := fdoshared.GenerateFdoHash(bodyBytes, cryptoParams.HashAlg)
+	helloDeviceHash, _ := fdoshared.GenerateFdoHash(bodyBytes, sgTypeInfo.HashType)
 
 	voucherHeader, err := voucherDBEntry.Voucher.GetOVHeader()
 	if err != nil {

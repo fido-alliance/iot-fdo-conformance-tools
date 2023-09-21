@@ -219,39 +219,25 @@ type SgTypeInfo struct {
 	HmacType HashType
 }
 
-func GetAlgInfoFromSgType(sgType DeviceSgType) (*SgTypeInfo, error) {
-	switch sgType {
-
-	case StSECP256R1:
-		return &SgTypeInfo{
-			PkType:   SECP256R1,
-			HashType: HASH_SHA256,
-			HmacType: HASH_HMAC_SHA256,
-		}, nil
-	case StSECP384R1:
-		return &SgTypeInfo{
-			PkType:   SECP384R1,
-			HashType: HASH_SHA384,
-			HmacType: HASH_HMAC_SHA384,
-		}, nil
-	case StRSA2048:
-		return &SgTypeInfo{
-			PkType:   RSA2048RESTR,
-			HashType: HASH_SHA256,
-			HmacType: HASH_HMAC_SHA256,
-		}, nil
-	case StRSA3072:
-		return &SgTypeInfo{
-			PkType:   RSAPKCS,
-			HashType: HASH_SHA384,
-			HmacType: HASH_HMAC_SHA384,
-		}, nil
-	// case StEPID10:
-	// 	break
-	// case StEPID11:
-	// 	break
-
-	default:
-		return nil, fmt.Errorf("unsupported sgType: %d", sgType)
-	}
+var SgTypeInfoMap = map[DeviceSgType]SgTypeInfo{
+	StSECP256R1: {
+		PkType:   SECP256R1,
+		HashType: HASH_SHA256,
+		HmacType: HASH_HMAC_SHA256,
+	},
+	StSECP384R1: {
+		PkType:   SECP384R1,
+		HashType: HASH_SHA384,
+		HmacType: HASH_HMAC_SHA384,
+	},
+	StRSA2048: {
+		PkType:   RSA2048RESTR,
+		HashType: HASH_SHA256,
+		HmacType: HASH_HMAC_SHA256,
+	},
+	StRSA3072: {
+		PkType:   RSAPKCS,
+		HashType: HASH_SHA384,
+		HmacType: HASH_HMAC_SHA384,
+	},
 }
