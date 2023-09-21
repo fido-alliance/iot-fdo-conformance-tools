@@ -353,7 +353,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
 
-	if innerProtected.Alg != GetIntRef(int(algInfo.CryptoAlg)) {
+	if *innerProtected.Alg != int(algInfo.CryptoAlg) {
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
@@ -388,8 +388,8 @@ EMBlock = [
 ]
 */
 type EMBlock struct {
-	_           struct{} `cbor:",toarray"`
-	Protected   []byte   // ETMMacType = { 1: MacType }
+	_           struct{}        `cbor:",toarray"`
+	Protected   ProtectedHeader // ETMMacType = { 1: MacType }
 	Unprotected UnprotectedHeader
 	Ciphertext  []byte
 }
@@ -405,22 +405,15 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
 	// INNER ENCRYPTION BLOCK
-	protectedHeaderInner := ProtectedHeader{
+	protectedHeader := ProtectedHeader{
 		Alg: GetIntRef(int(algInfo.CryptoAlg)),
 	}
 
-	protectedHeaderBytes, err := cbor.Marshal(protectedHeaderInner)
-	if err != nil {
-		return nil, errors.New("Error encoding protected header. " + err.Error())
-	}
-
 	nonceIvBytes := NewRandomBuffer(algInfo.NonceIvLen)
-
-	unprotectedHeaderInner := UnprotectedHeader{
+	unprotectedHeader := UnprotectedHeader{
 		AESIV: &nonceIvBytes,
 	}
-
-	unprotectedHeaderBytes, _ := cbor.Marshal(unprotectedHeaderInner)
+	unprotectedHeaderBytes, _ := cbor.Marshal(unprotectedHeader)
 
 	aadStruct := AEAD_Enc_Structure{
 		Context:     CONST_ENC_COSE_LABEL_ENC0,
@@ -463,18 +456,18 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("%s Error encoding EMB. " + err.Error())
 	}
 
-	innerBlock := EMBlock{
-		Protected:   protectedHeaderBytes,
-		Unprotected: unprotectedHeaderInner,
+	embBlock := EMBlock{
+		Protected:   protectedHeader,
+		Unprotected: unprotectedHeader,
 		Ciphertext:  ciphertext,
 	}
 
-	innerBlockBytes, err := cbor.Marshal(innerBlock)
+	embBlockBytes, err := cbor.Marshal(embBlock)
 	if err != nil {
 		return nil, errors.New("Error encoding EMB. " + err.Error())
 	}
 
-	return innerBlockBytes, nil
+	return embBlockBytes, nil
 }
 
 func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
@@ -491,22 +484,25 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error decoding inner protected header. " + err.Error())
 	}
 
-	var protected ProtectedHeader
-	err = cbor.Unmarshal(embInst.Protected, &protected)
-	if err != nil {
-		return nil, errors.New("Error decoding protected header. " + err.Error())
-	}
-
-	if protected.Alg != GetIntRef(int(algInfo.CryptoAlg)) {
+	if *embInst.Protected.Alg != int(algInfo.CryptoAlg) {
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
 	nonceIvBytes := embInst.Unprotected.AESIV
+	log.Println(hex.EncodeToString(*nonceIvBytes))
 
 	block, err := aes.NewCipher(sevk)
 	if err != nil {
 		return nil, errors.New("Error creating new cipher. " + err.Error())
 	}
+
+	unprotectedHeaderBytes, _ := cbor.Marshal(embInst.Unprotected)
+	aadStruct := AEAD_Enc_Structure{
+		Context:     CONST_ENC_COSE_LABEL_ENC0,
+		Protected:   unprotectedHeaderBytes,
+		ExternalAad: []byte{},
+	}
+	aadBytes, _ := cbor.Marshal(aadStruct)
 
 	var plaintext []byte
 	switch algInfo.CryptoAlg {
@@ -516,7 +512,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new GCM instance. " + err.Error())
 		}
 
-		prepPlaintext, err := aesgcm.Open(nil, *nonceIvBytes, embInst.Ciphertext, nil)
+		prepPlaintext, err := aesgcm.Open(nil, *nonceIvBytes, embInst.Ciphertext, aadBytes)
 		if err != nil {
 			return []byte{}, errors.New("Error decrypting EMB GCM. " + err.Error())
 		}
@@ -529,7 +525,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 			return []byte{}, errors.New("Error generating new CCM instance. " + err.Error())
 		}
 
-		prepPlaintext, err := aesccm.Open(nil, *nonceIvBytes, embInst.Ciphertext, nil)
+		prepPlaintext, err := aesccm.Open(nil, *nonceIvBytes, embInst.Ciphertext, aadBytes)
 		if err != nil {
 			return []byte{}, errors.New("Error decrypting EMB CCM. " + err.Error())
 		}
