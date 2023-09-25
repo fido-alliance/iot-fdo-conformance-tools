@@ -340,12 +340,14 @@ func GeneratePKIXECKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, err
 }
 
 func GeneratePKIXRSAKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, error) {
-	var pkType FdoPkType = RSAPKCS
+	var pkType FdoPkType
 	var rsaKeySize int
 
 	if sgType == StRSA2048 {
+		pkType = RSA2048RESTR
 		rsaKeySize = 2048
 	} else if sgType == StRSA3072 {
+		pkType = RSAPKCS
 		rsaKeySize = 3072
 	} else {
 		return nil, nil, fmt.Errorf("%d is an unsupported RSA SgType", sgType)
