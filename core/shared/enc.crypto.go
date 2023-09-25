@@ -407,16 +407,16 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	protectedHeader := ProtectedHeader{
 		Alg: GetIntRef(int(algInfo.CryptoAlg)),
 	}
+	protectedHeaderBytes, _ := cbor.Marshal(protectedHeader)
 
 	nonceIvBytes := NewRandomBuffer(algInfo.NonceIvLen)
 	unprotectedHeader := UnprotectedHeader{
 		AESIV: &nonceIvBytes,
 	}
-	unprotectedHeaderBytes, _ := cbor.Marshal(unprotectedHeader)
 
 	aadStruct := AEAD_Enc_Structure{
 		Context:     CONST_ENC_COSE_LABEL_ENC0,
-		Protected:   unprotectedHeaderBytes,
+		Protected:   protectedHeaderBytes,
 		ExternalAad: []byte{},
 	}
 
