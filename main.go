@@ -161,7 +161,7 @@ func main() {
 
 							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, testcom.NULL_TEST)
 							if err != nil {
-								log.Panicf("Error saving voucher base. %s", err.Error())
+								log.Panicf(err.Error())
 							}
 
 							return nil
