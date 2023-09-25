@@ -6,7 +6,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/sha512"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
@@ -489,7 +488,6 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	nonceIvBytes := embInst.Unprotected.AESIV
-	log.Println(hex.EncodeToString(*nonceIvBytes))
 
 	block, err := aes.NewCipher(sevk)
 	if err != nil {
