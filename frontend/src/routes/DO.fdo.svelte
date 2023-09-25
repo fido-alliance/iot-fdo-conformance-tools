@@ -41,7 +41,7 @@
 
         doTestExecuteErrorMessage = "Executing..."
         try {
-            await executeDoTests(dotMap[selectedDOTUuid].to0.id)
+            await executeDoTests(dotMap[selectedDOTUuid].to2.id)
             doTestExecuteErrorMessage = "Success"
         } catch(e) {
             doTestExecuteErrorMessage = "Error executing DO. " + e
@@ -71,6 +71,7 @@
 
         try {
             new URL(newDoUrl)
+            newDoErrorMessage = "Processing..."
             await addNewDo(newDoUrl)
         } catch(e) {
             newDoErrorMessage = "Error adding new DO. " + e
@@ -140,7 +141,7 @@
                                 <div class="row">
                                     <div class="col-12 col-12-xsmall">
                                         <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
-                                        <label for="trun-radio-{run.uuid}">TO{run.protocol} {(new Date(run.timestamp * 1000)).toLocaleString()} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.uuid, run.protocol)} value="{run.uuid}">X</a></label>
+                                        <label for="trun-radio-{run.uuid}">TO{run.protocol} {(new Date(run.timestamp * 1000)).toLocaleString()} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.uuid, run.protocol)}>X</a></label>
                                     </div>
                                 </div>
                                 {/each}

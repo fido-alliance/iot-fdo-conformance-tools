@@ -197,7 +197,7 @@
                                     <div class="col-12 col-12-xsmall">
                                         <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
                                         <label for="trun-radio-{run.uuid}"><b>{getRunState(run)}</b>: {getRunDate(run)}
-                                            <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)} value="{run.uuid}">X</a></label>
+                                            <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)}>X</a></label>
                                     </div>
                                 </div>
                                 {/each}
@@ -225,7 +225,7 @@
                                 <div class="row">
                                     <div class="col-12 col-12-xsmall">
                                         <input type="radio" id="trun-radio-{run.uuid}" value="{run.uuid}" name="testrun-radio" bind:group={selectedTestRunUuid}>
-                                        <label for="trun-radio-{run.uuid}">{getRunDate(run)} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)} value="{run.uuid}">X</a></label>
+                                        <label for="trun-radio-{run.uuid}">{getRunDate(run)} <a href="#" on:click|preventDefault={() => handleRemoveTestRun(run.protocol, run.uuid)}>X</a></label>
                                     </div>
                                 </div>
                                 {/each}
