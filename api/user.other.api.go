@@ -57,7 +57,7 @@ func (h *UserAPI) Config(w http.ResponseWriter, r *http.Request) {
 	}
 
 	commonapi.RespondSuccessStruct(w, commonapi.User_Config{
-		Mode: fdoshared.CONFIG_MODE_TYPE(r.Context().Value(fdoshared.CFG_ENV_MODE).(string)),
+		Mode: r.Context().Value(fdoshared.CFG_ENV_MODE).(string),
 	})
 }
 

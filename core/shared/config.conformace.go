@@ -9,9 +9,7 @@ const (
 	CFG_ENV_MODE            CONFIG_ENTRY = "MODE"
 )
 
-type CONFIG_MODE_TYPE string
-
 const (
-	CFG_MODE_ONPREM CONFIG_MODE_TYPE = "onprem"
-	CFG_MODE_ONLINE CONFIG_MODE_TYPE = "online"
+	CFG_MODE_ONPREM string = "onprem"
+	CFG_MODE_ONLINE string = "online"
 )

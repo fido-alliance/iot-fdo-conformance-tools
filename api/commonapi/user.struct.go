@@ -1,7 +1,5 @@
 package commonapi
 
-import fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-
 type User_UserReq struct {
 	Name     string `json:"name"`
 	Phone    string `json:"phone"`
@@ -20,5 +18,5 @@ type User_ResetPasswordReq struct {
 }
 
 type User_Config struct {
-	Mode fdoshared.CONFIG_MODE_TYPE `json:"mode"`
+	Mode string `json:"mode"`
 }
