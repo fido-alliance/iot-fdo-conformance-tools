@@ -16,20 +16,20 @@ The backend consists of five modules:
 - [FIDO Conformance Server - Frontend](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/frontend) - A frontend for FIDO Conformance Server
 
 ## Pre requisites:
-- Node JS 16+ https://nodejs.org/en/
+
+- Node JS 18+ https://nodejs.org/en/
 - Golang 1.18+ https://go.dev/dl/
 - Github access with configured SSH key https://docs.github.com/en/authentication/connecting-to-github-with-ssh
 - (Windows) `make` - https://gnuwin32.sourceforge.net/packages/make.htm
 
 ## Configuration:
+
 - `make setup` - will configure submodule, frontend nodejs deps, and goland packages
     - `make preconfig_submodules` - Will only initialize git submodules, and pull latest updates
     - `make preconfig_frontend` - Will only configure frontend nodejs deps
     - `make preconfig_conformance_server` - Will only configure golang dependencies
 
 ## Building
-- `make build_config_onprem` - Will updated build config to setup app for on-premises running
-- `make build_config_online` - Will configure app for online deployment
 
 - `make build` - will compile builds for Windows, Linux, and MacOS
 
@@ -41,6 +41,10 @@ The backend consists of five modules:
 - `make build_frontend` - will only regenerate static frontend
 
 ## Running
+
+For the onprem running now enviroment, except for `GODEBUG=x509sha1=1` env, is needed.
+For online deployment, take `example.env`. Set required variables, and rename to `.env`
+
 - `./fdo-fido-conformance-server-OS seed` will generate testing config, and pre-seed testing device credentials. This will take just a minute to run. Need to be run only once
 - `./fdo-fido-conformance-server-OS serve` will serve testing frontend on port 8080 (http://localhost:8080/)[http://localhost:8080/]
     - If you experience issues with SHA1 checking, please run with `GODEBUG=x509sha1=1` env
@@ -97,6 +101,6 @@ To update packages without GOSUM check use env `GOSUMDB=off`
 
  
 
- ### [License](LICENSE.md)
+### [License](LICENSE.md)
 
 This code is licensed under the Apache License 2.0. Please see the [License](LICENSE.md) for more information.
