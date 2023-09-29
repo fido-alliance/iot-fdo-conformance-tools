@@ -10,8 +10,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-
-	"github.com/fxamacker/cbor/v2"
 )
 
 type RVMediumValue uint8
@@ -81,7 +79,7 @@ type RendezvousInstr struct {
 }
 
 func NewRendezvousInstr(key RVVariable, val interface{}) RendezvousInstr {
-	valBytes, _ := cbor.Marshal(val)
+	valBytes, _ := CborCust.Marshal(val)
 
 	return RendezvousInstr{
 		Key:   key,
@@ -172,7 +170,7 @@ func (h OwnershipVoucher) Validate() error {
 
 func (h OwnershipVoucher) GetOVHeader() (OwnershipVoucherHeader, error) {
 	var ovHeader OwnershipVoucherHeader
-	err := cbor.Unmarshal(h.OVHeaderTag, &ovHeader)
+	err := CborCust.Unmarshal(h.OVHeaderTag, &ovHeader)
 
 	if err != nil {
 		return OwnershipVoucherHeader{}, errors.New("error decoding OVHeader. " + err.Error())
@@ -189,7 +187,7 @@ func (h OwnershipVoucher) GetFinalOwnerPublicKey() (FdoPublicKey, error) {
 	finalOVEntry := h.OVEntryArray[len(h.OVEntryArray)-1]
 
 	var finalOVEntryPayload OVEntryPayload
-	err := cbor.Unmarshal(finalOVEntry.Payload, &finalOVEntryPayload)
+	err := CborCust.Unmarshal(finalOVEntry.Payload, &finalOVEntryPayload)
 	if err != nil {
 		return FdoPublicKey{}, errors.New("error decoding last OVEntry payload")
 	}
@@ -199,7 +197,7 @@ func (h OwnershipVoucher) GetFinalOwnerPublicKey() (FdoPublicKey, error) {
 
 func (h CoseSignature) GetOVEntryPubKey() (FdoPublicKey, error) {
 	var finalOVEntryPayload OVEntryPayload
-	err := cbor.Unmarshal(h.Payload, &finalOVEntryPayload)
+	err := CborCust.Unmarshal(h.Payload, &finalOVEntryPayload)
 	if err != nil {
 		return FdoPublicKey{}, errors.New("error decoding OVEntry payload")
 	}
@@ -214,20 +212,20 @@ func (h OVEntryArray) VerifyEntries(ovHeaderTag []byte, ovHeaderHMac HashOrHmac)
 	var lastOVEntryPublicKey FdoPublicKey
 
 	var voucherHeader OwnershipVoucherHeader
-	err := cbor.Unmarshal(ovHeaderTag, &voucherHeader)
+	err := CborCust.Unmarshal(ovHeaderTag, &voucherHeader)
 	if err != nil {
 		return errors.New("error decoding VoucherHeader: " + err.Error())
 	}
 
 	for i, OVEntry := range h {
 		var OVEntryPayload OVEntryPayload
-		err := cbor.Unmarshal(OVEntry.Payload, &OVEntryPayload)
+		err := CborCust.Unmarshal(OVEntry.Payload, &OVEntryPayload)
 		if err != nil {
 			return errors.New("error decoding OVEntry payload: " + err.Error())
 		}
 
 		if i == 0 {
-			headerHmacBytes, _ := cbor.Marshal(ovHeaderHMac)
+			headerHmacBytes, _ := CborCust.Marshal(ovHeaderHMac)
 			firstEntryHashContents := append(ovHeaderTag, headerHmacBytes...)
 			err := VerifyHash(firstEntryHashContents, OVEntryPayload.OVEHashPrevEntry)
 			if err != nil {
@@ -239,7 +237,7 @@ func (h OVEntryArray) VerifyEntries(ovHeaderTag []byte, ovHeaderHMac HashOrHmac)
 				return errors.New("error verifying OVEntry Signature: " + err.Error())
 			}
 		} else {
-			lastOVEntryBytes, _ := cbor.Marshal(lastOVEntry)
+			lastOVEntryBytes, _ := CborCust.Marshal(lastOVEntry)
 
 			err := VerifyHash(lastOVEntryBytes, OVEntryPayload.OVEHashPrevEntry)
 			if err != nil {
@@ -280,7 +278,7 @@ func ValidateVoucherStructFromCert(voucherFileBytes []byte) (*OwnershipVoucher, 
 	// CBOR decode voucher
 
 	var voucherInst OwnershipVoucher
-	err := cbor.Unmarshal(voucherBlock.Bytes, &voucherInst)
+	err := CborCust.Unmarshal(voucherBlock.Bytes, &voucherInst)
 	if err != nil {
 		return nil, errors.New("failed to CBOR decode voucher")
 	}

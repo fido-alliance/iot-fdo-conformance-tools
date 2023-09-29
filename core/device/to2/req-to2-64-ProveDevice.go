@@ -9,7 +9,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 // REQUESTOR
@@ -48,7 +47,7 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		eatPayload.EatNonce = fdoshared.NewFdoNonce()
 	}
 
-	eatPayloadBytes, _ := cbor.Marshal(eatPayload)
+	eatPayloadBytes, _ := fdoshared.CborCust.Marshal(eatPayload)
 	if fdoTestID == testcom.FIDO_DOT_64_BAD_NONCE_PROVEDV61 {
 		eatPayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(eatPayloadBytes)
 	}
@@ -70,7 +69,7 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		proveDevice.Signature = fdoshared.Conf_RandomCborBufferFuzzing(proveDevice.Signature)
 	}
 
-	proveDeviceBytes, _ := cbor.Marshal(proveDevice)
+	proveDeviceBytes, _ := fdoshared.CborCust.Marshal(proveDevice)
 
 	rawResultBytes, authzHeader, httpStatusCode, err := common.SendCborPost(h.SrvEntry, fdoshared.TO2_64_PROVE_DEVICE, proveDeviceBytes, &h.AuthzHeader)
 	if fdoTestID != testcom.NULL_TEST {
@@ -97,7 +96,7 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	}
 
 	var setupDevice fdoshared.CoseSignature
-	err = cbor.Unmarshal(bodyBytes, &setupDevice)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &setupDevice)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error decoding SetupDevice65... " + err.Error())
 	}
@@ -108,7 +107,7 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	}
 
 	var to2SetupDevicePayload fdoshared.TO2SetupDevicePayload
-	err = cbor.Unmarshal(setupDevice.Payload, &to2SetupDevicePayload)
+	err = fdoshared.CborCust.Unmarshal(setupDevice.Payload, &to2SetupDevicePayload)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error decoding SetupDevice65 Payload... " + err.Error())
 	}

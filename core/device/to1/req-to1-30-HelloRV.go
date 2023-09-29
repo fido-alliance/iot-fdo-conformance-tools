@@ -6,7 +6,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To1Requestor) HelloRV30(fdoTestID testcom.FDOTestID) (*fdoshared.HelloRVAck31, *testcom.FDOTestState, error) {
@@ -26,7 +25,7 @@ func (h *To1Requestor) HelloRV30(fdoTestID testcom.FDOTestID) (*fdoshared.HelloR
 		helloRv30.EASigInfo = fdoshared.Conf_RandomTestFuzzSigInfo(helloRv30.EASigInfo)
 	}
 
-	helloRV30Bytes, err := cbor.Marshal(helloRv30)
+	helloRV30Bytes, err := fdoshared.CborCust.Marshal(helloRv30)
 	if err != nil {
 		return nil, nil, errors.New("HelloRV30: Error marshaling HelloRV30. " + err.Error())
 	}
@@ -46,7 +45,7 @@ func (h *To1Requestor) HelloRV30(fdoTestID testcom.FDOTestID) (*fdoshared.HelloR
 
 	h.authzHeader = authzHeader
 
-	err = cbor.Unmarshal(resultBytes, &helloRVAck31)
+	err = fdoshared.CborCust.Unmarshal(resultBytes, &helloRVAck31)
 	if err != nil {
 		return nil, &testState, errors.New("HelloRV30: Failed to unmarshal HelloRvAck31. " + err.Error())
 	}

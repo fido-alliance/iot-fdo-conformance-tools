@@ -9,7 +9,6 @@ import (
 	fdodeviceimplementation "github.com/fido-alliance/fdo-fido-conformance-server/core/device"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type DeviceBaseDB struct {
@@ -25,7 +24,7 @@ func NewDeviceBaseDB(db *badger.DB) *DeviceBaseDB {
 }
 
 func (h *DeviceBaseDB) Save(deviceBaseDB fdoshared.WawDeviceCredBase) error {
-	rvteBytes, err := cbor.Marshal(deviceBaseDB)
+	rvteBytes, err := fdoshared.CborCust.Marshal(deviceBaseDB)
 	if err != nil {
 		return errors.New("Failed to marshal DeviceBase. The error is: " + err.Error())
 	}
@@ -68,7 +67,7 @@ func (h *DeviceBaseDB) Get(guid fdoshared.FdoGuid) (*fdoshared.WawDeviceCredBase
 	}
 
 	var devBase fdoshared.WawDeviceCredBase
-	err = cbor.Unmarshal(itemBytes, &devBase)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &devBase)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding DevBase entry value. The error is: " + err.Error())
 	}
@@ -95,7 +94,7 @@ func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID
 	}
 
 	var devBase fdoshared.WawDeviceCredBase
-	err = cbor.Unmarshal(itemBytes, &devBase)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &devBase)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding DevBase entry value. The error is: " + err.Error())
 	}

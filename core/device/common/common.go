@@ -10,7 +10,6 @@ import (
 	"time"
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type SRVEntry struct { // TODO: Unify type with DO
@@ -72,7 +71,7 @@ func DecodePemVoucherAndKey(vandvpem string) (*fdoshared.VoucherDBEntry, error) 
 	// CBOR decode voucher
 
 	var voucherInst fdoshared.OwnershipVoucher
-	err := cbor.Unmarshal(voucherBlock.Bytes, &voucherInst)
+	err := fdoshared.CborCust.Unmarshal(voucherBlock.Bytes, &voucherInst)
 	if err != nil {
 		return nil, fmt.Errorf("Could not CBOR unmarshal voucher! %s", err.Error())
 	}

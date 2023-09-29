@@ -10,7 +10,6 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type ListenerTestDB struct {
@@ -38,7 +37,7 @@ func (h *ListenerTestDB) getMappingEntryId(guid fdoshared.FdoGuid) []byte {
 }
 
 func (h *ListenerTestDB) Save(reqListener listenertestsdeps.RequestListenerInst) error {
-	structBytes, err := cbor.Marshal(reqListener)
+	structBytes, err := fdoshared.CborCust.Marshal(reqListener)
 	if err != nil {
 		return errors.New("Failed to marshal listener entry." + err.Error())
 	}
@@ -66,7 +65,7 @@ func (h *ListenerTestDB) Save(reqListener listenertestsdeps.RequestListenerInst)
 }
 
 func (h *ListenerTestDB) Update(reqListener *listenertestsdeps.RequestListenerInst) error {
-	structBytes, err := cbor.Marshal(reqListener)
+	structBytes, err := fdoshared.CborCust.Marshal(reqListener)
 	if err != nil {
 		return errors.New("Failed to marshal listener entry." + err.Error())
 	}
@@ -105,7 +104,7 @@ func (h *ListenerTestDB) Get(entryUuid []byte) (*listenertestsdeps.RequestListen
 	}
 
 	var reqListInst listenertestsdeps.RequestListenerInst
-	err = cbor.Unmarshal(itemBytes, &reqListInst)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &reqListInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding rvte entry value." + err.Error())
 	}

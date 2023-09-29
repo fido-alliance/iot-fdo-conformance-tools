@@ -9,7 +9,6 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	tdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
-	"github.com/fxamacker/cbor/v2"
 )
 
 const ServerWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
@@ -47,7 +46,7 @@ func (h *RvTo0) Handle20Hello(w http.ResponseWriter, r *http.Request) {
 
 	var helloMsg fdoshared.Hello20
 
-	err = cbor.Unmarshal(bodyBytes, &helloMsg)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &helloMsg)
 	if err != nil {
 		log.Println("Error decoding Hello20. " + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_20_HELLO, "Failed to decode body!", http.StatusBadRequest)
@@ -71,7 +70,7 @@ func (h *RvTo0) Handle20Hello(w http.ResponseWriter, r *http.Request) {
 		NonceTO0Sign: nonceTO0Sign,
 	}
 
-	helloAckBytes, _ := cbor.Marshal(helloAck)
+	helloAckBytes, _ := fdoshared.CborCust.Marshal(helloAck)
 
 	sessionIdToken := "Bearer " + string(sessionId)
 	w.Header().Set("Authorization", sessionIdToken)
@@ -111,21 +110,21 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var ownerSign fdoshared.OwnerSign22
-	err = cbor.Unmarshal(bodyBytes, &ownerSign)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &ownerSign)
 	if err != nil {
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	var to0d fdoshared.To0d
-	err = cbor.Unmarshal(ownerSign.To0d, &to0d)
+	err = fdoshared.CborCust.Unmarshal(ownerSign.To0d, &to0d)
 	if err != nil {
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to decode body!", http.StatusBadRequest)
 		return
 	}
 
 	var to1dPayload fdoshared.To1dBlobPayload
-	err = cbor.Unmarshal(ownerSign.To1d.Payload, &to1dPayload)
+	err = fdoshared.CborCust.Unmarshal(ownerSign.To1d.Payload, &to1dPayload)
 	if err != nil {
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to decode body!", http.StatusBadRequest)
 		return
@@ -191,7 +190,7 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	acceptOwner := fdoshared.AcceptOwner23{
 		WaitSeconds: agreedWaitSeconds,
 	}
-	acceptOwnerBytes, _ := cbor.Marshal(acceptOwner)
+	acceptOwnerBytes, _ := fdoshared.CborCust.Marshal(acceptOwner)
 
 	w.Header().Set("Authorization", authorizationHeader)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)

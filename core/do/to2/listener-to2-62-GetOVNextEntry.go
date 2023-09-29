@@ -8,7 +8,6 @@ import (
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +49,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var getOVNextEntry fdoshared.GetOVNextEntry62
-	err = cbor.Unmarshal(bodyBytes, &getOVNextEntry)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &getOVNextEntry)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode GetOVNextEntry! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
@@ -87,7 +86,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 		ovNextEntry63.OVEntryNum = uint8(fdoshared.NewRandomInt(int(ovNextEntry63.OVEntryNum)+1, 255))
 	}
 
-	ovNextEntryBytes, _ := cbor.Marshal(ovNextEntry63)
+	ovNextEntryBytes, _ := fdoshared.CborCust.Marshal(ovNextEntry63)
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_62_BAD_OVNEXTENTRY_PAYLOAD {
 		ovNextEntryBytes = fdoshared.Conf_RandomCborBufferFuzzing(ovNextEntryBytes)
 	}

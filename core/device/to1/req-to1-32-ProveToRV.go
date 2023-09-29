@@ -6,7 +6,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestID testcom.FDOTestID) (*fdoshared.CoseSignature, *testcom.FDOTestState, error) {
@@ -20,7 +19,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 		proveToRV32Payload.EatNonce = fdoshared.NewFdoNonce()
 	}
 
-	proveToRV32PayloadBytes, err := cbor.Marshal(proveToRV32Payload)
+	proveToRV32PayloadBytes, err := fdoshared.CborCust.Marshal(proveToRV32Payload)
 	if err != nil {
 		return nil, nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
 	}
@@ -45,7 +44,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 		proveToRV32.Signature = fdoshared.Conf_RandomCborBufferFuzzing(proveToRV32.Signature)
 	}
 
-	proveToRV32Bytes, err := cbor.Marshal(proveToRV32)
+	proveToRV32Bytes, err := fdoshared.CborCust.Marshal(proveToRV32)
 	if err != nil {
 		return nil, nil, errors.New("ProveToRV32: Error marshaling proveToRV32. " + err.Error())
 	}
@@ -67,7 +66,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 	}
 
 	h.authzHeader = authzHeader
-	err = cbor.Unmarshal(resultBytes, &rvRedirect33)
+	err = fdoshared.CborCust.Unmarshal(resultBytes, &rvRedirect33)
 	if err != nil {
 		return nil, &testState, errors.New("RVRedirect33: Failed to unmarshal RVRedirect33. " + err.Error())
 	}

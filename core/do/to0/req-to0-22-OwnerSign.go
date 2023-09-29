@@ -6,7 +6,6 @@ import (
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID testcom.FDOTestID) (*fdoshared.AcceptOwner23, *testcom.FDOTestState, error) {
@@ -23,7 +22,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		to0d.NonceTO0Sign = fdoshared.NewFdoNonce()
 	}
 
-	to0dBytes, err := cbor.Marshal(to0d)
+	to0dBytes, err := fdoshared.CborCust.Marshal(to0d)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Error marshaling To0d. " + err.Error())
 	}
@@ -57,7 +56,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		To1dTo0dHash: to0dHash,
 	}
 
-	to1dPayloadBytes, err := cbor.Marshal(to1dPayload)
+	to1dPayloadBytes, err := fdoshared.CborCust.Marshal(to1dPayload)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Error marshaling To1dPayload. " + err.Error())
 	}
@@ -98,7 +97,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		To1d: *to1d,
 	}
 
-	ownerSign22Bytes, err := cbor.Marshal(ownerSign)
+	ownerSign22Bytes, err := fdoshared.CborCust.Marshal(ownerSign)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
 	}
@@ -124,7 +123,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, fmt.Errorf("server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
 	}
 
-	err = cbor.Unmarshal(resultBytes, &acceptOwner23)
+	err = fdoshared.CborCust.Unmarshal(resultBytes, &acceptOwner23)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Failed to unmarshal AcceptOwner23. " + err.Error())
 	}

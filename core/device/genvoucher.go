@@ -11,7 +11,6 @@ import (
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 const DIS_LOCATION string = "./_dis"
@@ -42,7 +41,7 @@ func GenerateOvEntry(
 		OVEPubKey:        *newOVEPublicKey,
 	}
 
-	ovEntryPayloadBytes, err := cbor.Marshal(ovEntryPayload)
+	ovEntryPayloadBytes, err := fdoshared.CborCust.Marshal(ovEntryPayload)
 	if err != nil {
 		return nil, []byte{}, nil, errors.New("Error marshaling OVEntry. " + err.Error())
 	}
@@ -115,7 +114,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 		voucherHeader.OVDevCertChainHash = fdoshared.Conf_RandomTestHashHmac(*voucherHeader.OVDevCertChainHash, totalBytes, nil)
 	}
 
-	ovHeaderBytes, err := cbor.Marshal(voucherHeader)
+	ovHeaderBytes, err := fdoshared.CborCust.Marshal(voucherHeader)
 	if err != nil {
 		return nil, errors.New("Error marhaling OVHeader! " + err.Error())
 	}
@@ -144,7 +143,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 
 	for i := 0; i < ovEntriesCount; i++ {
 		if i == 0 {
-			headerHmacBytes, err := cbor.Marshal(ovHeaderHmac)
+			headerHmacBytes, err := fdoshared.CborCust.Marshal(ovHeaderHmac)
 			if err != nil {
 				log.Println("Error generating hash: ", err.Error())
 				return nil, err
@@ -168,7 +167,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 			}
 		} else {
 			prevEntry := ovEntryArray[i-1]
-			prevEntryBytes, _ := cbor.Marshal(prevEntry)
+			prevEntryBytes, _ := fdoshared.CborCust.Marshal(prevEntry)
 			prevEntryHash, _ = fdoshared.GenerateFdoHash(prevEntryBytes, newDi.DCHashAlg)
 
 			// Test
@@ -266,7 +265,7 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 	vdandv := *newdav
 
 	// Voucher to PEM
-	voucherBytes, err := cbor.Marshal(vdandv.VoucherDBEntry.Voucher)
+	voucherBytes, err := fdoshared.CborCust.Marshal(vdandv.VoucherDBEntry.Voucher)
 	if err != nil {
 		return errors.New("Error marshaling voucher bytes. " + err.Error())
 	}
@@ -287,7 +286,7 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 	}
 
 	// Di bytes
-	diBytes, err := cbor.Marshal(vdandv.WawDeviceCredential)
+	diBytes, err := fdoshared.CborCust.Marshal(vdandv.WawDeviceCredential)
 	if err != nil {
 		return errors.New("Error marshaling voucher bytes. " + err.Error())
 	}
@@ -308,7 +307,7 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredB
 
 func MarshalVoucherAndPrivateKey(vdbEntry fdoshared.VoucherDBEntry) ([]byte, error) {
 	// Voucher to PEM
-	voucherBytes, err := cbor.Marshal(vdbEntry.Voucher)
+	voucherBytes, err := fdoshared.CborCust.Marshal(vdbEntry.Voucher)
 	if err != nil {
 		return []byte{}, errors.New("Error marshaling voucher bytes. " + err.Error())
 	}

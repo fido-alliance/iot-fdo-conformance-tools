@@ -11,8 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-
-	"github.com/fxamacker/cbor/v2"
 )
 
 func VerifyCertificateChain(chain []X509CertificateBytes) ([]*x509.Certificate, error) {
@@ -225,7 +223,7 @@ func ExtractPrivateKey(privateKeyDer []byte) (interface{}, error) {
 func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType DeviceSgType) (*CoseSignature, error) {
 	protected.Alg = GetIntRef(int(sgType))
 
-	protectedBytes, _ := cbor.Marshal(protected)
+	protectedBytes, _ := CborCust.Marshal(protected)
 	coseSigPayloadBytes, err := NewSig1Payload(protectedBytes, payload)
 	if err != nil {
 		return nil, err

@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fxamacker/cbor/v2"
 )
 
 const TEST_VOUCHER_LOC string = "./_test_vouchers/"
@@ -71,7 +70,7 @@ func LoadLocalVouchers() ([]fdoshared.VoucherDBEntry, error) {
 		// CBOR decode voucher
 
 		var voucherInst fdoshared.OwnershipVoucher
-		err = cbor.Unmarshal(voucherBlock.Bytes, &voucherInst)
+		err = fdoshared.CborCust.Unmarshal(voucherBlock.Bytes, &voucherInst)
 		if err != nil {
 			return vouchers, fmt.Errorf("%s: Could not CBOR unmarshal voucher! %s", fileLoc, err.Error())
 		}

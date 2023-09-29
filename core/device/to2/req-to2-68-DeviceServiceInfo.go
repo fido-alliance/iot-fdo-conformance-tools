@@ -8,13 +8,12 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceServiceInfo68, fdoTestID testcom.FDOTestID) (*fdoshared.OwnerServiceInfo69, *testcom.FDOTestState, error) {
 	var testState testcom.FDOTestState
 
-	deviceServiceInfo68Bytes, _ := cbor.Marshal(deviceServiceInfo68)
+	deviceServiceInfo68Bytes, _ := fdoshared.CborCust.Marshal(deviceServiceInfo68)
 
 	if fdoTestID == testcom.FIDO_DOT_68_BAD_ENCODING {
 		deviceServiceInfo68Bytes = fdoshared.Conf_RandomCborBufferFuzzing(deviceServiceInfo68Bytes)
@@ -57,7 +56,7 @@ func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceS
 	}
 
 	var ownerServiceInfo69 fdoshared.OwnerServiceInfo69
-	err = cbor.Unmarshal(bodyBytes, &ownerServiceInfo69)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &ownerServiceInfo69)
 	if err != nil {
 		return nil, nil, errors.New("DeviceServiceInfo68: Error decoding OwnerServiceInfo69... " + err.Error())
 	}

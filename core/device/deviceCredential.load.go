@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fxamacker/cbor/v2"
 )
 
 const DEVICE_CREDENTIAL_LOC string = "./_dis/"
@@ -63,7 +62,7 @@ func LoadLocalCredentials() (fdoshared.WawDeviceCredential, error) {
 		}
 
 		var credentialInst fdoshared.WawDeviceCredential
-		err = cbor.Unmarshal(credentialBlock.Bytes, &credentialInst)
+		err = fdoshared.CborCust.Unmarshal(credentialBlock.Bytes, &credentialInst)
 		if err != nil {
 			return credential, fmt.Errorf("%s: Could not CBOR unmarshal voucher! %s", fileLoc, err.Error())
 		}

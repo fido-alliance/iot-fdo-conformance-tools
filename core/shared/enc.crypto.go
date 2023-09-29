@@ -12,7 +12,6 @@ import (
 	"math"
 
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/ccm"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type CipherSuiteName int
@@ -219,7 +218,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		Alg: GetIntRef(int(algInfo.CryptoAlg)),
 	}
 
-	protectedHeaderBytes, err := cbor.Marshal(protectedHeaderInner)
+	protectedHeaderBytes, err := CborCust.Marshal(protectedHeaderInner)
 	if err != nil {
 		return nil, errors.New("Error encoding protected header. " + err.Error())
 	}
@@ -259,7 +258,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		Ciphertext:  ciphertext,
 	}
 
-	innerBlockBytes, err := cbor.Marshal(innerBlock)
+	innerBlockBytes, err := CborCust.Marshal(innerBlock)
 	if err != nil {
 		return nil, errors.New("Error encoding inner ETM. " + err.Error())
 	}
@@ -269,7 +268,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	outerProtectedHeader := ProtectedHeader{
 		Alg: GetIntRef(int(algInfo.HmacAlg)),
 	}
-	outerProtectedHeaderBytes, _ := cbor.Marshal(outerProtectedHeader)
+	outerProtectedHeaderBytes, _ := CborCust.Marshal(outerProtectedHeader)
 
 	outerUnprotectedHeader := UnprotectedHeader{}
 
@@ -279,7 +278,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		ExternalAAD: []byte{},
 		Ciphertext:  innerBlockBytes,
 	}
-	coseMacStructBytes, _ := cbor.Marshal(coseMacStruct)
+	coseMacStructBytes, _ := CborCust.Marshal(coseMacStruct)
 
 	fdoMac, err := GenerateFdoHmac(coseMacStructBytes, algInfo.HmacAlg, svk)
 	if err != nil {
@@ -293,7 +292,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		Tag:         fdoMac.Hash,
 	}
 
-	outerBlockBytes, err := cbor.Marshal(outerBlock)
+	outerBlockBytes, err := CborCust.Marshal(outerBlock)
 	if err != nil {
 		return nil, errors.New("Error while encoding outer block! " + err.Error())
 	}
@@ -302,13 +301,13 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	var outer ETMOuterBlock
-	err := cbor.Unmarshal(encrypted, &outer)
+	err := CborCust.Unmarshal(encrypted, &outer)
 	if err != nil {
 		return nil, errors.New("Error decoding encrypted block. " + err.Error())
 	}
 
 	var outerProtected ProtectedHeader
-	err = cbor.Unmarshal(outer.Protected, &outerProtected)
+	err = CborCust.Unmarshal(outer.Protected, &outerProtected)
 	if err != nil {
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
@@ -329,7 +328,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		ExternalAAD: []byte{},
 		Ciphertext:  outer.Payload,
 	}
-	coseMacStructBytes, _ := cbor.Marshal(coseMacStruct)
+	coseMacStructBytes, _ := CborCust.Marshal(coseMacStruct)
 
 	err = VerifyHMac(coseMacStructBytes, HashOrHmac{
 		Type: algInfo.HmacAlg,
@@ -341,13 +340,13 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	// Inner ETM block
 	var inner ETMInnerBlock
-	err = cbor.Unmarshal(outer.Payload, &inner)
+	err = CborCust.Unmarshal(outer.Payload, &inner)
 	if err != nil {
 		return nil, errors.New("Error decoding inner protected header. " + err.Error())
 	}
 
 	var innerProtected ProtectedHeader
-	err = cbor.Unmarshal(inner.Protected, &innerProtected)
+	err = CborCust.Unmarshal(inner.Protected, &innerProtected)
 	if err != nil {
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
@@ -407,7 +406,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	protectedHeader := ProtectedHeader{
 		Alg: GetIntRef(int(algInfo.CryptoAlg)),
 	}
-	protectedHeaderBytes, _ := cbor.Marshal(protectedHeader)
+	protectedHeaderBytes, _ := CborCust.Marshal(protectedHeader)
 
 	nonceIvBytes := NewRandomBuffer(algInfo.NonceIvLen)
 	unprotectedHeader := UnprotectedHeader{
@@ -420,7 +419,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		ExternalAad: []byte{},
 	}
 
-	aadBytes, _ := cbor.Marshal(aadStruct)
+	aadBytes, _ := CborCust.Marshal(aadStruct)
 
 	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
@@ -461,7 +460,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		Ciphertext:  ciphertext,
 	}
 
-	embBlockBytes, err := cbor.Marshal(embBlock)
+	embBlockBytes, err := CborCust.Marshal(embBlock)
 	if err != nil {
 		return nil, errors.New("Error encoding EMB. " + err.Error())
 	}
@@ -478,7 +477,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	var embInst EMBlock
-	err = cbor.Unmarshal(encrypted, &embInst)
+	err = CborCust.Unmarshal(encrypted, &embInst)
 	if err != nil {
 		return nil, errors.New("Error decoding inner protected header. " + err.Error())
 	}
@@ -494,13 +493,13 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error creating new cipher. " + err.Error())
 	}
 
-	unprotectedHeaderBytes, _ := cbor.Marshal(embInst.Unprotected)
+	unprotectedHeaderBytes, _ := CborCust.Marshal(embInst.Unprotected)
 	aadStruct := AEAD_Enc_Structure{
 		Context:     CONST_ENC_COSE_LABEL_ENC0,
 		Protected:   unprotectedHeaderBytes,
 		ExternalAad: []byte{},
 	}
-	aadBytes, _ := cbor.Marshal(aadStruct)
+	aadBytes, _ := CborCust.Marshal(aadStruct)
 
 	var plaintext []byte
 	switch algInfo.CryptoAlg {

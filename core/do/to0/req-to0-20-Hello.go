@@ -6,14 +6,13 @@ import (
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck21, *testcom.FDOTestState, error) {
 	var testState testcom.FDOTestState
 	var helloAck21 fdoshared.HelloAck21
 
-	hello20Bytes, err := cbor.Marshal(fdoshared.Hello20{})
+	hello20Bytes, err := fdoshared.CborCust.Marshal(fdoshared.Hello20{})
 	if err != nil {
 		return nil, nil, errors.New("Hell20: Error marshaling Hello20. " + err.Error())
 	}
@@ -39,7 +38,7 @@ func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck
 		return nil, nil, fmt.Errorf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
 	}
 
-	err = cbor.Unmarshal(resultBytes, &helloAck21)
+	err = fdoshared.CborCust.Unmarshal(resultBytes, &helloAck21)
 	if err != nil {
 		return nil, nil, errors.New("Hell20: Failed to unmarshal HelloAck21. " + err.Error())
 	}

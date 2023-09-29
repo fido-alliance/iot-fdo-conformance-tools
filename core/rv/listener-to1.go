@@ -13,7 +13,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	tdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type RvTo1 struct {
@@ -50,7 +49,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var helloRV30 fdoshared.HelloRV30
-	err = cbor.Unmarshal(bodyBytes, &helloRV30)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &helloRV30)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_30_HELLO_RV, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
@@ -106,7 +105,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		EBSigInfo:     helloRV30.EASigInfo,
 	}
 
-	helloRVAckBytes, _ := cbor.Marshal(helloRVAck31)
+	helloRVAckBytes, _ := fdoshared.CborCust.Marshal(helloRVAck31)
 
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_30_BAD_ENCODING {
 		helloRVAckBytes = fdoshared.Conf_RandomCborBufferFuzzing(helloRVAckBytes)
@@ -186,7 +185,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var proveToRV32 fdoshared.CoseSignature
-	err = cbor.Unmarshal(bodyBytes, &proveToRV32)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &proveToRV32)
 	if err != nil {
 		log.Println("Failed to decode proveToRV32 request: " + err.Error())
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
@@ -194,7 +193,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var pb fdoshared.EATPayloadBase
-	err = cbor.Unmarshal(proveToRV32.Payload, &pb)
+	err = fdoshared.CborCust.Unmarshal(proveToRV32.Payload, &pb)
 	if err != nil {
 		log.Println("Failed to decode proveToRV32 payload: " + err.Error())
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body payload!", http.StatusBadRequest, testcomListener, fdoshared.To1)
@@ -215,7 +214,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var to0d fdoshared.To0d
-	err = cbor.Unmarshal(savedOwnerSign.To0d, &to0d)
+	err = fdoshared.CborCust.Unmarshal(savedOwnerSign.To0d, &to0d)
 	if err != nil {
 		log.Println("Error decoding To0d" + err.Error())
 
@@ -242,7 +241,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		to1d = fdoshared.Conf_Fuzz_CoseSignature(to1d)
 	}
 
-	rvRedirectBytes, _ := cbor.Marshal(to1d)
+	rvRedirectBytes, _ := fdoshared.CborCust.Marshal(to1d)
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_32_BAD_ENCODING {
 		rvRedirectBytes = fdoshared.Conf_RandomCborBufferFuzzing(rvRedirectBytes)
 	}

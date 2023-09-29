@@ -8,7 +8,6 @@ import (
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 const MTU_BYTES = 1500
@@ -54,7 +53,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	// ----- MAIN BODY ----- //
 
 	var deviceServiceInfo fdoshared.DeviceServiceInfo68
-	err = cbor.Unmarshal(bodyBytes, &deviceServiceInfo)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &deviceServiceInfo)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Done70: Error encrypting..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
@@ -83,7 +82,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		session.OwnerSIMsSendCounter = session.OwnerSIMsSendCounter + 1
 	}
 
-	ownerServiceInfoBytes, _ := cbor.Marshal(ownerServiceInfo)
+	ownerServiceInfoBytes, _ := fdoshared.CborCust.Marshal(ownerServiceInfo)
 
 	// ----- MAIN BODY ENDS ----- //
 

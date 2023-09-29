@@ -10,7 +10,6 @@ import (
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +39,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var done70 fdoshared.Done70
-	err = cbor.Unmarshal(bodyBytes, &done70)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &done70)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to decode Done70. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 
@@ -62,7 +61,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		done271Payload.NonceTO2SetupDv = fdoshared.NewFdoNonce()
 	}
 
-	done271PayloadBytes, _ := cbor.Marshal(done271Payload)
+	done271PayloadBytes, _ := fdoshared.CborCust.Marshal(done271Payload)
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_70_BAD_DONE71_ENCODING {
 		done271PayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(done271PayloadBytes)
 	}

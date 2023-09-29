@@ -12,8 +12,6 @@ import (
 	"fmt"
 	"math/big"
 	"time"
-
-	"github.com/fxamacker/cbor/v2"
 )
 
 type WawDeviceCredential struct {
@@ -278,7 +276,7 @@ func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredent
 }
 
 func (h *WawDeviceCredential) UpdateWithManufacturerCred(ovHeader []byte, ovPubKey FdoPublicKey) (*HashOrHmac, error) {
-	pubKeyBytes, err := cbor.Marshal(ovPubKey)
+	pubKeyBytes, err := CborCust.Marshal(ovPubKey)
 	if err != nil {
 		return nil, errors.New("error encoding manufacturer public key")
 	}

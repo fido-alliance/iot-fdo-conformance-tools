@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
-	"github.com/fxamacker/cbor/v2"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/google/uuid"
 )
 
@@ -42,7 +42,7 @@ type VerifyEntry struct {
 }
 
 func (h *VerifyDB) SaveEntry(verifyEntry VerifyEntry) ([]byte, error) {
-	vtBytes, err := cbor.Marshal(verifyEntry)
+	vtBytes, err := fdoshared.CborCust.Marshal(verifyEntry)
 	if err != nil {
 		return []byte{}, errors.New("Failed to marshal vt. The error is: " + err.Error())
 	}
@@ -87,7 +87,7 @@ func (h *VerifyDB) GetEntry(entryId []byte) (*VerifyEntry, error) {
 	}
 
 	var sessionEntryInst VerifyEntry
-	err = cbor.Unmarshal(itemBytes, &sessionEntryInst)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &sessionEntryInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding entry value. The error is: " + err.Error())
 	}

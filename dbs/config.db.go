@@ -6,7 +6,6 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type ConfigDB struct {
@@ -27,7 +26,7 @@ type MainConfig struct {
 }
 
 func (h *ConfigDB) Save(mainCfg MainConfig) error {
-	payloadBytes, err := cbor.Marshal(mainCfg)
+	payloadBytes, err := fdoshared.CborCust.Marshal(mainCfg)
 	if err != nil {
 		return errors.New("Failed to marshal MainConfig. The error is: " + err.Error())
 	}
@@ -70,7 +69,7 @@ func (h *ConfigDB) Get() (*MainConfig, error) {
 	}
 
 	var mainConfig MainConfig
-	err = cbor.Unmarshal(itemBytes, &mainConfig)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &mainConfig)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding MainConfig entry value. The error is: " + err.Error())
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO2ProveOVHdrPayload, *testcom.FDOTestState, error) {
@@ -26,7 +25,7 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		EASigInfo:            h.Credential.DCSigInfo,
 	}
 
-	helloDevice60Byte, err := cbor.Marshal(helloDevice60)
+	helloDevice60Byte, err := fdoshared.CborCust.Marshal(helloDevice60)
 	if err != nil {
 		return nil, nil, errors.New("HelloDevice60: Error marshaling HelloDevice60. " + err.Error())
 	}
@@ -55,7 +54,7 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	h.AuthzHeader = authzHeader
 
 	var proveOVHdr61 fdoshared.CoseSignature
-	err = cbor.Unmarshal(resultBytes, &proveOVHdr61)
+	err = fdoshared.CborCust.Unmarshal(resultBytes, &proveOVHdr61)
 	if err != nil {
 		return nil, nil, errors.New("HelloDevice60: Failed to unmarshal HelloRVAck31. " + err.Error())
 	}
@@ -70,7 +69,7 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	h.ProveOVHdr61PubKey = *probableOwnerPubKey
 
 	var proveOvdrPayload fdoshared.TO2ProveOVHdrPayload
-	err = cbor.Unmarshal(proveOVHdr61.Payload, &proveOvdrPayload)
+	err = fdoshared.CborCust.Unmarshal(proveOVHdr61.Payload, &proveOvdrPayload)
 	if err != nil {
 		return nil, nil, err
 	}

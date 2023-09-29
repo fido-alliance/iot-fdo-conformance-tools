@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	lorem "github.com/drhodes/golorem"
-	"github.com/fxamacker/cbor/v2"
 )
 
 // CONFORMANCE TESTING
@@ -215,10 +214,10 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 		}
 
 		var outerBlock ETMOuterBlock
-		cbor.Unmarshal(encryptedBytes, &outerBlock)
+		CborCust.Unmarshal(encryptedBytes, &outerBlock)
 
 		var innerBlock ETMInnerBlock
-		cbor.Unmarshal(outerBlock.Payload, &innerBlock)
+		CborCust.Unmarshal(outerBlock.Payload, &innerBlock)
 
 		if chosenType == Conf_EncFuzz_Payload {
 			outerBlock.Payload = Conf_RandomCborBufferFuzzing(outerBlock.Payload)
@@ -230,18 +229,18 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 
 		if chosenType == Conf_EncFuzz_Ciphertext {
 			innerBlock.Ciphertext = Conf_RandomCborBufferFuzzing(innerBlock.Ciphertext)
-			innerBytes, _ := cbor.Marshal(innerBlock)
+			innerBytes, _ := CborCust.Marshal(innerBlock)
 			outerBlock.Payload = innerBytes
 		}
 
 		if chosenType == Conf_EncFuzz_IV {
 			randBuff := NewRandomBuffer(len(*innerBlock.Unprotected.AESIV))
 			innerBlock.Unprotected.AESIV = &randBuff
-			innerBytes, _ := cbor.Marshal(innerBlock)
+			innerBytes, _ := CborCust.Marshal(innerBlock)
 			outerBlock.Payload = innerBytes
 		}
 
-		encryptedBytes, err = cbor.Marshal(outerBlock)
+		encryptedBytes, err = CborCust.Marshal(outerBlock)
 
 		if chosenType == Conf_EncFuzz_Output {
 			encryptedBytes = Conf_RandomCborBufferFuzzing(encryptedBytes)
@@ -256,7 +255,7 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 		}
 
 		var embBlock EMBlock
-		cbor.Unmarshal(encryptedBytes, &embBlock)
+		CborCust.Unmarshal(encryptedBytes, &embBlock)
 
 		if chosenType == Conf_EncFuzz_Ciphertext {
 			embBlock.Ciphertext = Conf_RandomCborBufferFuzzing(embBlock.Ciphertext)
@@ -267,7 +266,7 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 			embBlock.Unprotected.AESIV = &randBuff
 		}
 
-		encryptedBytes, err = cbor.Marshal(embBlock)
+		encryptedBytes, err = CborCust.Marshal(embBlock)
 
 		if chosenType == Conf_EncFuzz_Output {
 			encryptedBytes = Conf_RandomCborBufferFuzzing(encryptedBytes)

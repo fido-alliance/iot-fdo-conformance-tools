@@ -11,7 +11,6 @@ import (
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +30,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	// Getting decoding device
 	var helloDevice fdoshared.HelloDevice60
-	err = cbor.Unmarshal(bodyBytes, &helloDevice)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &helloDevice)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode HelloDevice60!", http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
@@ -159,7 +158,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	proveOVHdrPayloadBytes, _ := cbor.Marshal(proveOVHdrPayload)
+	proveOVHdrPayloadBytes, _ := fdoshared.CborCust.Marshal(proveOVHdrPayload)
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_HELLOACK_PAYLOAD_ENCODING {
 		proveOVHdrPayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(proveOVHdrPayloadBytes)
 	}
@@ -181,7 +180,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		helloAck = &fuzzedCoseSignature
 	}
 
-	helloAckBytes, _ := cbor.Marshal(helloAck)
+	helloAckBytes, _ := fdoshared.CborCust.Marshal(helloAck)
 
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_60_BAD_HELLOACK_ENCODING {
 		helloAckBytes = fdoshared.Conf_RandomCborBufferFuzzing(helloAckBytes)

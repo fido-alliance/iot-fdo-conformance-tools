@@ -10,7 +10,6 @@ import (
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +61,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 
 	// Verify CoseSignature
 	var proveDevice64 fdoshared.CoseSignature
-	err = cbor.Unmarshal(bodyBytes, &proveDevice64)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &proveDevice64)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Error decoding request..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
@@ -76,7 +75,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 
 	// EATPayload
 	var eatPayload fdoshared.EATPayloadBase
-	err = cbor.Unmarshal(proveDevice64.Payload, &eatPayload)
+	err = fdoshared.CborCust.Unmarshal(proveDevice64.Payload, &eatPayload)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error decoding EATPayload..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
@@ -111,7 +110,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		setupDevicePayload.NonceTO2SetupDv = fdoshared.NewFdoNonce()
 	}
 
-	setupDevicePayloadBytes, _ := cbor.Marshal(setupDevicePayload)
+	setupDevicePayloadBytes, _ := fdoshared.CborCust.Marshal(setupDevicePayload)
 
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_SETUPDEVICE_PAYLOAD {
 		setupDevicePayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(setupDevicePayloadBytes)
@@ -129,7 +128,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		setupDevice = &tempSig
 	}
 
-	setupDeviceBytes, _ := cbor.Marshal(setupDevice)
+	setupDeviceBytes, _ := fdoshared.CborCust.Marshal(setupDevice)
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_SETUPDEVICE_BYTES {
 		setupDeviceBytes = fdoshared.Conf_RandomCborBufferFuzzing(setupDeviceBytes)
 	}

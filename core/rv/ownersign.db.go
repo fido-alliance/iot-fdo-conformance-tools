@@ -8,7 +8,6 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type OwnerSignDB struct {
@@ -22,7 +21,7 @@ func NewOwnerSignDB(db *badger.DB) OwnerSignDB {
 }
 
 func (h *OwnerSignDB) Save(deviceGuid fdoshared.FdoGuid, ownerSign fdoshared.OwnerSign22, ttlSec uint32) error {
-	ownerSignBytes, err := cbor.Marshal(ownerSign)
+	ownerSignBytes, err := fdoshared.CborCust.Marshal(ownerSign)
 	if err != nil {
 		return errors.New("Failed to marshal ownerSign. The error is: " + err.Error())
 	}
@@ -65,7 +64,7 @@ func (h *OwnerSignDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.OwnerSign22,
 	}
 
 	var ownerSignInst fdoshared.OwnerSign22
-	err = cbor.Unmarshal(itemBytes, &ownerSignInst)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &ownerSignInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding entry value. The error is: " + err.Error())
 	}

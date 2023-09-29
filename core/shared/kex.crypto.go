@@ -13,7 +13,6 @@ import (
 	"math/big"
 
 	"github.com/fido-alliance/dhkx"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type KexSuiteName string
@@ -81,12 +80,12 @@ func NewDHKexPrivateKey(x []byte, y []byte, groupID dhkx.GroupID) DHKexPrivateKe
 }
 
 func (h *DHKexPrivateKey) MarshalCbor() []byte {
-	resultBytes, _ := cbor.Marshal(*h)
+	resultBytes, _ := CborCust.Marshal(*h)
 	return resultBytes
 }
 
 func (h *DHKexPrivateKey) UnmarshalCbor(cborBytes []byte) error {
-	return cbor.Unmarshal(cborBytes, h)
+	return CborCust.Unmarshal(cborBytes, h)
 }
 
 func (h *DHKexPrivateKey) GetDHKEXPrivateKeyInst() *dhkx.DHKey {

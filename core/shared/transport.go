@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/fxamacker/cbor/v2"
 )
 
 const CONTENT_TYPE_CBOR string = "application/cbor"
@@ -14,7 +12,7 @@ const FDO_101_URL_BASE string = "/fdo/101/msg/"
 func RespondFDOError(w http.ResponseWriter, r *http.Request, errorCode FdoErrorCode, prevMsgId FdoCmd, messageStr string, httpStatusCode int) {
 	fdoErrorInst := NewFdoError(errorCode, prevMsgId, messageStr)
 
-	fdoErrorBytes, _ := cbor.Marshal(fdoErrorInst)
+	fdoErrorBytes, _ := CborCust.Marshal(fdoErrorInst)
 
 	w.Header().Add("Content-Type", CONTENT_TYPE_CBOR)
 	w.Header().Add("Message-Type", TO_ERROR_255.ToString())

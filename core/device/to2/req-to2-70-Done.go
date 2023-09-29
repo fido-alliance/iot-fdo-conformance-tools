@@ -9,7 +9,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, *testcom.FDOTestState, error) {
@@ -23,7 +22,7 @@ func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, 
 		done70.NonceTO2ProveDv = fdoshared.NewFdoNonce()
 	}
 
-	done70Bytes, _ := cbor.Marshal(done70)
+	done70Bytes, _ := fdoshared.CborCust.Marshal(done70)
 
 	if fdoTestID == testcom.FIDO_DOT_70_BAD_ENCODING {
 		done70Bytes = fdoshared.Conf_RandomCborBufferFuzzing(done70Bytes)
@@ -66,7 +65,7 @@ func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, 
 	}
 
 	var done271 fdoshared.Done271
-	err = cbor.Unmarshal(bodyBytes, &done271)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &done271)
 	if err != nil {
 		return nil, nil, errors.New("Done70: Error decoding Done271... " + err.Error())
 	}

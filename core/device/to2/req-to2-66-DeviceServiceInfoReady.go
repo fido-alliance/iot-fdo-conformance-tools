@@ -8,7 +8,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*fdoshared.OwnerServiceInfoReady67, *testcom.FDOTestState, error) {
@@ -18,7 +17,7 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 		ReplacementHMac:       &h.OvHmac,
 		MaxOwnerServiceInfoSz: &MaxOwnerServiceInfoSize,
 	}
-	deviceSrvInfoReadyBytes, _ := cbor.Marshal(deviceSrvInfoReady)
+	deviceSrvInfoReadyBytes, _ := fdoshared.CborCust.Marshal(deviceSrvInfoReady)
 
 	if fdoTestID == testcom.FIDO_DOT_66_BAD_SRVINFO_PAYLOAD {
 		deviceSrvInfoReadyBytes = fdoshared.Conf_RandomCborBufferFuzzing(deviceSrvInfoReadyBytes)
@@ -61,7 +60,7 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 	}
 
 	var ownerServiceInfoReady67 fdoshared.OwnerServiceInfoReady67
-	err = cbor.Unmarshal(bodyBytes, &ownerServiceInfoReady67)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &ownerServiceInfoReady67)
 	if err != nil {
 		return nil, nil, errors.New("DeviceServiceInfoReady66: Error decoding OwnerServiceInfoReady67... " + err.Error())
 	}

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/dgraph-io/badger/v4"
-	"github.com/fxamacker/cbor/v2"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 )
 
 // DB Methods
@@ -22,7 +22,7 @@ func NewUserTestDB(db *badger.DB) *UserTestDB {
 func (h *UserTestDB) Save(usere UserTestDBEntry) error {
 	email := strings.ToLower(usere.Email)
 
-	usereBytes, err := cbor.Marshal(usere)
+	usereBytes, err := fdoshared.CborCust.Marshal(usere)
 	if err != nil {
 		return errors.New("Failed to marshal User entry. The error is: " + err.Error())
 	}
@@ -67,7 +67,7 @@ func (h *UserTestDB) Get(email string) (*UserTestDBEntry, error) {
 	}
 
 	var usertEntryInst UserTestDBEntry
-	err = cbor.Unmarshal(itemBytes, &usertEntryInst)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &usertEntryInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding entry value. The error is: " + err.Error())
 	}

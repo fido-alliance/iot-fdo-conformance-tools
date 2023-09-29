@@ -7,7 +7,6 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type VoucherDB struct {
@@ -25,7 +24,7 @@ func (h VoucherDB) getEntryID(guid fdoshared.FdoGuid) []byte {
 }
 
 func (h *VoucherDB) Save(voucherDBEntry fdoshared.VoucherDBEntry) error {
-	voucherDBBytes, err := cbor.Marshal(voucherDBEntry)
+	voucherDBBytes, err := fdoshared.CborCust.Marshal(voucherDBEntry)
 	if err != nil {
 		return errors.New("Failed to marshal voucher. " + err.Error())
 	}
@@ -70,7 +69,7 @@ func (h *VoucherDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.VoucherDBEntry
 
 	var voucherDBEInst fdoshared.VoucherDBEntry
 
-	err = cbor.Unmarshal(itemBytes, &voucherDBEInst)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &voucherDBEInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding voucherdb entry " + err.Error())
 	}

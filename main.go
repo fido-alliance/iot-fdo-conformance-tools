@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"log"
@@ -26,7 +27,6 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/dgraph-io/badger/v4"
-	"github.com/fxamacker/cbor/v2"
 	"github.com/urfave/cli/v2"
 )
 
@@ -52,7 +52,7 @@ func TryReadingWawDIFile(filepath string) (*fdoshared.WawDeviceCredential, error
 	}
 
 	var wawdicred fdoshared.WawDeviceCredential
-	err = cbor.Unmarshal(wawdicredBlock.Bytes, &wawdicred)
+	err = fdoshared.CborCust.Unmarshal(wawdicredBlock.Bytes, &wawdicred)
 	if err != nil {
 		return nil, fmt.Errorf("%s: Error unmarshaling WawDeviceCredential: %s", filepath, err.Error())
 	}
@@ -225,7 +225,7 @@ func main() {
 							}
 
 							var to1dPayload fdoshared.To1dBlobPayload
-							err = cbor.Unmarshal(to1d.Payload, &to1dPayload)
+							err = fdoshared.CborCust.Unmarshal(to1d.Payload, &to1dPayload)
 							if err != nil {
 								return fmt.Errorf("error decoding TO1D payload! %s", err.Error())
 							}

@@ -7,11 +7,11 @@ import (
 	"log"
 	"time"
 
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 
 	"github.com/dgraph-io/badger/v4"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type RequestTestDB struct {
@@ -29,7 +29,7 @@ func NewRequestTestDB(db *badger.DB) *RequestTestDB {
 }
 
 func (h *RequestTestDB) Save(rvte reqtestsdeps.RequestTestInst) error {
-	rvteBytes, err := cbor.Marshal(rvte)
+	rvteBytes, err := fdoshared.CborCust.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
 	}
@@ -54,7 +54,7 @@ func (h *RequestTestDB) Save(rvte reqtestsdeps.RequestTestInst) error {
 }
 
 func (h *RequestTestDB) Update(rvtId []byte, rvte reqtestsdeps.RequestTestInst) error {
-	rvteBytes, err := cbor.Marshal(rvte)
+	rvteBytes, err := fdoshared.CborCust.Marshal(rvte)
 	if err != nil {
 		return errors.New("Failed to marshal rvte. The error is: " + err.Error())
 	}
@@ -97,7 +97,7 @@ func (h *RequestTestDB) Get(rvtId []byte) (*reqtestsdeps.RequestTestInst, error)
 	}
 
 	var rvteInst reqtestsdeps.RequestTestInst
-	err = cbor.Unmarshal(itemBytes, &rvteInst)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &rvteInst)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding rvte entry value. The error is: " + err.Error())
 	}

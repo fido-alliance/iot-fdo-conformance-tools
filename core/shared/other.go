@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/fxamacker/cbor/v2"
 	"github.com/google/uuid"
 )
 
@@ -194,7 +193,7 @@ type RVTO2AddrEntry struct {
 
 func DecodeErrorResponse(bodyBytes []byte) (*FdoError, error) {
 	var errInst FdoError
-	err := cbor.Unmarshal(bodyBytes, &errInst)
+	err := CborCust.Unmarshal(bodyBytes, &errInst)
 	if err != nil {
 		return nil, errors.New("Error decoding FdoError " + err.Error())
 	}

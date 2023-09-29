@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-
-	"github.com/fxamacker/cbor/v2"
 )
 
 type UnprotectedHeader struct {
@@ -74,7 +72,7 @@ func NewSig1Payload(protectedHeader []byte, payload []byte) ([]byte, error) {
 		Payload:     payload,
 	}
 
-	sig1Bytes, err := cbor.Marshal(sig1Inst)
+	sig1Bytes, err := CborCust.Marshal(sig1Inst)
 	if err != nil {
 		return []byte{}, errors.New("Error marshaling cose signature structure for Sig1. " + err.Error())
 	}
@@ -129,12 +127,12 @@ type FdoPublicKey struct {
 }
 
 func (h FdoPublicKey) Equal(bKey FdoPublicKey) error {
-	aBytes, err := cbor.Marshal(h)
+	aBytes, err := CborCust.Marshal(h)
 	if err != nil {
 		return errors.New("error comparing FDO public keys. Can not CBOR marshal pubKeyA")
 	}
 
-	bBytes, err := cbor.Marshal(bKey)
+	bBytes, err := CborCust.Marshal(bKey)
 	if err != nil {
 		return errors.New("error comparing FDO public keys. Can not CBOR marshal pubKeyB")
 	}

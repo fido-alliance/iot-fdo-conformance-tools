@@ -8,7 +8,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTestID) (*fdoshared.OVNextEntry63, *testcom.FDOTestState, error) {
@@ -18,7 +17,7 @@ func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTes
 		GetOVNextEntry: entryNum,
 	}
 
-	getOvNextEntryBytes, _ := cbor.Marshal(getOVNextEntry)
+	getOvNextEntryBytes, _ := fdoshared.CborCust.Marshal(getOVNextEntry)
 
 	if fdoTestID == testcom.FIDO_DOT_62_BAD_ENCODING {
 		getOvNextEntryBytes = fdoshared.Conf_RandomCborBufferFuzzing(getOvNextEntryBytes)
@@ -44,7 +43,7 @@ func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTes
 	h.AuthzHeader = authzHeader
 
 	var nextEntry fdoshared.OVNextEntry63
-	err = cbor.Unmarshal(resultBytes, &nextEntry)
+	err = fdoshared.CborCust.Unmarshal(resultBytes, &nextEntry)
 	if err != nil {
 		return nil, nil, errors.New("GetOVNextEntry64: Failed to unmarshal OVNextEntry63. " + err.Error())
 	}

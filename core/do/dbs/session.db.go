@@ -6,7 +6,6 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fxamacker/cbor/v2"
 	"github.com/google/uuid"
 )
 
@@ -76,7 +75,7 @@ func (h *SessionEntry) Conf_RequestedOVEntriesContain(entryNum uint8) bool {
 }
 
 func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
-	sessionBytes, err := cbor.Marshal(sessionInst)
+	sessionBytes, err := fdoshared.CborCust.Marshal(sessionInst)
 	if err != nil {
 		return []byte{}, errors.New("Failed to marshal session. The error is: " + err.Error())
 	}
@@ -107,7 +106,7 @@ func (h *SessionDB) UpdateSessionEntry(entryId []byte, sessionInst SessionEntry)
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
-	sessionInstBytes, err := cbor.Marshal(sessionInst)
+	sessionInstBytes, err := fdoshared.CborCust.Marshal(sessionInst)
 	if err != nil {
 		return errors.New("Failed to marshal session. The error is: " + err.Error())
 	}
@@ -145,7 +144,7 @@ func (h *SessionDB) GetSessionEntry(entryId []byte) (*SessionEntry, error) {
 
 	var sessionEntryInst SessionEntry
 
-	err = cbor.Unmarshal(itemBytes, &sessionEntryInst)
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &sessionEntryInst)
 	if err != nil {
 
 		return nil, errors.New("Failed cbor decoding entry value. The error is: " + err.Error())

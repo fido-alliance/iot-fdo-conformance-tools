@@ -12,7 +12,6 @@ import (
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	"github.com/fxamacker/cbor/v2"
 )
 
 type To0Requestor struct {
@@ -82,7 +81,7 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 		}
 
 		var helloAck21 fdoshared.HelloAck21
-		err = cbor.Unmarshal(bodyBytes, &helloAck21)
+		err = fdoshared.CborCust.Unmarshal(bodyBytes, &helloAck21)
 		if err != nil {
 			return testcom.NewFailTestState(fdoTestID, "Error decoding HelloAck21. "+err.Error())
 		}
@@ -96,7 +95,7 @@ func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 		}
 
 		var acceptOwner fdoshared.AcceptOwner23
-		err = cbor.Unmarshal(bodyBytes, &acceptOwner)
+		err = fdoshared.CborCust.Unmarshal(bodyBytes, &acceptOwner)
 		if err != nil {
 			return testcom.NewFailTestState(fdoTestID, "Error decoding AcceptOwner23. "+err.Error())
 		}

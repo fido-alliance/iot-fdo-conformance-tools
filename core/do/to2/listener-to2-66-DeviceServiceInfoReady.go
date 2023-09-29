@@ -8,7 +8,6 @@ import (
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
-	"github.com/fxamacker/cbor/v2"
 )
 
 const MAX_DEVICE_SERVICE_INFO_SIZE uint16 = 1300
@@ -50,7 +49,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	// ----- MAIN BODY ----- //
 
 	var deviceServiceInfoReady fdoshared.DeviceServiceInfoReady66
-	err = cbor.Unmarshal(bodyBytes, &deviceServiceInfoReady)
+	err = fdoshared.CborCust.Unmarshal(bodyBytes, &deviceServiceInfoReady)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode DeviceServiceInfoReady66! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
@@ -66,7 +65,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	var ownerServiceInfoReadyPayload = fdoshared.OwnerServiceInfoReady67{
 		MaxDeviceServiceInfoSz: &maxDeviceServiceInfoSz,
 	}
-	ownerServiceInfoReadyPayloadBytes, _ := cbor.Marshal(ownerServiceInfoReadyPayload)
+	ownerServiceInfoReadyPayloadBytes, _ := fdoshared.CborCust.Marshal(ownerServiceInfoReadyPayload)
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_66_BAD_ENCODING {
 		ownerServiceInfoReadyPayloadBytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerServiceInfoReadyPayloadBytes)
 	}
