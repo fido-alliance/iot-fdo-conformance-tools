@@ -33,6 +33,7 @@ type CipherInfo struct {
 	CryptoAlg  CipherSuiteName
 	HmacAlg    HashType
 	HashAlg    HashType
+	KdfHmacAlg HashType
 	SekLen     int // Len of encryption key for CTR/CBC
 	SvkLen     int // Len of verification key for CTR/CBC
 	SevkLength int // Len of encryption and verification key for GCM/CCM
@@ -45,52 +46,65 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		CryptoAlg:  CIPHER_COSE_AES128_CBC,
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		NonceIvLen: 16,
 		SekLen:     16,
 		SvkLen:     32,
 	},
+
 	CIPHER_COSE_AES128_CTR: {
 		CryptoAlg:  CIPHER_COSE_AES128_CTR,
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		NonceIvLen: 16,
 		SekLen:     16,
 		SvkLen:     32,
 	},
+
 	CIPHER_COSE_AES256_CBC: {
 		CryptoAlg:  CIPHER_COSE_AES256_CBC,
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
+		KdfHmacAlg: HASH_HMAC_SHA384,
 		NonceIvLen: 32,
 		SekLen:     32,
 		SvkLen:     64,
 	},
+
 	CIPHER_COSE_AES256_CTR: {
 		CryptoAlg:  CIPHER_COSE_AES256_CTR,
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
+		KdfHmacAlg: HASH_HMAC_SHA384,
 		NonceIvLen: 32,
 		SekLen:     32,
 		SvkLen:     64,
 	},
+
 	CIPHER_A128GCM: {
 		CryptoAlg:  CIPHER_A128GCM,
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		NonceIvLen: 12,
 		SevkLength: 16,
 	},
+
 	CIPHER_A256GCM: {
 		CryptoAlg:  CIPHER_A256GCM,
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		NonceIvLen: 12,
 		SevkLength: 32,
 	},
+
 	CIPHER_AES_CCM_16_128_128: {
 		CryptoAlg:  CIPHER_AES_CCM_16_128_128,
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		SevkLength: 32,
 		NonceIvLen: 13,
 		TagSize:    16,
@@ -100,6 +114,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		CryptoAlg:  CIPHER_AES_CCM_16_128_256,
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		SevkLength: 16,
 		NonceIvLen: 13,
 		TagSize:    16,
@@ -109,6 +124,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		CryptoAlg:  CIPHER_AES_CCM_64_128_128,
 		HmacAlg:    HASH_HMAC_SHA256,
 		HashAlg:    HASH_SHA256,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		SevkLength: 16,
 		NonceIvLen: 7,
 		TagSize:    16,
@@ -118,6 +134,7 @@ var CipherSuitesInfoMap map[CipherSuiteName]CipherInfo = map[CipherSuiteName]Cip
 		CryptoAlg:  CIPHER_AES_CCM_64_128_256,
 		HmacAlg:    HASH_HMAC_SHA384,
 		HashAlg:    HASH_SHA384,
+		KdfHmacAlg: HASH_HMAC_SHA256,
 		SevkLength: 32,
 		NonceIvLen: 7,
 		TagSize:    16,
@@ -229,7 +246,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		AESIV: &nonceIvBytes,
 	}
 
-	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
+	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.KdfHmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SVK/SEK! " + err.Error())
 	}
@@ -314,7 +331,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
-	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
+	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.KdfHmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SVK/SEK! " + err.Error())
 	}
