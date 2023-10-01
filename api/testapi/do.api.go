@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -72,7 +72,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
 		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
@@ -333,7 +333,7 @@ func (h *DOTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
 		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)

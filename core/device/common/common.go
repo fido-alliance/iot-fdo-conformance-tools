@@ -5,7 +5,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -39,7 +39,7 @@ func SendCborPost(rvEntry SRVEntry, cmd fdoshared.FdoCmd, payload []byte, authzH
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, "", 0, fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
 	}

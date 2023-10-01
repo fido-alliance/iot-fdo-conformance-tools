@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -58,7 +58,7 @@ func SendCborPost(fdoTestID testcom.FDOTestID, rvEntry RVEntry, cmd fdoshared.Fd
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, "", 0, fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
 	}

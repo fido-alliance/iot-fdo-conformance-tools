@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -206,7 +206,7 @@ func (h *UserVerify) PasswordResetInit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Decode body
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
 		commonapi.RespondError(w, "Bad request!", http.StatusBadRequest)
@@ -337,7 +337,7 @@ func (h *UserVerify) PasswordResetSet(w http.ResponseWriter, r *http.Request) {
 
 	// Decode body
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
 		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -71,7 +71,7 @@ func (h GithubOAuth2Provider) getGithubUser(authToken string) (string, error) {
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("%s: Error reading response body. %s", h.LogTag, err.Error())
 	}
@@ -104,7 +104,7 @@ func (h GithubOAuth2Provider) getGithubUser_Orgs(authToken string) ([]string, er
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return result, fmt.Errorf("%s: Error reading response body. %s", h.LogTag, err.Error())
 	}

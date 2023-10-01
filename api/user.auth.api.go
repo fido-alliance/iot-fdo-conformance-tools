@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -24,7 +24,7 @@ func (h *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
 		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
@@ -133,7 +133,7 @@ func (h *UserAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("Failed to read body. " + err.Error())
 		commonapi.RespondError(w, "Failed to read body!", http.StatusBadRequest)
