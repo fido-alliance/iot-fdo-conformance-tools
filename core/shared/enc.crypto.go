@@ -510,10 +510,10 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error creating new cipher. " + err.Error())
 	}
 
-	unprotectedHeaderBytes, _ := CborCust.Marshal(embInst.Unprotected)
+	protectedHeaderBytes, _ := CborCust.Marshal(embInst.Protected)
 	aadStruct := AEAD_Enc_Structure{
 		Context:     CONST_ENC_COSE_LABEL_ENC0,
-		Protected:   unprotectedHeaderBytes,
+		Protected:   protectedHeaderBytes,
 		ExternalAad: []byte{},
 	}
 	aadBytes, _ := CborCust.Marshal(aadStruct)
