@@ -53,8 +53,7 @@ const (
 )
 
 type ServiceInfoKV struct {
+	_              struct{} `cbor:",toarray"`
 	ServiceInfoKey string
 	ServiceInfoVal []byte
 }
-
-// func (h *ServiceInfoKV)
