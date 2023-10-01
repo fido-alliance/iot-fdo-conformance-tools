@@ -287,8 +287,8 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 		}
 
 		signature = tSignature
-	case StEPID10:
-		return nil, errors.New("StEPID10 is not currently implemented")
+	case StEPID10, StEPID11:
+		return nil, errors.New("StEPID10/StEPID11 is not currently implemented")
 	default:
 		return nil, fmt.Errorf("alg %d is not supported", sgType)
 	}
