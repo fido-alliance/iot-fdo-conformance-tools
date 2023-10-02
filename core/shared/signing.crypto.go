@@ -220,6 +220,36 @@ func ExtractPrivateKey(privateKeyDer []byte) (interface{}, error) {
 	return nil, fmt.Errorf("failed to parse private key")
 }
 
+// https://crypto.stackexchange.com/a/50719
+func i2osp(coeff []byte, expecteCoeffLen int) ([]byte, error) {
+	// if len(rep(i)) is two larger or more than n then error;
+	if len(coeff) >= expecteCoeffLen+2 {
+		return nil, errors.New("i2osp: R/S coeff is too large")
+	}
+
+	if len(coeff) > expecteCoeffLen {
+		if coeff[0] != 0x00 {
+			// if len(rep(i)) is one larger and the leftmost byte isn't 00 then error;
+			return nil, errors.New("i2osp: R/S coeff is too large")
+		} else {
+			// if len(rep(i)) is one larger and the leftmost byte is 00 then skip this byte and return the rest of rep(i) as answer;
+			return coeff[1:], nil
+		}
+	}
+
+	if len(coeff) < expecteCoeffLen {
+		// if len(rep(i)) is smaller than n then left-pad with zero's until the representation is the same size as n.
+		newCoeff := coeff
+		for i := 0; i < expecteCoeffLen-len(coeff); i++ {
+			newCoeff = append([]byte{0x00}, newCoeff...)
+		}
+
+		return newCoeff, nil
+	}
+
+	return coeff, nil
+}
+
 func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType DeviceSgType) (*CoseSignature, error) {
 	protected.Alg = GetIntRef(int(sgType))
 
@@ -233,6 +263,7 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 
 	switch sgType {
 	case StSECP256R1:
+		coeffLength := 32
 		payloadHash := sha256.Sum256(coseSigPayloadBytes)
 		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
 		if !ok {
@@ -244,8 +275,19 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 			return nil, errors.New("error generating ES256 cose signature. " + err.Error())
 		}
 
-		signature = append(r.Bytes(), s.Bytes()...)
+		Rb, err := i2osp(r.Bytes(), coeffLength)
+		if err != nil {
+			return nil, errors.New("error generating ES256 cose signature. " + err.Error())
+		}
+
+		Sb, err := i2osp(s.Bytes(), coeffLength)
+		if err != nil {
+			return nil, errors.New("error generating ES256 cose signature. " + err.Error())
+		}
+
+		signature = append(Rb, Sb...)
 	case StSECP384R1:
+		coeffLength := 48
 		payloadHash := sha512.Sum384(coseSigPayloadBytes)
 
 		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
@@ -258,7 +300,17 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 			return nil, errors.New("error generating ES384 cose signature. " + err.Error())
 		}
 
-		signature = append(r.Bytes(), s.Bytes()...)
+		Rb, err := i2osp(r.Bytes(), coeffLength)
+		if err != nil {
+			return nil, errors.New("error generating ES256 cose signature. " + err.Error())
+		}
+
+		Sb, err := i2osp(s.Bytes(), coeffLength)
+		if err != nil {
+			return nil, errors.New("error generating ES256 cose signature. " + err.Error())
+		}
+
+		signature = append(Rb, Sb...)
 	case StRSA3072:
 		payloadHash := sha512.Sum384(coseSigPayloadBytes)
 
