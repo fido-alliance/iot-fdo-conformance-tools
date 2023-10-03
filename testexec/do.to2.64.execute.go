@@ -58,7 +58,7 @@ func preExecuteTo2_64(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 }
 
 func executeTo2_64(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB) {
-	for _, testId := range testcom.FIDO_TEST_LIST_DOT_60 {
+	for _, testId := range testcom.FIDO_TEST_LIST_DOT_64 {
 		to2requestor, err := preExecuteTo2_64(reqte)
 		if err != nil {
 			reqtDB.ReportTest(reqte.Uuid, testId, testcom.FDOTestState{
