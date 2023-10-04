@@ -21,7 +21,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 
 	proveToRV32PayloadBytes, err := fdoshared.CborCust.Marshal(proveToRV32Payload)
 	if err != nil {
-		return nil, nil, errors.New("ProveToRV32: Error generating ProveToRV32. " + err.Error())
+		return nil, nil, errors.New("ProveToRV32: Error generating ProveToRV32 payload. " + err.Error())
 	}
 
 	if fdoTestID == testcom.FIDO_DEVT_32_BAD_PROVE_TO_RV_PAYLOAD_ENCODING {

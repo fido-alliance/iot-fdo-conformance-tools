@@ -173,6 +173,10 @@ func CastPublicFromPrivate(priv interface{}) interface{} {
 }
 
 func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDeviceCredBase, error) {
+	if sgType != StSECP256R1 && sgType != StSECP384R1 {
+		return nil, errors.New("for device attestation only SECP256R1 and SECP384R1 are supported")
+	}
+
 	newGuid := NewFdoGuid_FIDO()
 
 	// Generate certificate chain
@@ -206,12 +210,7 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 		BasicConstraintsValid: false,
 	}
 
-	certSgType, ok := SgType_OwnerToDeviceAttestation[sgType]
-	if !ok {
-		return nil, fmt.Errorf("unsupported sgType %d", sgType)
-	}
-
-	newPrivateKeyInst, _, err := GenerateVoucherKeypair(certSgType)
+	newPrivateKeyInst, _, err := GenerateVoucherKeypair(sgType)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +220,7 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 		return nil, errors.New("error generating new x509 certificate! " + err.Error())
 	}
 
-	marshaledPrivateKey, err := MarshalPrivateKey(newPrivateKeyInst, certSgType)
+	marshaledPrivateKey, err := MarshalPrivateKey(newPrivateKeyInst, sgType)
 	if err != nil {
 		return nil, errors.New("error mashaling private key. " + err.Error())
 	}
@@ -286,4 +285,14 @@ func (h *WawDeviceCredential) UpdateWithManufacturerCred(ovHeader []byte, ovPubK
 
 	ovHmac, _ := GenerateFdoHmac(ovHeader, h.DCHmacAlg, h.DCHmacSecret)
 	return &ovHmac, nil
+}
+
+func RandomSgType() DeviceSgType {
+	for {
+		randLoc := NewRandomInt(0, len(SgTypeList)-1)
+
+		if SgTypeList[randLoc] != StEPID10 && SgTypeList[randLoc] != StEPID11 {
+			return SgTypeList[randLoc]
+		}
+	}
 }

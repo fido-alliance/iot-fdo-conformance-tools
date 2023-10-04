@@ -63,14 +63,14 @@ func GenerateOvEntry(
 	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
 }
 
-func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
+func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
 	newDi, err := fdoshared.NewWawDeviceCredential(deviceCredBase)
 	if err != nil {
 		return nil, errors.New("Error generating new device credential. " + err.Error())
 	}
 
 	// Generate manufacturer private key.
-	mfgPrivateKey, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(deviceCredBase.DCSgType)
+	mfgPrivateKey, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(voucherSgType)
 	if err != nil {
 		return nil, errors.New("Error generating new manufacturer private key. " + err.Error())
 	}
@@ -139,7 +139,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 
 	var finalOvEntryPrivateKeyBytes []byte
 
-	var prevEntrySgType fdoshared.DeviceSgType = deviceCredBase.DCSgType
+	var prevEntrySgType fdoshared.DeviceSgType = voucherSgType
 
 	for i := 0; i < ovEntriesCount; i++ {
 		if i == 0 {
@@ -176,7 +176,7 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 			}
 		}
 
-		chosenSgType := deviceCredBase.DCSgType
+		chosenSgType := voucherSgType
 		// Test
 		if i == badOvEntryIndex {
 			if fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_HDRINFO_HASH {
@@ -256,8 +256,8 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoT
 	return &newWDC, err
 }
 
-func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, fdoTestID testcom.FDOTestID) error {
-	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase, fdoTestID)
+func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, fdoTestID testcom.FDOTestID) error {
+	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase, voucherSgType, fdoTestID)
 	if err != nil {
 		return err
 	}

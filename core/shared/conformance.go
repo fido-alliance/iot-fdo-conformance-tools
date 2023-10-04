@@ -9,10 +9,10 @@ import (
 // CONFORMANCE TESTING
 func Conf_NewRandomSgTypeExcept(exceptSg DeviceSgType) DeviceSgType {
 	for {
-		randLoc := NewRandomInt(0, len(DeviceSgTypeList)-1)
+		randLoc := NewRandomInt(0, len(SgTypeList)-1)
 
-		if DeviceSgTypeList[randLoc] != exceptSg {
-			return DeviceSgTypeList[randLoc]
+		if SgTypeList[randLoc] != exceptSg {
+			return SgTypeList[randLoc]
 		}
 	}
 }

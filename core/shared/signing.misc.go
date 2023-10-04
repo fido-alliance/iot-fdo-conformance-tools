@@ -144,6 +144,17 @@ func (h FdoPublicKey) Equal(bKey FdoPublicKey) error {
 	return nil
 }
 
+type IanaCoseAlg int
+
+const (
+	// IANA COSE Algorithms
+	// https://www.iana.org/assignments/cose/cose.xhtml#algorithms
+	IANA_ES256 IanaCoseAlg = -7
+	IANA_ES384 IanaCoseAlg = -35
+	IANA_RS256 IanaCoseAlg = -257
+	IANA_RS384 IanaCoseAlg = -258
+)
+
 type DeviceSgType int
 
 const (
@@ -155,11 +166,18 @@ const (
 	StEPID11    DeviceSgType = 91
 )
 
-var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
+var SgTypeList []DeviceSgType = []DeviceSgType{
 	StSECP256R1,
 	StSECP384R1,
 	StRSA2048,
 	StRSA3072,
+	StEPID10, // TODO
+	StEPID11,
+}
+
+var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
+	StSECP256R1,
+	StSECP384R1,
 	// StEPID10, // TODO
 	// StEPID11,
 }
@@ -170,9 +188,14 @@ var SgType_OwnerToDeviceAttestation = map[DeviceSgType]DeviceSgType{
 	StSECP384R1: StSECP384R1,
 	StRSA2048:   StSECP256R1,
 	StRSA3072:   StSECP384R1,
-	// StEPID10:    StEPID10,
-	// StEPID11:    StEPID11,
+	StEPID10:    StEPID10,
+	StEPID11:    StEPID11,
 }
+
+// var SgTypeToIana = map[DeviceSgType]IanaCoseAlg{
+// 	StSECP256R1: IANA_ES256,
+// 	StSECP384R1: IANA_ES256,
+// }
 
 type SigInfo struct {
 	_      struct{} `cbor:",toarray"`

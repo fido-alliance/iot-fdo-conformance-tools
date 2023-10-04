@@ -177,12 +177,14 @@ func main() {
 						Name:  "generate",
 						Usage: "Generate virtual device credential and voucher",
 						Action: func(c *cli.Context) error {
-							credbase, err := fdoshared.NewWawDeviceCredBase(fdoshared.HASH_HMAC_SHA256, fdoshared.StRSA2048)
+							credbase, err := fdoshared.NewWawDeviceCredBase(fdoshared.HASH_HMAC_SHA256, fdoshared.StSECP256R1)
 							if err != nil {
 								log.Panicf("Error generating cred base. %s", err.Error())
 							}
 
-							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, testcom.NULL_TEST)
+							voucherSgType := fdoshared.RandomSgType()
+
+							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, voucherSgType, testcom.NULL_TEST)
 							if err != nil {
 								log.Panicf(err.Error())
 							}

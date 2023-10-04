@@ -99,7 +99,8 @@ func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID
 		return nil, errors.New("Failed cbor decoding DevBase entry value. The error is: " + err.Error())
 	}
 
-	return fdodeviceimplementation.NewVirtualDeviceAndVoucher(devBase, testid)
+	randomSgType := fdoshared.RandomSgType()
+	return fdodeviceimplementation.NewVirtualDeviceAndVoucher(devBase, randomSgType, testid)
 }
 
 func (h *DeviceBaseDB) GetMany(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDeviceCredBase, error) {
