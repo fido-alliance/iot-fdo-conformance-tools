@@ -116,6 +116,10 @@ func (h *RequestListenerRunnerInst) RemoveTestRun(id string) error {
 }
 
 func (h *RequestListenerRunnerInst) GetNextTestID() testcom.FDOTestID {
+	if !h.Running {
+		return testcom.NULL_TEST
+	}
+
 	selectedTestID := h.Tests[h.ExpectedCmd][h.CurrentTestIndex]
 
 	h.LastTestID = selectedTestID

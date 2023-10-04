@@ -92,6 +92,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		Protocol:      fdoshared.To1,
 		NonceTO1Proof: nonceTO1Proof,
 		Guid:          helloRV30.Guid,
+		EASigInfo:     helloRV30.EASigInfo,
 	}
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)
@@ -222,17 +223,16 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voucherHeader, err := to0d.OwnershipVoucher.GetOVHeader()
-	if err != nil {
-		log.Println("ProveToRV32: Error decoding OVHeader. " + err.Error())
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32, some error", http.StatusBadRequest, testcomListener, fdoshared.To1)
+	pkType, ok := fdoshared.SgTypeToFdoPkType[session.EASigInfo.SgType]
+	if !ok {
+		log.Println("ProveToRV32: Unknown signature type. ")
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
-
-	err = fdoshared.VerifyCoseSignatureWithCertificate(proveToRV32, voucherHeader.OVPublicKey.PkType, *to0d.OwnershipVoucher.OVDevCertChain)
+	err = fdoshared.VerifyCoseSignatureWithCertificate(proveToRV32, pkType, *to0d.OwnershipVoucher.OVDevCertChain)
 	if err != nil {
 		log.Println("ProveToRV32: Error verifying ProveToRV32 signature. " + err.Error())
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32, some error", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 

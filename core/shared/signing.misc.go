@@ -98,6 +98,13 @@ var FdoPkType_List []FdoPkType = []FdoPkType{
 	SECP384R1,
 }
 
+var SgTypeToFdoPkType = map[DeviceSgType]FdoPkType{
+	StSECP256R1: SECP256R1,
+	StSECP384R1: SECP384R1,
+	StRSA2048:   RSA2048RESTR,
+	StRSA3072:   RSAPKCS,
+}
+
 const (
 	SECP256R1_SIG_LEN int = 64
 	SECP384R1_SIG_LEN int = 96

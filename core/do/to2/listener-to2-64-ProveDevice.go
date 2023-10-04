@@ -67,7 +67,13 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = fdoshared.VerifyCoseSignatureWithCertificate(proveDevice64, session.PublicKeyType, *session.Voucher.OVDevCertChain)
+	pkType, ok := fdoshared.SgTypeToFdoPkType[session.EASigInfo.SgType]
+	if !ok {
+		log.Println("ProveToRV32: Unknown signature type. ")
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		return
+	}
+	err = fdoshared.VerifyCoseSignatureWithCertificate(proveDevice64, pkType, *session.Voucher.OVDevCertChain)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Error validating cose signature with certificate..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
