@@ -80,7 +80,7 @@ func TryEnvAndSaveToCtx(ctx context.Context, envvar fdoshared.CONFIG_ENTRY, defa
 		resultEnvValue = defaultValue
 	}
 
-	return context.WithValue(ctx, envvar, defaultValue)
+	return context.WithValue(ctx, envvar, resultEnvValue)
 }
 
 func main() {
