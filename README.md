@@ -5,7 +5,7 @@ FIDO Device Onboarding Conformance Server
 
 FDO conformance tools are build in Golang for the backend, and Svelte NodeJS frontend framework for the frontend. Uses on disk key-value DB, so you do not need SQL or Mongo to run it.
 
-For interop documentation follow here: [https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop](https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop)
+For interop documentation visit resources: [https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop](https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop)
 
 The backend consists of five modules:
 - [Core](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core) - contains all core protocol submodules, such as RV, DO, Device, and Shared.
