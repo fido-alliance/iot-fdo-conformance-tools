@@ -178,8 +178,8 @@ var SgTypeList []DeviceSgType = []DeviceSgType{
 	StSECP384R1,
 	StRSA2048,
 	StRSA3072,
-	StEPID10, // TODO
-	StEPID11,
+	// StEPID10, // TODO
+	// StEPID11,
 }
 
 var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
