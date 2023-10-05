@@ -91,13 +91,9 @@ To update packages without GOSUM check use env `GOSUMDB=off`
 
 > Run `go clean -modcache && go get`
 
-- Where can I find pre-generated seed db?
-
-> [https://builds.fidoalliance.org/FDO/](https://builds.fidoalliance.org/FDO/)
-
  - I am getting `insecure algorithm SHA1-RSA`
 
- > Try running with environment variable `GODEBUG=x509sha1=1`
+> Try running with environment variable `GODEBUG=x509sha1=1`
 
  
 
