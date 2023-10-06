@@ -1,18 +1,17 @@
 package to1
 
 import (
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 )
 
 type To1Requestor struct {
-	rvEntry     common.SRVEntry
+	rvEntry     fdoshared.SRVEntry
 	credential  fdoshared.WawDeviceCredential
 	authzHeader string
 }
 
-func NewTo1Requestor(srvEntry common.SRVEntry, credential fdoshared.WawDeviceCredential) To1Requestor {
+func NewTo1Requestor(srvEntry fdoshared.SRVEntry, credential fdoshared.WawDeviceCredential) To1Requestor {
 	return To1Requestor{
 		rvEntry:    srvEntry,
 		credential: credential,

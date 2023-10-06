@@ -1,7 +1,6 @@
 package testexec
 
 import (
-	fdodocommon "github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to2"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
@@ -23,7 +22,7 @@ func executeTo2_60_Vouchers(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.
 		}
 
 		// Generating TO0 handler
-		to2requestor := to2.NewTo2Requestor(fdodocommon.SRVEntry{
+		to2requestor := to2.NewTo2Requestor(fdodofdoshared.SRVEntry{
 			SrvURL: reqte.URL,
 		}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM) // TODO
 

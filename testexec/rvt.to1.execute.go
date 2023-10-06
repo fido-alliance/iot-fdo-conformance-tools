@@ -1,7 +1,6 @@
 package testexec
 
 import (
-	fdodocommon "github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to1"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
@@ -54,7 +53,7 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 		return
 	}
 
-	to1inst := to1.NewTo1Requestor(fdodocommon.SRVEntry{
+	to1inst := to1.NewTo1Requestor(fdodofdoshared.SRVEntry{
 		SrvURL: reqte.URL,
 	}, testCredV.WawDeviceCredential)
 

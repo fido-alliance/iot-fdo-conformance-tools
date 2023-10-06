@@ -1,7 +1,6 @@
 package to2
 
 import (
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 )
@@ -10,7 +9,7 @@ var MaxDeviceMessageSize uint16 = 2048
 var MaxOwnerServiceInfoSize uint16 = 2048
 
 type To2Requestor struct {
-	SrvEntry        common.SRVEntry
+	SrvEntry        fdoshared.SRVEntry
 	Credential      fdoshared.WawDeviceCredential
 	KexSuiteName    fdoshared.KexSuiteName
 	CipherSuiteName fdoshared.CipherSuiteName
@@ -32,7 +31,7 @@ type To2Requestor struct {
 	Completed64 bool
 }
 
-func NewTo2Requestor(srvEntry common.SRVEntry, credential fdoshared.WawDeviceCredential, kexSuitName fdoshared.KexSuiteName, cipherSuitName fdoshared.CipherSuiteName) To2Requestor {
+func NewTo2Requestor(srvEntry fdoshared.SRVEntry, credential fdoshared.WawDeviceCredential, kexSuitName fdoshared.KexSuiteName, cipherSuitName fdoshared.CipherSuiteName) To2Requestor {
 	return To2Requestor{
 		SrvEntry:        srvEntry,
 		Credential:      credential,
