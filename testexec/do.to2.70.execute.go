@@ -17,7 +17,7 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 	}
 
 	// Generating TO2 handler
-	to2requestor := to2.NewTo2Requestor(fdodofdoshared.SRVEntry{
+	to2requestor := to2.NewTo2Requestor(fdoshared.SRVEntry{
 		SrvURL: reqte.URL,
 	}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM) // TODO
 
