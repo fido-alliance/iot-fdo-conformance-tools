@@ -4,14 +4,13 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/testapi"
 	dodbs "github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/services"
-	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
-
-	"github.com/dgraph-io/badger/v4"
 	"github.com/gorilla/mux"
 )
 
@@ -32,8 +31,8 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	verifyDb := dbs.NewVerifyDB(db)
 
 	notifyService := services.NewNotifyService(
-		ctx.Value(tools.CFG_ENV_NOTIFY_SERVICE_HOST).(string),
-		ctx.Value(tools.CFG_ENV_NOTIFY_SERVICE_SECRET).(string),
+		ctx.Value(fdoshared.CFG_ENV_NOTIFY_SERVICE_HOST).(string),
+		ctx.Value(fdoshared.CFG_ENV_NOTIFY_SERVICE_SECRET).(string),
 		verifyDb)
 
 	rvtApiHandler := testapi.RVTestMgmtAPI{
@@ -92,14 +91,14 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		OAuth2Service: &services.OAuth2Service{
 			Providers: map[services.OAuth2ProviderID]services.OAuth2Provider{
 				services.OATH2_GITHUB: services.NewGithubOAuth2Connector(services.OAuth2ProviderConfig{
-					ClientId:     ctx.Value(tools.CFG_ENV_GITHUB_CLIENTID).(string),
-					ClientSecret: ctx.Value(tools.CFG_ENV_GITHUB_CLIENTSECRET).(string),
-					RedirectUrl:  ctx.Value(tools.CFG_ENV_GITHUB_REDIRECTURL).(string),
+					ClientId:     ctx.Value(fdoshared.CFG_ENV_GITHUB_CLIENTID).(string),
+					ClientSecret: ctx.Value(fdoshared.CFG_ENV_GITHUB_CLIENTSECRET).(string),
+					RedirectUrl:  ctx.Value(fdoshared.CFG_ENV_GITHUB_REDIRECTURL).(string),
 				}),
 				services.OATH2_GOOGLE: services.NewGoogleOAuth2Connector(services.OAuth2ProviderConfig{
-					ClientId:     ctx.Value(tools.CFG_ENV_GOOGLE_CLIENTID).(string),
-					ClientSecret: ctx.Value(tools.CFG_ENV_GOOGLE_CLIENTSECRET).(string),
-					RedirectUrl:  ctx.Value(tools.CFG_ENV_GOOGLE_REDIRECTURL).(string),
+					ClientId:     ctx.Value(fdoshared.CFG_ENV_GOOGLE_CLIENTID).(string),
+					ClientSecret: ctx.Value(fdoshared.CFG_ENV_GOOGLE_CLIENTSECRET).(string),
+					RedirectUrl:  ctx.Value(fdoshared.CFG_ENV_GOOGLE_REDIRECTURL).(string),
 				}),
 			},
 		},
@@ -149,7 +148,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/admin/users", adminApi.GetUserList)
 	r.HandleFunc("/api/admin/users/{action}/{email}", adminApi.SetUserAccountState)
 
-	if ctx.Value(tools.CFG_DEV_ENV) == tools.ENV_DEV {
+	if ctx.Value(fdoshared.CFG_DEV_ENV) == fdoshared.ENV_DEV {
 		r.PathPrefix("/").HandlerFunc(ProxyDevUI)
 	} else {
 		r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))

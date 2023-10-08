@@ -23,7 +23,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	testcomdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
-	"github.com/fido-alliance/fdo-fido-conformance-server/tools"
 	"github.com/joho/godotenv"
 
 	"github.com/dgraph-io/badger/v4"
@@ -99,7 +98,7 @@ func main() {
 					defer db.Close()
 
 					selectedPort := DEFAULT_PORT
-					envPortString := os.Getenv(strings.ToUpper(string(tools.CFG_ENV_PORT)))
+					envPortString := os.Getenv(strings.ToUpper(string(fdoshared.CFG_ENV_PORT)))
 
 					if envPortString != "" {
 						envPort, err := strconv.Atoi(envPortString)
@@ -115,23 +114,23 @@ func main() {
 					ctx := context.Background()
 
 					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_MODE, fdoshared.CFG_MODE_ONPREM, false)
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_DEV_ENV, tools.ENV_PROD, false)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_DEV_ENV, fdoshared.ENV_PROD, false)
 
 					onlineMandate := ctx.Value(fdoshared.CFG_ENV_MODE).(string) == fdoshared.CFG_MODE_ONLINE
 					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_KEY_RESULTS, "", onlineMandate)
 					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_BUILDS_URL, "", onlineMandate)
 					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_FDO_SERVICE_URL, "", onlineMandate)
 
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_NOTIFY_SERVICE_HOST, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_NOTIFY_SERVICE_SECRET, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_HOST, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_SECRET, "", onlineMandate)
 
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GITHUB_CLIENTID, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GITHUB_CLIENTSECRET, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GITHUB_REDIRECTURL, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_CLIENTID, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_CLIENTSECRET, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_REDIRECTURL, "", onlineMandate)
 
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GOOGLE_CLIENTID, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GOOGLE_CLIENTSECRET, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, tools.CFG_ENV_GOOGLE_REDIRECTURL, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_CLIENTID, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_CLIENTSECRET, "", onlineMandate)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_REDIRECTURL, "", onlineMandate)
 
 					// Setup FDO listeners
 					fdodo.SetupServer(db)
@@ -210,7 +209,7 @@ func main() {
 								return err
 							}
 
-							to1inst := to1.NewTo1Requestor(fdodocommon.SRVEntry{
+							to1inst := to1.NewTo1Requestor(fdoshared.SRVEntry{
 								SrvURL: url,
 							}, *wawcred)
 
@@ -255,7 +254,7 @@ func main() {
 								return err
 							}
 
-							to2inst := to2.NewTo2Requestor(fdodocommon.SRVEntry{
+							to2inst := to2.NewTo2Requestor(fdoshared.SRVEntry{
 								SrvURL: url,
 							}, *wawcred, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM)
 
