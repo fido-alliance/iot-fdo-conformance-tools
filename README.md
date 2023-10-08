@@ -5,6 +5,8 @@ FIDO Device Onboarding Conformance Server
 
 FDO conformance tools are build in Golang for the backend, and Svelte NodeJS frontend framework for the frontend. Uses on disk key-value DB, so you do not need SQL or Mongo to run it.
 
+**For interop documentation visit resources:** [https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop](https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop)
+
 The backend consists of five modules:
 - [Core](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core) - contains all core protocol submodules, such as RV, DO, Device, and Shared.
     + [FDO: Shared](https://github.com/fido-alliance/fdo-fido-conformance-server/tree/main/core/shared) - a common module for all FDO operations that has all the crypto, structs definitions, and registry for commands, codes, and algorithms.
@@ -64,6 +66,10 @@ To update packages without GOSUM check use env `GOSUMDB=off`
  * Example `GOSUMDB=off go get github.com/fido-alliance/fdo-fido-conformance-server/core/device`
  * To update all `make update_fdo_packages`
 
+## Interop
+
+You can find interop documentation here: https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop
+
 ### Structure
 
 - `/dbs` - Contains database structs and menthods. To see db entry structs see `*.structs.db.go`
@@ -91,13 +97,9 @@ To update packages without GOSUM check use env `GOSUMDB=off`
 
 > Run `go clean -modcache && go get`
 
-- Where can I find pre-generated seed db?
-
-> [https://builds.fidoalliance.org/FDO/](https://builds.fidoalliance.org/FDO/)
-
  - I am getting `insecure algorithm SHA1-RSA`
 
- > Try running with environment variable `GODEBUG=x509sha1=1`
+> Try running with environment variable `GODEBUG=x509sha1=1`
 
  
 
