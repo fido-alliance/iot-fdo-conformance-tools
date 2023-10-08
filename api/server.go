@@ -148,7 +148,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/admin/users", adminApi.GetUserList)
 	r.HandleFunc("/api/admin/users/{action}/{email}", adminApi.SetUserAccountState)
 
-	if ctx.Value(fdoshared.CFG_DEV_ENV) == fdoshared.ENV_DEV {
+	if ctx.Value(fdoshared.CFG_DEV_ENV) == fdoshared.CFG_ENV_DEV {
 		r.PathPrefix("/").HandlerFunc(ProxyDevUI)
 	} else {
 		r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))

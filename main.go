@@ -114,7 +114,7 @@ func main() {
 					ctx := context.Background()
 
 					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_MODE, fdoshared.CFG_MODE_ONPREM, false)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_DEV_ENV, fdoshared.ENV_PROD, false)
+					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_DEV_ENV, fdoshared.CFG_ENV_PROD, false)
 
 					onlineMandate := ctx.Value(fdoshared.CFG_ENV_MODE).(string) == fdoshared.CFG_MODE_ONLINE
 					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_KEY_RESULTS, "", onlineMandate)

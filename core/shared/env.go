@@ -1,6 +1,13 @@
 package fdoshared
 
+type CONFIG_ENTRY string
+
 const (
+	CFG_ENV_API_KEY_RESULTS CONFIG_ENTRY = "RESULTS_API_KEY"
+	CFG_ENV_API_BUILDS_URL  CONFIG_ENTRY = "BUILDS_API_URL"
+	CFG_ENV_FDO_SERVICE_URL CONFIG_ENTRY = "FDO_SERVICE_URL"
+	CFG_ENV_MODE            CONFIG_ENTRY = "MODE"
+
 	CFG_DEV_ENV CONFIG_ENTRY = "DEV"
 
 	CFG_ENV_PORT CONFIG_ENTRY = "PORT"
@@ -22,6 +29,8 @@ const (
 )
 
 const (
-	ENV_DEV  string = "dev"
-	ENV_PROD string = "prod"
+	CFG_MODE_ONPREM string = "onprem"
+	CFG_MODE_ONLINE string = "online"
+	CFG_ENV_DEV     string = "dev"
+	CFG_ENV_PROD    string = "prod"
 )
