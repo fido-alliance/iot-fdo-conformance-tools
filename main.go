@@ -82,6 +82,58 @@ func TryEnvAndSaveToCtx(ctx context.Context, envvar fdoshared.CONFIG_ENTRY, defa
 	return context.WithValue(ctx, envvar, resultEnvValue)
 }
 
+func loadEnvToCtx() context.Context {
+	ctx := context.Background()
+
+	// PORT
+	selectedPort := DEFAULT_PORT
+	envPortString := os.Getenv(strings.ToUpper(string(fdoshared.CFG_ENV_PORT)))
+
+	if envPortString != "" {
+		envPort, err := strconv.Atoi(envPortString)
+		if err != nil {
+			log.Fatalf("Error converting port to integer: %v", err)
+		}
+
+		if envPort != 0 {
+			selectedPort = envPort
+		}
+	}
+	ctx = context.WithValue(ctx, fdoshared.CFG_ENV_PORT, selectedPort)
+
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_MODE, fdoshared.CFG_MODE_ONPREM, false)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_DEV_ENV, fdoshared.CFG_ENV_PROD, false)
+
+	onlineMandate := ctx.Value(fdoshared.CFG_ENV_MODE).(string) == fdoshared.CFG_MODE_ONLINE
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_KEY_RESULTS, "", onlineMandate)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_BUILDS_URL, "", onlineMandate)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_FDO_SERVICE_URL, "", onlineMandate)
+
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_HOST, "", onlineMandate)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_SECRET, "", onlineMandate)
+
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_CLIENTID, "", false)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_CLIENTSECRET, "", false)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_REDIRECTURL, "", false)
+
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_CLIENTID, "", false)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_CLIENTSECRET, "", false)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_REDIRECTURL, "", false)
+
+	// TODO: Add Microsoft OAuth2
+
+	// For interop testing
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DASHBOARD_URL, "", false)
+	iopEnabled := ctx.Value(fdoshared.CFG_ENV_INTEROP_DASHBOARD_URL).(string) != ""
+
+	ctx = context.WithValue(ctx, fdoshared.CFG_ENV_INTEROP_ENABLED, iopEnabled)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DASHBOARD_RV_AUTHZ, "", iopEnabled)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DASHBOARD_DO_AUTHZ, "", iopEnabled)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DASHBOARD_DEVICE_AUTHZ, "", iopEnabled)
+
+	return ctx
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -97,46 +149,14 @@ func main() {
 					db := InitBadgerDB()
 					defer db.Close()
 
-					selectedPort := DEFAULT_PORT
-					envPortString := os.Getenv(strings.ToUpper(string(fdoshared.CFG_ENV_PORT)))
-
-					if envPortString != "" {
-						envPort, err := strconv.Atoi(envPortString)
-						if err != nil {
-							log.Fatalf("Error converting port to integer: %v", err)
-						}
-
-						if envPort != 0 {
-							selectedPort = envPort
-						}
-					}
-
-					ctx := context.Background()
-
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_MODE, fdoshared.CFG_MODE_ONPREM, false)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_DEV_ENV, fdoshared.CFG_ENV_PROD, false)
-
-					onlineMandate := ctx.Value(fdoshared.CFG_ENV_MODE).(string) == fdoshared.CFG_MODE_ONLINE
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_KEY_RESULTS, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_BUILDS_URL, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_FDO_SERVICE_URL, "", onlineMandate)
-
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_HOST, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_SECRET, "", onlineMandate)
-
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_CLIENTID, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_CLIENTSECRET, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GITHUB_REDIRECTURL, "", onlineMandate)
-
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_CLIENTID, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_CLIENTSECRET, "", onlineMandate)
-					ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_GOOGLE_REDIRECTURL, "", onlineMandate)
+					ctx := loadEnvToCtx()
 
 					// Setup FDO listeners
 					fdodo.SetupServer(db)
 					fdorv.SetupServer(db)
 					api.SetupServer(db, ctx)
 
+					selectedPort := ctx.Value(fdoshared.CFG_ENV_PORT).(int)
 					log.Printf("Starting server at port %d... \n", selectedPort)
 
 					err = http.ListenAndServe(fmt.Sprintf(":%d", selectedPort), nil)
