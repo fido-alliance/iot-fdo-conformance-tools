@@ -1,6 +1,7 @@
 package testapi
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -30,12 +31,13 @@ type DeviceTestMgmtAPI struct {
 	SessionDB    *dbs.SessionDB
 	ConfigDB     *dbs.ConfigDB
 	DOVouchersDB *dodbs.VoucherDB
+	Ctx          context.Context
 }
 
 func (h *DeviceTestMgmtAPI) submitToRvOwnerSign(voucherdbe *fdoshared.VoucherDBEntry) error {
 	to0client := to0.NewTo0Requestor(to0.RVEntry{
 		RVURL: "http://localhost:8080", //TODO: Inject from context
-	}, *voucherdbe)
+	}, *voucherdbe, h.Ctx)
 
 	helloAck21, _, err := to0client.Hello20(testcom.NULL_TEST)
 	if err != nil {

@@ -1,6 +1,8 @@
 package testexec
 
 import (
+	"context"
+
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
 	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
@@ -9,7 +11,7 @@ import (
 	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
 )
 
-func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
+func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB, ctx context.Context) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	for _, rv20test := range testcom.FIDO_TEST_LIST_RVT_20 {
@@ -28,7 +30,7 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 
 		to0inst := to0.NewTo0Requestor(to0.RVEntry{
 			RVURL: reqte.URL,
-		}, testCredV.VoucherDBEntry)
+		}, testCredV.VoucherDBEntry, ctx)
 
 		switch rv20test {
 		case testcom.FIDO_RVT_20_POSITIVE:
@@ -77,7 +79,7 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 
 		to0inst := to0.NewTo0Requestor(to0.RVEntry{
 			RVURL: reqte.URL,
-		}, testCredV.VoucherDBEntry)
+		}, testCredV.VoucherDBEntry, ctx)
 
 		var errTestState testcom.FDOTestState
 		helloAck, _, err := to0inst.Hello20(testcom.NULL_TEST)
@@ -137,7 +139,7 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 
 		to0inst := to0.NewTo0Requestor(to0.RVEntry{
 			RVURL: reqte.URL,
-		}, testCredV.VoucherDBEntry)
+		}, testCredV.VoucherDBEntry, ctx)
 
 		var errTestState testcom.FDOTestState
 		helloAck, _, err := to0inst.Hello20(testcom.NULL_TEST)

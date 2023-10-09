@@ -1,6 +1,7 @@
 package testapi
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -26,6 +27,7 @@ type RVTestMgmtAPI struct {
 	DevBaseDB *dbs.DeviceBaseDB
 	SessionDB *dbs.SessionDB
 	ConfigDB  *dbs.ConfigDB
+	Ctx       context.Context
 }
 
 func (h *RVTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEntry, error) {
@@ -273,9 +275,9 @@ func (h *RVTestMgmtAPI) Execute(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rvte.Protocol == fdoshared.To0 {
-		testexec.ExecuteRVTestsTo0(*rvte, h.ReqTDB, h.DevBaseDB)
+		testexec.ExecuteRVTestsTo0(*rvte, h.ReqTDB, h.DevBaseDB, h.Ctx)
 	} else if rvte.Protocol == fdoshared.To1 {
-		testexec.ExecuteRVTestsTo1(*rvte, h.ReqTDB, h.DevBaseDB)
+		testexec.ExecuteRVTestsTo1(*rvte, h.ReqTDB, h.DevBaseDB, h.Ctx)
 	} else {
 		log.Printf("Protocol TO%d is not supported. ", rvte.Protocol)
 		commonapi.RespondError(w, "Unsupported protocol!", http.StatusBadRequest)

@@ -1,6 +1,8 @@
 package testexec
 
 import (
+	"context"
+
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to1"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
@@ -10,7 +12,7 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 )
 
-func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB) {
+func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB, ctx context.Context) {
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	// Generating voucher
@@ -30,7 +32,7 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	// Generating TO0 handler
 	to0inst := to0.NewTo0Requestor(to0.RVEntry{
 		RVURL: reqte.URL,
-	}, testCredV.VoucherDBEntry)
+	}, testCredV.VoucherDBEntry, ctx)
 
 	// Enroling voucher
 	var errTestState testcom.FDOTestState

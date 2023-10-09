@@ -41,6 +41,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		SessionDB: sessionDb,
 		ConfigDB:  configDb,
 		DevBaseDB: devBaseDb,
+		Ctx:       ctx,
 	}
 
 	dotApiHandler := testapi.DOTestMgmtAPI{
@@ -58,6 +59,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		ConfigDB:     configDb,
 		DevBaseDB:    devBaseDb,
 		DOVouchersDB: doVoucherDb,
+		Ctx:          ctx,
 	}
 
 	userApiHandler := UserAPI{
