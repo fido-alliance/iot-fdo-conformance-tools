@@ -2,6 +2,7 @@ package to0
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -18,12 +19,14 @@ type To0Requestor struct {
 	rvEntry        RVEntry
 	voucherDBEntry fdoshared.VoucherDBEntry
 	authzHeader    string
+	ctx            context.Context
 }
 
-func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry fdoshared.VoucherDBEntry) To0Requestor {
+func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry fdoshared.VoucherDBEntry, ctx context.Context) To0Requestor {
 	return To0Requestor{
 		rvEntry:        rvEntry,
 		voucherDBEntry: voucherDBEntry,
+		ctx:            ctx,
 	}
 }
 

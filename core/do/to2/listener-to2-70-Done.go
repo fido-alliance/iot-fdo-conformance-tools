@@ -90,6 +90,18 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopDO)
+		if err != nil {
+			log.Println("IOT: Error getting authz header: " + err.Error())
+		}
+
+		err = fdoshared.SubmitIopLoggerEvent(h.ctx, session.Guid, fdoshared.To2, session.NonceTO2SetupDv64, authzHeader)
+		if err != nil {
+			log.Println("IOT: Error sending iop logg event: " + err.Error())
+		}
+	}
+
 	w.Header().Set("Authorization", authorizationHeader)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
 	w.Header().Set("Message-Type", fdoshared.TO2_71_DONE2.ToString())

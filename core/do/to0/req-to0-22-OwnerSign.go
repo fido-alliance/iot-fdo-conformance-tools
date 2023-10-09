@@ -3,12 +3,13 @@ package to0
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 )
 
-func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID testcom.FDOTestID) (*fdoshared.AcceptOwner23, *testcom.FDOTestState, error) {
+func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId testcom.FDOTestID) (*fdoshared.AcceptOwner23, *testcom.FDOTestState, error) {
 	var testState testcom.FDOTestState
 	var acceptOwner23 fdoshared.AcceptOwner23
 
@@ -18,7 +19,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		NonceTO0Sign:     nonceTO0Sign,
 	}
 
-	if fdoTestID == testcom.FIDO_RVT_22_BAD_TO0SIGN_NONCE {
+	if fdoTestId == testcom.FIDO_RVT_22_BAD_TO0SIGN_NONCE {
 		to0d.NonceTO0Sign = fdoshared.NewFdoNonce()
 	}
 
@@ -27,7 +28,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Error marshaling To0d. " + err.Error())
 	}
 
-	if fdoTestID == testcom.FIDO_RVT_22_BAD_TO0D_ENCODING {
+	if fdoTestId == testcom.FIDO_RVT_22_BAD_TO0D_ENCODING {
 		to0dBytes = fdoshared.Conf_RandomCborBufferFuzzing(to0dBytes)
 	}
 
@@ -37,7 +38,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Error generating to0dHash. " + err.Error())
 	}
 
-	if fdoTestID == testcom.FIDO_RVT_22_BAD_TO0D_HASH {
+	if fdoTestId == testcom.FIDO_RVT_22_BAD_TO0D_HASH {
 		to0dHash = *fdoshared.Conf_RandomTestHashHmac(to0dHash, to0dBytes, []byte{})
 	}
 
@@ -64,7 +65,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 	// TO1D CoseSignature
 
 	var lastOvEntryPubKeyPkType fdoshared.FdoPkType = fdoshared.SECP256R1
-	if fdoTestID != testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
+	if fdoTestId != testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
 		lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
 		if err != nil {
 			return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
@@ -88,7 +89,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Error generating To1D COSE signature. " + err.Error())
 	}
 
-	if fdoTestID == testcom.FIDO_RVT_22_BAD_SIGNATURE {
+	if fdoTestId == testcom.FIDO_RVT_22_BAD_SIGNATURE {
 		to1d.Signature = fdoshared.Conf_RandomCborBufferFuzzing(to1d.Signature)
 	}
 
@@ -102,13 +103,13 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 		return nil, nil, errors.New("OwnerSign22: Error marshaling OwnerSign22. " + err.Error())
 	}
 
-	if fdoTestID == testcom.FIDO_RVT_22_BAD_OWNERSIGN_ENCODING {
+	if fdoTestId == testcom.FIDO_RVT_22_BAD_OWNERSIGN_ENCODING {
 		ownerSign22Bytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerSign22Bytes)
 	}
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(fdoTestID, h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
-	if fdoTestID != testcom.NULL_TEST {
-		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
+	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(fdoTestId, h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
+	if fdoTestId != testcom.NULL_TEST {
+		testState = h.confCheckResponse(resultBytes, fdoTestId, httpStatusCode)
 		return nil, &testState, nil
 	}
 
@@ -126,6 +127,19 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestID te
 	err = fdoshared.CborCust.Unmarshal(resultBytes, &acceptOwner23)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Failed to unmarshal AcceptOwner23. " + err.Error())
+	}
+
+	voucherHeader, _ := h.voucherDBEntry.Voucher.GetOVHeader()
+	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopDO)
+		if err != nil {
+			log.Println("IOT: Error getting authz header: " + err.Error())
+		}
+
+		err = fdoshared.SubmitIopLoggerEvent(h.ctx, voucherHeader.OVGuid, fdoshared.To0, nonceTO0Sign, authzHeader)
+		if err != nil {
+			log.Println("IOT: Error sending iop logg event: " + err.Error())
+		}
 	}
 
 	return &acceptOwner23, &testState, nil

@@ -2,6 +2,7 @@ package rv
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -19,9 +20,10 @@ type RvTo1 struct {
 	session     *SessionDB
 	ownersignDB *OwnerSignDB
 	listenerDB  *tdbs.ListenerTestDB
+	ctx         context.Context
 }
 
-func NewRvTo1(db *badger.DB) RvTo1 {
+func NewRvTo1(db *badger.DB, ctx context.Context) RvTo1 {
 	newListenerDb := tdbs.NewListenerTestDB(db)
 	return RvTo1{
 		session: &SessionDB{
@@ -31,6 +33,7 @@ func NewRvTo1(db *badger.DB) RvTo1 {
 			db: db,
 		},
 		listenerDB: newListenerDb,
+		ctx:        ctx,
 	}
 }
 
@@ -253,6 +256,18 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Conformance module failed to save result!", http.StatusInternalServerError, testcomListener, fdoshared.To1)
 			return
+		}
+	}
+
+	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopRV)
+		if err != nil {
+			log.Println("IOT: Error getting authz header: " + err.Error())
+		}
+
+		err = fdoshared.SubmitIopLoggerEvent(h.ctx, session.Guid, fdoshared.To1, session.NonceTO1Proof, authzHeader)
+		if err != nil {
+			log.Println("IOT: Error sending iop logg event: " + err.Error())
 		}
 	}
 

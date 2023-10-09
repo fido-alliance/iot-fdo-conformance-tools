@@ -1,6 +1,7 @@
 package to2
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -21,9 +22,10 @@ type DoTo2 struct {
 	session    *dbs.SessionDB
 	voucher    *dbs.VoucherDB
 	listenerDB *tdbs.ListenerTestDB
+	ctx        context.Context
 }
 
-func NewDoTo2(db *badger.DB) DoTo2 {
+func NewDoTo2(db *badger.DB, ctx context.Context) DoTo2 {
 	newListenerDb := tdbs.NewListenerTestDB(db)
 	sessionDb := dbs.NewSessionDB(db)
 	voucherDb := dbs.NewVoucherDB(db)

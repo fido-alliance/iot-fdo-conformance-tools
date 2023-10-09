@@ -152,8 +152,8 @@ func main() {
 					ctx := loadEnvToCtx()
 
 					// Setup FDO listeners
-					fdodo.SetupServer(db)
-					fdorv.SetupServer(db)
+					fdodo.SetupServer(db, ctx)
+					fdorv.SetupServer(db, ctx)
 					api.SetupServer(db, ctx)
 
 					selectedPort := ctx.Value(fdoshared.CFG_ENV_PORT).(int)
@@ -265,6 +265,8 @@ func main() {
 								log.Println("Missing URL or Filename")
 								return nil
 							}
+
+							ctx := loadEnvToCtx()
 
 							url := c.Args().Get(0)
 							filepath := c.Args().Get(1)
@@ -389,7 +391,6 @@ func main() {
 								log.Println("Receiving OwnerSim DeviceServiceInfo68 " + ownerSim.ServiceInfo.ServiceInfoKey)
 
 								ownerSims = append(ownerSims, *ownerSim.ServiceInfo)
-
 								if ownerSim.IsDone {
 									break
 								}
@@ -401,8 +402,25 @@ func main() {
 								log.Println(err)
 								return nil
 							}
-
 							log.Println("Success To2")
+
+							// FDO Interop
+
+							iopEnabled := ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
+							if iopEnabled {
+								authzval, ok := fdoshared.GetSim(ownerSims, fdoshared.IOPLOGGER_SIM)
+								if !ok {
+									log.Println("IOP logger not found in owner sims")
+									return nil
+								}
+
+								log.Println("Submitting IOP logger event")
+								err = fdoshared.SubmitIopLoggerEvent(ctx, to2inst.Credential.DCGuid, fdoshared.To2, to2inst.NonceTO2SetupDv64, string(authzval))
+								if err != nil {
+									log.Println(err)
+									return nil
+								}
+							}
 
 							return nil
 						},

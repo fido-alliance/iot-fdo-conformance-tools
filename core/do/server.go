@@ -1,14 +1,15 @@
 package do
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to2"
 )
 
-func SetupServer(db *badger.DB) {
-	doto2 := to2.NewDoTo2(db)
+func SetupServer(db *badger.DB, ctx context.Context) {
+	doto2 := to2.NewDoTo2(db, ctx)
 
 	http.HandleFunc("/fdo/101/msg/60", doto2.HelloDevice60)
 	http.HandleFunc("/fdo/101/msg/62", doto2.GetOVNextEntry62)

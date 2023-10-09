@@ -54,6 +54,16 @@ const (
 
 type ServiceInfoKV struct {
 	_              struct{} `cbor:",toarray"`
-	ServiceInfoKey string
+	ServiceInfoKey SIM_ID
 	ServiceInfoVal []byte
+}
+
+func GetSim(sims []ServiceInfoKV, simID SIM_ID) ([]byte, bool) {
+	for _, sim := range sims {
+		if sim.ServiceInfoKey == simID {
+			return sim.ServiceInfoVal, false
+		}
+	}
+
+	return nil, true
 }

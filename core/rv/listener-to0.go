@@ -2,6 +2,7 @@ package rv
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log"
 	"net/http"
@@ -17,9 +18,10 @@ type RvTo0 struct {
 	session     *SessionDB
 	ownersignDB *OwnerSignDB
 	listenerDB  *tdbs.ListenerTestDB
+	ctx         context.Context
 }
 
-func NewRvTo0(db *badger.DB) RvTo0 {
+func NewRvTo0(db *badger.DB, ctx context.Context) RvTo0 {
 	newListenerDb := tdbs.NewListenerTestDB(db)
 	return RvTo0{
 		session: &SessionDB{
@@ -29,6 +31,7 @@ func NewRvTo0(db *badger.DB) RvTo0 {
 			db: db,
 		},
 		listenerDB: newListenerDb,
+		ctx:        ctx,
 	}
 }
 
@@ -191,6 +194,19 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		WaitSeconds: agreedWaitSeconds,
 	}
 	acceptOwnerBytes, _ := fdoshared.CborCust.Marshal(acceptOwner)
+
+	// TODO: Add testid check
+	if h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopRV)
+		if err != nil {
+			log.Println("IOT: Error getting authz header: " + err.Error())
+		}
+
+		err = fdoshared.SubmitIopLoggerEvent(h.ctx, session.Guid, fdoshared.To0, session.NonceTO1Proof, authzHeader)
+		if err != nil {
+			log.Println("IOT: Error sending iop logg event: " + err.Error())
+		}
+	}
 
 	w.Header().Set("Authorization", authorizationHeader)
 	w.Header().Set("Content-Type", fdoshared.CONTENT_TYPE_CBOR)
