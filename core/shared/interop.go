@@ -40,10 +40,9 @@ func SubmitIopLoggerEvent(ctx context.Context, guid FdoGuid, toProtocol FdoToPro
 	srvUrl := ctx.Value(CFG_ENV_INTEROP_DASHBOARD_URL).(string) + IOPLOGGER_LOGGER_PATH
 
 	bodyBytes, _, httpStatusCode, err := SendCborPost(
-		SRVEntry{SrvURL: srvUrl},
+		SRVEntry{SrvURL: srvUrl, OverrideURL: true},
 		IOPLOGGER_LOGGER_CMD, payloadBytes, &authzHeader,
 	)
-
 	if err != nil {
 		return fmt.Errorf("error submitting IOP logger event. %s", err.Error())
 	}

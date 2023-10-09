@@ -12,10 +12,15 @@ import (
 type SRVEntry struct { // TODO: Unify type with DO
 	SrvURL      string
 	AccessToken string // FUTURE
+	OverrideURL bool
 }
 
 func SendCborPost(rvEntry SRVEntry, cmd FdoCmd, payload []byte, authzHeader *string) ([]byte, string, int, error) {
 	url := rvEntry.SrvURL + FDO_101_URL_BASE + cmd.ToString()
+
+	if rvEntry.OverrideURL {
+		url = rvEntry.SrvURL + cmd.ToString()
+	}
 
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
