@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/dgraph-io/badger/v4"
 	fdodeviceimplementation "github.com/fido-alliance/fdo-fido-conformance-server/core/device"
@@ -99,8 +100,16 @@ func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID
 		return nil, errors.New("Failed cbor decoding DevBase entry value. The error is: " + err.Error())
 	}
 
+	// TODO
+	rvInfo, err := fdoshared.UrlsToRendezvousInstrList([]string{
+		"https://localhost:8043",
+	})
+	if err != nil {
+		log.Panicln(err)
+	}
+
 	randomSgType := fdoshared.RandomSgType()
-	return fdodeviceimplementation.NewVirtualDeviceAndVoucher(devBase, randomSgType, testid)
+	return fdodeviceimplementation.NewVirtualDeviceAndVoucher(devBase, randomSgType, rvInfo, testid)
 }
 
 func (h *DeviceBaseDB) GetMany(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDeviceCredBase, error) {

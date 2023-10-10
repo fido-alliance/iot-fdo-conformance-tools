@@ -171,6 +171,26 @@ func (h FdoIPAddress) IsValid() bool {
 	return true
 }
 
+func FdoIPAddressV4FromString(ipv4Str string) (FdoIPAddress, error) {
+	ipv4BytesParts := strings.Split(ipv4Str, ".")
+	result := FdoIPAddress{0x00, 0x00, 0x00, 0x00}
+
+	if len(ipv4BytesParts) != IPv4Len {
+		return nil, errors.New("Invalid IPv4 string")
+	}
+
+	for i, part := range ipv4BytesParts {
+		pint, err := strconv.ParseInt(part, 10, 64)
+		if err != nil {
+			return nil, errors.New("Invalid IPv4 string")
+		}
+
+		result[i] = byte(pint)
+	}
+
+	return result, nil
+}
+
 type TransportProtocol uint16
 
 const (
@@ -229,4 +249,82 @@ func StringsContain(stringsArr []string, item string) bool {
 	}
 
 	return false
+}
+
+func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
+	var rvInfoList = []RendezvousInstr{}
+
+	// Base checks
+	u, err := url.Parse(inurl)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing url %s. %s", inurl, err.Error())
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return nil, fmt.Errorf("invalid url scheme %s", u.Scheme)
+	}
+
+	if u.Hostname() == "" {
+		return nil, fmt.Errorf("invalid url hostname %s", u.Hostname())
+	}
+
+	// FDO parsing
+	var fdoScheme RVProtocolValue = RVProtHttp
+	var selectedPort uint16 = 8080
+	if u.Scheme == "https" {
+		fdoScheme = RVProtHttps
+		selectedPort = 443
+	}
+
+	if u.Port() != "" {
+		parsedPort, err := strconv.ParseUint(u.Port(), 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("invalid url port %s", u.Port())
+		}
+
+		selectedPort = uint16(parsedPort)
+	}
+
+	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVProtocol, fdoScheme))
+	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVDevPort, selectedPort))
+
+	// Parsing IP Address or Host
+	isIp := false
+	fdoIpAddress := FdoIPAddress{}
+	parsedIPAddress := net.ParseIP(u.Hostname())
+	if parsedIPAddress != nil && parsedIPAddress.To4() != nil {
+		fdoipTemp, err := FdoIPAddressV4FromString(u.Hostname())
+		if err != nil {
+			return nil, fmt.Errorf("invalid ip %s", u.Hostname())
+		}
+
+		isIp = true
+		fdoIpAddress = fdoipTemp
+	} else if parsedIPAddress != nil && parsedIPAddress.To16() != nil {
+		return nil, fmt.Errorf("IPv6 is not currently supported")
+		// isIp = true
+	}
+
+	if isIp {
+		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVIPAddress, fdoIpAddress))
+	} else {
+		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVDns, u.Hostname()))
+	}
+
+	return rvInfoList, nil
+}
+
+func UrlsToRendezvousInstrList(urls []string) ([]RendezvousInstrList, error) {
+	var rvInfoList = []RendezvousInstrList{}
+
+	for _, url := range urls {
+		rvInfoMember, err := UrlToRvInfoList(url)
+		if err != nil {
+			return nil, err
+		}
+
+		rvInfoList = append(rvInfoList, rvInfoMember)
+	}
+
+	return rvInfoList, nil
 }

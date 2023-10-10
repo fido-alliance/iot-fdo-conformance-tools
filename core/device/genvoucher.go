@@ -63,7 +63,7 @@ func GenerateOvEntry(
 	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
 }
 
-func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
+func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
 	newDi, err := fdoshared.NewWawDeviceCredential(deviceCredBase)
 	if err != nil {
 		return nil, errors.New("Error generating new device credential. " + err.Error())
@@ -76,13 +76,9 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, vouc
 	}
 
 	voucherHeader := fdoshared.OwnershipVoucherHeader{
-		OVHProtVer: fdoshared.ProtVer101,
-		OVGuid:     newDi.DCGuid,
-		OVRvInfo: []fdoshared.RendezvousInstrList{
-			{ // TODO
-				fdoshared.NewRendezvousInstr(fdoshared.RVBypass, nil),
-			},
-		},
+		OVHProtVer:         fdoshared.ProtVer101,
+		OVGuid:             newDi.DCGuid,
+		OVRvInfo:           ovRVInfo,
 		OVDeviceInfo:       newDi.DCDeviceInfo,
 		OVPublicKey:        *mfgPublicKey,
 		OVDevCertChainHash: &newDi.DCCertificateChainHash,
@@ -256,8 +252,8 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, vouc
 	return &newWDC, err
 }
 
-func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, fdoTestID testcom.FDOTestID) error {
-	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase, voucherSgType, fdoTestID)
+func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) error {
+	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase, voucherSgType, ovRVInfo, fdoTestID)
 	if err != nil {
 		return err
 	}

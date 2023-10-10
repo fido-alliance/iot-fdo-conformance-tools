@@ -188,6 +188,42 @@ func main() {
 				},
 			},
 			{
+			{
+				Name: "decode_voucher",
+				Action: func(c *cli.Context) error {
+					if c.Args().Len() != 1 {
+						log.Println("Missing URL or Filename. Expected: [FDO RV Server URL] [Path to DI file]")
+						return nil
+					}
+
+					filepath := c.Args().Get(0)
+
+					fileBytes, err := os.ReadFile(filepath)
+					if err != nil {
+						return fmt.Errorf("error reading file \"%s\". %s ", filepath, err.Error())
+					}
+
+					if len(fileBytes) == 0 {
+						return fmt.Errorf("error reading file \"%s\". The file is empty", filepath)
+					}
+
+					vandk, err := fdodocommon.DecodePemVoucherAndKey(string(fileBytes))
+					if err != nil {
+						return fmt.Errorf("error decoding voucher. %s", err.Error())
+					}
+
+					voucher := vandk.Voucher
+
+					header, err := voucher.GetOVHeader()
+					if err != nil {
+						return fmt.Errorf("error decoding voucher. %s", err.Error())
+					}
+
+					log.Println("GUID: " + header.OVGuid.GetFormatted())
+
+					return nil
+				},
+			},
 				Name:        "vdevice",
 				Description: "Virtual device emulation",
 				Usage:       "vdevice [cmd]",
@@ -201,9 +237,14 @@ func main() {
 								log.Panicf("Error generating cred base. %s", err.Error())
 							}
 
-							voucherSgType := fdoshared.RandomSgType()
+							rvInfo, err := fdoshared.UrlsToRendezvousInstrList([]string{
+							})
+							if err != nil {
+								log.Panicln(err)
+							}
 
-							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, voucherSgType, testcom.NULL_TEST)
+							voucherSgType := fdoshared.RandomSgType()
+							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, voucherSgType, rvInfo, testcom.NULL_TEST)
 							if err != nil {
 								log.Panicf(err.Error())
 							}
