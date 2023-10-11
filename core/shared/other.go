@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"math/big"
+	"net"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -287,6 +291,7 @@ func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
 
 	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVProtocol, fdoScheme))
 	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVDevPort, selectedPort))
+	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVOwnerPort, selectedPort)) // TODO: Future
 
 	// Parsing IP Address or Host
 	isIp := false
