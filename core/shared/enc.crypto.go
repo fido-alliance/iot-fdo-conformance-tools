@@ -421,7 +421,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 	aadBytes, _ := CborCust.Marshal(aadStruct)
 
-	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
+	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.KdfHmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SEVK! " + err.Error())
 	}
@@ -471,7 +471,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
 	var algInfo = CipherSuitesInfoMap[cipherSuite]
 
-	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.HmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
+	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.KdfHmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
 		return nil, errors.New("Error generating SVK/SEK! " + err.Error())
 	}
