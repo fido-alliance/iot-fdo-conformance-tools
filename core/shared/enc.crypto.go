@@ -173,7 +173,8 @@ type COSEMacStructure struct {
 	Ciphertext  []byte
 }
 
-type ETMInnerBlock struct {
+// Same as EMBlock
+type EMB_ETMInnerBlock struct {
 	_           struct{}          `cbor:",toarray"`
 	Protected   []byte            // { ALG 1:AESPlainType }
 	Unprotected UnprotectedHeader // { IV 5:AESIV }
@@ -269,7 +270,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("%s Error encoding inner ETM. " + err.Error())
 	}
 
-	innerBlock := ETMInnerBlock{
+	innerBlock := EMB_ETMInnerBlock{
 		Protected:   protectedHeaderBytes,
 		Unprotected: unprotectedHeaderInner,
 		Ciphertext:  ciphertext,
@@ -356,7 +357,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	// Inner ETM block
-	var inner ETMInnerBlock
+	var inner EMB_ETMInnerBlock
 	err = CborCust.Unmarshal(outer.Payload, &inner)
 	if err != nil {
 		return nil, errors.New("Error decoding inner protected header. " + err.Error())
@@ -389,24 +390,6 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	}
 
 	return plaintext, nil
-}
-
-/*
-;;Simple encrypted message, using one COSE
-;; (authenticated) encryption mechanism.
-EMBlock = [
-
-	protected:   { 1:COSEEncType },
-	unprotected: { COSEUnProtFields }
-	ciphertext:     bstr # encrypted ProtocolMessage
-
-]
-*/
-type EMBlock struct {
-	_           struct{}        `cbor:",toarray"`
-	Protected   ProtectedHeader // ETMMacType = { 1: MacType }
-	Unprotected UnprotectedHeader
-	Ciphertext  []byte
 }
 
 type AEAD_Enc_Structure struct {
@@ -471,8 +454,8 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("%s Error encoding EMB. " + err.Error())
 	}
 
-	embBlock := EMBlock{
-		Protected:   protectedHeader,
+	embBlock := EMB_ETMInnerBlock{
+		Protected:   protectedHeaderBytes,
 		Unprotected: unprotectedHeader,
 		Ciphertext:  ciphertext,
 	}
@@ -493,13 +476,19 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error generating SVK/SEK! " + err.Error())
 	}
 
-	var embInst EMBlock
+	var embInst EMB_ETMInnerBlock
 	err = CborCust.Unmarshal(encrypted, &embInst)
 	if err != nil {
-		return nil, errors.New("Error decoding inner protected header. " + err.Error())
+		return nil, errors.New("Error decoding emb. " + err.Error())
 	}
 
-	if *embInst.Protected.Alg != int(algInfo.CryptoAlg) {
+	var protectedHeader ProtectedHeader
+	err = CborCust.Unmarshal(embInst.Protected, &protectedHeader)
+	if err != nil {
+		return nil, errors.New("Error decoding protected header. " + err.Error())
+	}
+
+	if *protectedHeader.Alg != int(algInfo.CryptoAlg) {
 		return nil, errors.New("error! Encryption algorithms don't match")
 	}
 
@@ -510,10 +499,9 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error creating new cipher. " + err.Error())
 	}
 
-	protectedHeaderBytes, _ := CborCust.Marshal(embInst.Protected)
 	aadStruct := AEAD_Enc_Structure{
 		Context:     CONST_ENC_COSE_LABEL_ENC0,
-		Protected:   protectedHeaderBytes,
+		Protected:   embInst.Protected,
 		ExternalAad: []byte{},
 	}
 	aadBytes, _ := CborCust.Marshal(aadStruct)

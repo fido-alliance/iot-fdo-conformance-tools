@@ -40,16 +40,7 @@ func (h CBOR_CUSTOM_TAGS) getTags() cbor.TagSet {
 			EncTag: cbor.EncTagRequired,
 			DecTag: cbor.DecTagRequired,
 		},
-		reflect.TypeOf(ETMInnerBlock{}),
-		uint64(COSE_ENCRYPT_TAGGED),
-	)
-
-	customTags.Add(
-		cbor.TagOptions{
-			EncTag: cbor.EncTagRequired,
-			DecTag: cbor.DecTagRequired,
-		},
-		reflect.TypeOf(EMBlock{}),
+		reflect.TypeOf(EMB_ETMInnerBlock{}),
 		uint64(COSE_ENCRYPT_TAGGED),
 	)
 

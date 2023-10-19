@@ -2,6 +2,7 @@ package fdoshared
 
 import (
 	"bytes"
+	"encoding/hex"
 	"testing"
 )
 
@@ -29,6 +30,6 @@ func TestEncryptEMB(t *testing.T) {
 	}
 
 	if !bytes.Equal(payload, decrypted) {
-		t.Errorf("Decrypted payload does not match original payload")
+		t.Errorf("Decrypted payload does not match original payload %s %s", hex.EncodeToString(payload), hex.EncodeToString(decrypted))
 	}
 }

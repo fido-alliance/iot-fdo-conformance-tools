@@ -216,7 +216,7 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 		var outerBlock ETMOuterBlock
 		CborCust.Unmarshal(encryptedBytes, &outerBlock)
 
-		var innerBlock ETMInnerBlock
+		var innerBlock EMB_ETMInnerBlock
 		CborCust.Unmarshal(outerBlock.Payload, &innerBlock)
 
 		if chosenType == Conf_EncFuzz_Payload {
@@ -254,7 +254,7 @@ func Conf_Fuzz_AddWrapping(payload []byte, sessionKeyInfo SessionKeyInfo, cipher
 			return encryptedBytes, err
 		}
 
-		var embBlock EMBlock
+		var embBlock EMB_ETMInnerBlock
 		CborCust.Unmarshal(encryptedBytes, &embBlock)
 
 		if chosenType == Conf_EncFuzz_Ciphertext {
