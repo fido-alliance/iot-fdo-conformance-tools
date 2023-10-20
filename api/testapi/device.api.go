@@ -41,12 +41,12 @@ func (h *DeviceTestMgmtAPI) submitToRvOwnerSign(voucherdbe *fdoshared.VoucherDBE
 
 	helloAck21, _, err := to0client.Hello20(testcom.NULL_TEST)
 	if err != nil {
-		return fmt.Errorf("Error submitting OwnerSign. %s", err.Error())
+		return fmt.Errorf("error submitting OwnerSign. %s", err.Error())
 	}
 
 	_, _, err = to0client.OwnerSign22(helloAck21.NonceTO0Sign, testcom.NULL_TEST)
 	if err != nil {
-		return fmt.Errorf("Error submitting OwnerSign. %s", err.Error())
+		return fmt.Errorf("error submitting OwnerSign. %s", err.Error())
 	}
 
 	return nil
@@ -59,26 +59,26 @@ func (h *DeviceTestMgmtAPI) submitVoucherToDO(voucherDBEntry *fdoshared.VoucherD
 func (h *DeviceTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEntry, error) {
 	sessionCookie, err := r.Cookie("session")
 	if err != nil {
-		return nil, errors.New("Failed to read cookie. " + err.Error())
+		return nil, errors.New("failed to read cookie. " + err.Error())
 
 	}
 
 	if sessionCookie == nil {
-		return nil, errors.New("Cookie does not exists")
+		return nil, errors.New("cookie does not exists")
 	}
 
 	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
 	if err != nil {
-		return nil, errors.New("Session expired. " + err.Error())
+		return nil, errors.New("session expired. " + err.Error())
 	}
 
 	if !sessionInst.LoggedIn {
-		return nil, errors.New("Unauthorized!")
+		return nil, errors.New("unauthorized")
 	}
 
 	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
-		return nil, errors.New("User does not exists. " + err.Error())
+		return nil, errors.New("user does not exists. " + err.Error())
 	}
 
 	return userInst, nil

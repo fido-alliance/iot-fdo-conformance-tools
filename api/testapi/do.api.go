@@ -40,21 +40,21 @@ func (h *DOTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEnt
 	}
 
 	if sessionCookie == nil {
-		return nil, errors.New("Cookie does not exists")
+		return nil, errors.New("cookie does not exists")
 	}
 
 	sessionInst, err := h.SessionDB.GetSessionEntry([]byte(sessionCookie.Value))
 	if err != nil {
-		return nil, errors.New("Session expired. " + err.Error())
+		return nil, errors.New("session expired. " + err.Error())
 	}
 
 	if !sessionInst.LoggedIn {
-		return nil, errors.New("Unauthorized!")
+		return nil, errors.New("unauthorized!")
 	}
 
 	userInst, err := h.UserDB.Get(sessionInst.Email)
 	if err != nil {
-		return nil, errors.New("User does not exists. " + err.Error())
+		return nil, errors.New("user does not exists. " + err.Error())
 	}
 
 	return userInst, nil
