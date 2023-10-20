@@ -42,17 +42,14 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		to0dHash = *fdoshared.Conf_RandomTestHashHmac(to0dHash, to0dBytes, []byte{})
 	}
 
-	// TO1D Payload
-	// TODO
-	var localostIPBytes fdoshared.FdoIPAddress = []byte{127, 0, 0, 1}
+	rvTo2AddrEntry, err := h.getRVTO2AddrEntry()
+	if err != nil {
+		return nil, nil, errors.New("OwnerSign22: Error getting RV TO2 address entry. " + err.Error())
+	}
 
 	var to1dPayload fdoshared.To1dBlobPayload = fdoshared.To1dBlobPayload{
 		To1dRV: []fdoshared.RVTO2AddrEntry{
-			{
-				RVIP:       &localostIPBytes,
-				RVPort:     8080,
-				RVProtocol: fdoshared.ProtHTTP,
-			},
+			*rvTo2AddrEntry,
 		},
 		To1dTo0dHash: to0dHash,
 	}
@@ -63,7 +60,6 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 	}
 
 	// TO1D CoseSignature
-
 	var lastOvEntryPubKeyPkType fdoshared.FdoPkType = fdoshared.SECP256R1
 	if fdoTestId != testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
 		lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
@@ -107,7 +103,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		ownerSign22Bytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerSign22Bytes)
 	}
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(fdoTestId, h.rvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
+	resultBytes, authzHeader, httpStatusCode, err := fdoshared.SendCborPost(h.srvEntry, fdoshared.TO0_22_OWNER_SIGN, ownerSign22Bytes, &h.authzHeader)
 	if fdoTestId != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestId, httpStatusCode)
 		return nil, &testState, nil

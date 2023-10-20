@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
+	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
 
@@ -28,8 +29,8 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 			continue
 		}
 
-		to0inst := to0.NewTo0Requestor(to0.RVEntry{
-			RVURL: reqte.URL,
+		to0inst := to0.NewTo0Requestor(fdoshared.SRVEntry{
+			SrvURL: reqte.URL,
 		}, testCredV.VoucherDBEntry, ctx)
 
 		switch rv20test {
@@ -77,8 +78,8 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 			continue
 		}
 
-		to0inst := to0.NewTo0Requestor(to0.RVEntry{
-			RVURL: reqte.URL,
+		to0inst := to0.NewTo0Requestor(fdoshared.SRVEntry{
+			SrvURL: reqte.URL,
 		}, testCredV.VoucherDBEntry, ctx)
 
 		var errTestState testcom.FDOTestState
@@ -137,8 +138,8 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 			continue
 		}
 
-		to0inst := to0.NewTo0Requestor(to0.RVEntry{
-			RVURL: reqte.URL,
+		to0inst := to0.NewTo0Requestor(fdoshared.SRVEntry{
+			SrvURL: reqte.URL,
 		}, testCredV.VoucherDBEntry, ctx)
 
 		var errTestState testcom.FDOTestState

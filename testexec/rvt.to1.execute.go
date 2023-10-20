@@ -30,8 +30,8 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	}
 
 	// Generating TO0 handler
-	to0inst := to0.NewTo0Requestor(to0.RVEntry{
-		RVURL: reqte.URL,
+	to0inst := to0.NewTo0Requestor(fdoshared.SRVEntry{
+		SrvURL: reqte.URL,
 	}, testCredV.VoucherDBEntry, ctx)
 
 	// Enroling voucher

@@ -41,6 +41,15 @@ func (h FdoGuid) Equals(secondGuid FdoGuid) bool {
 	return bytes.Equal(h[:], secondGuid[:])
 }
 
+func (h *FdoGuid) FromBytes(guidBytes []byte) error {
+	if len(guidBytes) != 16 {
+		return errors.New("Invalid GUID byte length")
+	}
+
+	copy(h[:], guidBytes)
+	return nil
+}
+
 func NewFdoGuid() FdoGuid {
 	newUuid, _ := uuid.NewRandom()
 	uuidBytes, _ := newUuid.MarshalBinary()
@@ -206,6 +215,13 @@ const (
 	ProtCoAPS TransportProtocol = 6
 )
 
+var TProtToRVProt = map[TransportProtocol]RVProtocolValue{
+	ProtTCP:   RVProtTcp,
+	ProtTLS:   RVProtTls,
+	ProtHTTP:  RVProtHttp,
+	ProtHTTPS: RVProtHttps,
+}
+
 type RVTO2AddrEntry struct {
 	_ struct{} `cbor:",toarray"`
 
@@ -255,8 +271,8 @@ func StringsContain(stringsArr []string, item string) bool {
 	return false
 }
 
-func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
-	var rvInfoList = []RendezvousInstr{}
+func UrlToTOAddrEntry(inurl string) (*RVTO2AddrEntry, error) {
+	var result RVTO2AddrEntry = RVTO2AddrEntry{}
 
 	// Base checks
 	u, err := url.Parse(inurl)
@@ -273,10 +289,10 @@ func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
 	}
 
 	// FDO parsing
-	var fdoScheme RVProtocolValue = RVProtHttp
+	var tProt TransportProtocol = ProtHTTP
 	var selectedPort uint16 = 8080
 	if u.Scheme == "https" {
-		fdoScheme = RVProtHttps
+		tProt = ProtHTTPS
 		selectedPort = 443
 	}
 
@@ -288,10 +304,6 @@ func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
 
 		selectedPort = uint16(parsedPort)
 	}
-
-	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVProtocol, fdoScheme))
-	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVDevPort, selectedPort))
-	rvInfoList = append(rvInfoList, NewRendezvousInstr(RVOwnerPort, selectedPort)) // TODO: Future
 
 	// Parsing IP Address or Host
 	isIp := false
@@ -310,10 +322,40 @@ func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
 		// isIp = true
 	}
 
+	result.RVProtocol = tProt
+	result.RVPort = selectedPort
+
 	if isIp {
-		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVIPAddress, fdoIpAddress))
+		result.RVIP = &fdoIpAddress
 	} else {
-		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVDns, u.Hostname()))
+		hostName := u.Hostname()
+		result.RVDNS = &hostName
+	}
+
+	return &result, nil
+}
+
+func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
+	rvto2addr, err := UrlToTOAddrEntry(inurl)
+	if err != nil {
+		return nil, err
+	}
+
+	scheme, ok := TProtToRVProt[rvto2addr.RVProtocol]
+	if !ok {
+		return nil, fmt.Errorf("invalid protocol %d", rvto2addr.RVProtocol)
+	}
+
+	var rvInfoList = []RendezvousInstr{
+		NewRendezvousInstr(RVProtocol, scheme),
+		NewRendezvousInstr(RVDevPort, rvto2addr.RVPort),
+		NewRendezvousInstr(RVOwnerPort, rvto2addr.RVPort), // TODO: Future
+	}
+
+	if rvto2addr.RVDNS == nil {
+		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVIPAddress, rvto2addr.RVIP))
+	} else {
+		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVDns, rvto2addr.RVDNS))
 	}
 
 	return rvInfoList, nil

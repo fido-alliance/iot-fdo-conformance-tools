@@ -10,17 +10,19 @@ import (
 )
 
 type VoucherDB struct {
-	db *badger.DB
+	db     *badger.DB
+	prefix []byte
 }
 
 func NewVoucherDB(db *badger.DB) *VoucherDB {
 	return &VoucherDB{
-		db: db,
+		db:     db,
+		prefix: []byte("voucher-"),
 	}
 }
 
 func (h VoucherDB) getEntryID(guid fdoshared.FdoGuid) []byte {
-	return append([]byte("voucher-"), guid[:]...)
+	return append(h.prefix, guid[:]...)
 }
 
 func (h *VoucherDB) Save(voucherDBEntry fdoshared.VoucherDBEntry) error {
@@ -75,4 +77,31 @@ func (h *VoucherDB) Get(deviceGuid fdoshared.FdoGuid) (*fdoshared.VoucherDBEntry
 	}
 
 	return &voucherDBEInst, nil
+}
+
+func (h *VoucherDB) List() ([]fdoshared.FdoGuid, error) {
+	var result []fdoshared.FdoGuid = []fdoshared.FdoGuid{}
+
+	dbtxn := h.db.NewTransaction(true)
+	defer dbtxn.Discard()
+
+	// Create an iterator to iterate over all key-value pairs
+	it := dbtxn.NewIterator(badger.DefaultIteratorOptions)
+	defer it.Close()
+
+	// Iterate over all key-value pairs and add the keys to the list
+	for it.Seek(h.prefix); it.ValidForPrefix(h.prefix); it.Next() {
+		item := it.Item()
+		keyBytes := item.KeyCopy(nil)
+		if len(keyBytes) != 16 {
+			return nil, errors.New("invalid voucherdb entry key length")
+		}
+
+		var guid fdoshared.FdoGuid
+		guid.FromBytes(keyBytes[:])
+
+		result = append(result, guid)
+	}
+
+	return result, nil
 }

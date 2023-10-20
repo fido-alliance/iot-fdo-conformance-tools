@@ -35,8 +35,8 @@ type DeviceTestMgmtAPI struct {
 }
 
 func (h *DeviceTestMgmtAPI) submitToRvOwnerSign(voucherdbe *fdoshared.VoucherDBEntry) error {
-	to0client := to0.NewTo0Requestor(to0.RVEntry{
-		RVURL: "http://localhost:8080", //TODO: Inject from context
+	to0client := to0.NewTo0Requestor(fdoshared.SRVEntry{
+		SrvURL: h.Ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string),
 	}, *voucherdbe, h.Ctx)
 
 	helloAck21, _, err := to0client.Hello20(testcom.NULL_TEST)

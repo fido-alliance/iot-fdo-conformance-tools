@@ -21,7 +21,7 @@ func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck
 		hello20Bytes = fdoshared.Conf_RandomCborBufferFuzzing(hello20Bytes)
 	}
 
-	resultBytes, authzHeader, httpStatusCode, err := SendCborPost(fdoTestID, h.rvEntry, fdoshared.TO0_20_HELLO, hello20Bytes, &h.rvEntry.AccessToken)
+	resultBytes, authzHeader, httpStatusCode, err := fdoshared.SendCborPost(h.srvEntry, fdoshared.TO0_20_HELLO, hello20Bytes, &h.srvEntry.AccessToken)
 	if fdoTestID != testcom.NULL_TEST {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
 		return nil, &testState, nil

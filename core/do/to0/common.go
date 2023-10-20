@@ -1,30 +1,23 @@
 package to0
 
 import (
-	"bytes"
 	"context"
-	"encoding/hex"
-	"errors"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"time"
 
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 )
 
 type To0Requestor struct {
-	rvEntry        RVEntry
+	srvEntry       fdoshared.SRVEntry
 	voucherDBEntry fdoshared.VoucherDBEntry
 	authzHeader    string
 	ctx            context.Context
 }
 
-func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry fdoshared.VoucherDBEntry, ctx context.Context) To0Requestor {
+func NewTo0Requestor(rvEntry fdoshared.SRVEntry, voucherDBEntry fdoshared.VoucherDBEntry, ctx context.Context) To0Requestor {
 	return To0Requestor{
-		rvEntry:        rvEntry,
+		srvEntry:       rvEntry,
 		voucherDBEntry: voucherDBEntry,
 		ctx:            ctx,
 	}
@@ -32,42 +25,10 @@ func NewTo0Requestor(rvEntry RVEntry, voucherDBEntry fdoshared.VoucherDBEntry, c
 
 const ServerWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 
-type RVEntry struct {
-	RVURL       string
-	AccessToken string
-}
+func (h *To0Requestor) getRVTO2AddrEntry() (*fdoshared.RVTO2AddrEntry, error) {
+	servUrl := h.ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string)
 
-func SendCborPost(fdoTestID testcom.FDOTestID, rvEntry RVEntry, cmd fdoshared.FdoCmd, payload []byte, authzHeader *string) ([]byte, string, int, error) {
-	url := rvEntry.RVURL + fdoshared.FDO_101_URL_BASE + cmd.ToString()
-
-	httpClient := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-
-	log.Printf("--- %d %s. Sending buffer %s", cmd, fdoTestID, hex.EncodeToString(payload))
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	if err != nil {
-		return nil, "", 0, errors.New("Error creating new request. " + err.Error())
-	}
-
-	if authzHeader != nil {
-		req.Header.Set("Authorization", *authzHeader)
-	}
-
-	req.Header.Set("Content-Type", "application/cbor")
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, "", 0, fmt.Errorf("Error sending post request to %s url. %s", url, err.Error())
-	}
-
-	defer resp.Body.Close()
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, "", 0, fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
-	}
-	log.Printf("--- %d %s. HTTP %d Receiving buffer %s \n\n", cmd, fdoTestID, resp.StatusCode, hex.EncodeToString(bodyBytes))
-
-	return bodyBytes, resp.Header.Get("Authorization"), resp.StatusCode, nil
+	return fdoshared.UrlToTOAddrEntry(servUrl)
 }
 
 func (h *To0Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDOTestID, httpStatusCode int) testcom.FDOTestState {
