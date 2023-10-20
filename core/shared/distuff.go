@@ -25,13 +25,35 @@ type WawDeviceCredential struct {
 
 	DCDeviceInfo string
 	DCGuid       FdoGuid
-	DCRVInfo     []RendezvousInstrList
 	DCPubKeyHash HashOrHmac
 
 	DCPrivateKeyDer        []byte
 	DCCertificateChain     []X509CertificateBytes
 	DCCertificateChainHash HashOrHmac
 	DCSigInfo              SigInfo
+}
+
+func (h *WawDeviceCredential) UpdatedToNewHashHmac(newSgInfo SgTypeInfo) {
+	h.DCHashAlg = newSgInfo.HashType
+	h.DCHmacAlg = newSgInfo.HmacType
+
+	newDcCertificateChainHash, _ := ComputeOVDevCertChainHash(h.DCCertificateChain, HmacToHashAlg[h.DCHmacAlg])
+	h.DCCertificateChainHash = newDcCertificateChainHash
+
+	h.DCHmacSecret = NewHmacKey(h.DCHmacAlg)
+}
+
+func (h *WawDeviceCredential) UpdateWithManufacturerCred(ovHeader []byte, ovPubKey FdoPublicKey) (*HashOrHmac, error) {
+	pubKeyBytes, err := CborCust.Marshal(ovPubKey)
+	if err != nil {
+		return nil, errors.New("error encoding manufacturer public key")
+	}
+
+	pubKeyHash, _ := GenerateFdoHash(pubKeyBytes, h.DCHashAlg)
+	h.DCPubKeyHash = pubKeyHash
+
+	ovHmac, _ := GenerateFdoHmac(ovHeader, h.DCHmacAlg, h.DCHmacSecret)
+	return &ovHmac, nil
 }
 
 const TestRootCert string = `-----BEGIN CERTIFICATE-----
@@ -250,19 +272,6 @@ func NewWawDeviceCredential(sgType DeviceSgType) (*WawDeviceCredential, error) {
 
 		DCDeviceInfo: "I am a virtual FIDO Alliance device!",
 	}, nil
-}
-
-func (h *WawDeviceCredential) UpdateWithManufacturerCred(ovHeader []byte, ovPubKey FdoPublicKey) (*HashOrHmac, error) {
-	pubKeyBytes, err := CborCust.Marshal(ovPubKey)
-	if err != nil {
-		return nil, errors.New("error encoding manufacturer public key")
-	}
-
-	pubKeyHash, _ := GenerateFdoHash(pubKeyBytes, h.DCHashAlg)
-	h.DCPubKeyHash = pubKeyHash
-
-	ovHmac, _ := GenerateFdoHmac(ovHeader, h.DCHmacAlg, h.DCHmacSecret)
-	return &ovHmac, nil
 }
 
 func RandomSgType() DeviceSgType {

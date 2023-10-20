@@ -64,6 +64,10 @@ func GenerateOvEntry(
 }
 
 func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
+	negotiatedHashHmac := fdoshared.NegotiateHashHmac(newDi.DCSigInfo.SgType, voucherSgType)
+
+	newDi.UpdatedToNewHashHmac(negotiatedHashHmac)
+
 	// Generate manufacturer private key.
 	mfgPrivateKey, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(voucherSgType)
 	if err != nil {
@@ -79,7 +83,7 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 		OVDevCertChainHash: &newDi.DCCertificateChainHash,
 	}
 
-	// Test
+	// Tests
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_PROT_VERSION {
 		voucherHeader.OVHProtVer = fdoshared.ProtVersion(uint16(fdoshared.NewRandomInt(105, 10000)))
 	}
