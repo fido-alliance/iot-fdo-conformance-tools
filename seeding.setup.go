@@ -15,7 +15,7 @@ const ThreadsPerAlg = 10
 type SeedRunResult struct {
 	DeviceSgType fdoshared.DeviceSgType
 	Guids        []fdoshared.FdoGuid
-	CredBases    []fdoshared.WawDeviceCredBase
+	CredBases    []fdoshared.WawDeviceCredential
 	Error        error
 }
 
@@ -23,26 +23,19 @@ func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *
 	var result = SeedRunResult{
 		DeviceSgType: sgType,
 		Guids:        []fdoshared.FdoGuid{},
-		CredBases:    []fdoshared.WawDeviceCredBase{},
+		CredBases:    []fdoshared.WawDeviceCredential{},
 	}
 
 	defer wg.Done()
 
 	log.Printf("----- [%d] Starting SgType %d. -----\n", threadID, sgType)
-	getSgAlgInfo, ok := fdoshared.SgTypeInfoMap[sgType]
-	if !ok {
-		result.Error = fmt.Errorf("unsupported sgType %d", sgType)
-		log.Println(result.Error.Error())
-		resultChannel <- result
-		return
-	}
 
 	for i := 0; i < seedSize; i++ {
 		if i != 0 && i%(seedSize/10) == 0 {
 			log.Printf("[%d] %d. %d%% completed\n", threadID, sgType, int(float64(i/(seedSize/10)))*10)
 		}
 
-		newDeviceBase, err := fdoshared.NewWawDeviceCredBase(getSgAlgInfo.HmacType, sgType)
+		newDeviceBase, err := fdoshared.NewWawDeviceCredential(sgType)
 		if err != nil {
 			result.Error = fmt.Errorf("[%d] Error generating device base for sgType %d. %s ", threadID, sgType, err.Error())
 			log.Println(result.Error.Error())
@@ -51,7 +44,7 @@ func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *
 		}
 
 		result.CredBases = append(result.CredBases, *newDeviceBase)
-		result.Guids = append(result.Guids, newDeviceBase.FdoGuid)
+		result.Guids = append(result.Guids, newDeviceBase.DCGuid)
 	}
 
 	resultChannel <- result

@@ -63,12 +63,7 @@ func GenerateOvEntry(
 	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
 }
 
-func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
-	newDi, err := fdoshared.NewWawDeviceCredential(deviceCredBase)
-	if err != nil {
-		return nil, errors.New("Error generating new device credential. " + err.Error())
-	}
-
+func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
 	// Generate manufacturer private key.
 	mfgPrivateKey, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(voucherSgType)
 	if err != nil {
@@ -246,14 +241,14 @@ func NewVirtualDeviceAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, vouc
 
 	newWDC := fdoshared.DeviceCredAndVoucher{
 		VoucherDBEntry:      voucherDBEInst,
-		WawDeviceCredential: *newDi,
+		WawDeviceCredential: newDi,
 	}
 
 	return &newWDC, err
 }
 
-func GenerateAndSaveDeviceCredAndVoucher(deviceCredBase fdoshared.WawDeviceCredBase, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) error {
-	newdav, err := NewVirtualDeviceAndVoucher(deviceCredBase, voucherSgType, ovRVInfo, fdoTestID)
+func GenerateAndSaveDeviceCredAndVoucher(deviceCred fdoshared.WawDeviceCredential, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) error {
+	newdav, err := NewVirtualDeviceAndVoucher(deviceCred, voucherSgType, ovRVInfo, fdoTestID)
 	if err != nil {
 		return err
 	}

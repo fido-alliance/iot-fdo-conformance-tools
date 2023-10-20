@@ -20,17 +20,17 @@ type DeviceBaseDB struct {
 func NewDeviceBaseDB(db *badger.DB) *DeviceBaseDB {
 	return &DeviceBaseDB{
 		db:     db,
-		prefix: []byte("devbase-"),
+		prefix: []byte("devbasecreds-"),
 	}
 }
 
-func (h *DeviceBaseDB) Save(deviceBaseDB fdoshared.WawDeviceCredBase) error {
+func (h *DeviceBaseDB) Save(deviceBaseDB fdoshared.WawDeviceCredential) error {
 	rvteBytes, err := fdoshared.CborCust.Marshal(deviceBaseDB)
 	if err != nil {
 		return errors.New("Failed to marshal DeviceBase. The error is: " + err.Error())
 	}
 
-	storageId := append(h.prefix, deviceBaseDB.FdoGuid[:]...)
+	storageId := append(h.prefix, deviceBaseDB.DCGuid[:]...)
 
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
@@ -49,7 +49,7 @@ func (h *DeviceBaseDB) Save(deviceBaseDB fdoshared.WawDeviceCredBase) error {
 	return nil
 }
 
-func (h *DeviceBaseDB) Get(guid fdoshared.FdoGuid) (*fdoshared.WawDeviceCredBase, error) {
+func (h *DeviceBaseDB) Get(guid fdoshared.FdoGuid) (*fdoshared.WawDeviceCredential, error) {
 	storageId := append(h.prefix, guid[:]...)
 
 	dbtxn := h.db.NewTransaction(true)
@@ -57,23 +57,23 @@ func (h *DeviceBaseDB) Get(guid fdoshared.FdoGuid) (*fdoshared.WawDeviceCredBase
 
 	item, err := dbtxn.Get(storageId)
 	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, fmt.Errorf("The DevBase entry with id %s does not exist", hex.EncodeToString(guid[:]))
+		return nil, fmt.Errorf("The devCred entry with id %s does not exist", hex.EncodeToString(guid[:]))
 	} else if err != nil {
-		return nil, errors.New("Failed locating DevBase entry. The error is: " + err.Error())
+		return nil, errors.New("Failed locating devCred entry. The error is: " + err.Error())
 	}
 
 	itemBytes, err := item.ValueCopy(nil)
 	if err != nil {
-		return nil, errors.New("Failed reading DevBase entry value. The error is: " + err.Error())
+		return nil, errors.New("Failed reading devCred entry value. The error is: " + err.Error())
 	}
 
-	var devBase fdoshared.WawDeviceCredBase
-	err = fdoshared.CborCust.Unmarshal(itemBytes, &devBase)
+	var devCred fdoshared.WawDeviceCredential
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &devCred)
 	if err != nil {
-		return nil, errors.New("Failed cbor decoding DevBase entry value. The error is: " + err.Error())
+		return nil, errors.New("Failed cbor decoding devCred entry value. The error is: " + err.Error())
 	}
 
-	return &devBase, nil
+	return &devCred, nil
 }
 
 func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
@@ -94,8 +94,8 @@ func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID
 		return nil, errors.New("Failed reading DevBase entry value. The error is: " + err.Error())
 	}
 
-	var devBase fdoshared.WawDeviceCredBase
-	err = fdoshared.CborCust.Unmarshal(itemBytes, &devBase)
+	var devCred fdoshared.WawDeviceCredential
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &devCred)
 	if err != nil {
 		return nil, errors.New("Failed cbor decoding DevBase entry value. The error is: " + err.Error())
 	}
@@ -109,11 +109,11 @@ func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID
 	}
 
 	randomSgType := fdoshared.RandomSgType()
-	return fdodeviceimplementation.NewVirtualDeviceAndVoucher(devBase, randomSgType, rvInfo, testid)
+	return fdodeviceimplementation.NewVirtualDeviceAndVoucher(devCred, randomSgType, rvInfo, testid)
 }
 
-func (h *DeviceBaseDB) GetMany(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDeviceCredBase, error) {
-	var devBaseList []fdoshared.WawDeviceCredBase
+func (h *DeviceBaseDB) GetMany(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDeviceCredential, error) {
+	var devCredsList []fdoshared.WawDeviceCredential
 
 	for _, guid := range guids {
 		rvt, err := h.Get(guid)
@@ -121,14 +121,14 @@ func (h *DeviceBaseDB) GetMany(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDevic
 			return nil, fmt.Errorf("Error obtaining rvt for id %s. %s \n", hex.EncodeToString(guid[:]), err.Error())
 		}
 
-		devBaseList = append(devBaseList, *rvt)
+		devCredsList = append(devCredsList, *rvt)
 	}
 
-	return &devBaseList, nil
+	return &devCredsList, nil
 }
 
-func (h *DeviceBaseDB) GetGuids(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDeviceCredBase, error) {
-	var devBaseList []fdoshared.WawDeviceCredBase
+func (h *DeviceBaseDB) GetGuids(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDeviceCredential, error) {
+	var devCredsList []fdoshared.WawDeviceCredential
 
 	for _, guid := range guids {
 		rvt, err := h.Get(guid)
@@ -136,8 +136,8 @@ func (h *DeviceBaseDB) GetGuids(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDevi
 			return nil, fmt.Errorf("Error obtaining rvt for id %s. %s \n", hex.EncodeToString(guid[:]), err.Error())
 		}
 
-		devBaseList = append(devBaseList, *rvt)
+		devCredsList = append(devCredsList, *rvt)
 	}
 
-	return &devBaseList, nil
+	return &devCredsList, nil
 }

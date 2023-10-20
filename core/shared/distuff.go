@@ -149,16 +149,6 @@ AwEHoUQDQgAEEHbg0OZ9vOAP0LpyAvBzokps4frssgppoqrZsyA8tQOtHSSEHE+F
 1j2Ja0MQTl3TwCO3n4Dg1sYL1yWt5A+uMA==
 -----END EC PRIVATE KEY-----`
 
-type WawDeviceCredBase struct {
-	_                      struct{} `cbor:",toarray"`
-	DCCertificateChain     []X509CertificateBytes
-	DCPrivateKeyDer        []byte
-	DCHmacAlg              HashType
-	DCSgType               DeviceSgType
-	DCCertificateChainHash HashOrHmac
-	FdoGuid                FdoGuid
-}
-
 func CastPublicFromPrivate(priv interface{}) interface{} {
 	switch k := priv.(type) {
 	case *rsa.PrivateKey:
@@ -172,7 +162,7 @@ func CastPublicFromPrivate(priv interface{}) interface{} {
 	}
 }
 
-func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDeviceCredBase, error) {
+func NewWawDeviceCredential(sgType DeviceSgType) (*WawDeviceCredential, error) {
 	if sgType != StSECP256R1 && sgType != StSECP384R1 {
 		return nil, errors.New("for device attestation only SECP256R1 and SECP384R1 are supported")
 	}
@@ -229,48 +219,36 @@ func NewWawDeviceCredBase(hmacAlgorithm HashType, sgType DeviceSgType) (*WawDevi
 		newCertBytes, intermCert.Bytes, rootCert.Bytes,
 	}
 
-	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, HmacToHashAlg[hmacAlgorithm])
+	sgTypeInfo, ok := SgTypeInfoMap[sgType]
+	if !ok {
+		return nil, errors.New("unknown sgType")
+	}
 
-	return &WawDeviceCredBase{
-		DCCertificateChain:     dcCertificateChain,
-		DCPrivateKeyDer:        marshaledPrivateKey,
-		DCHmacAlg:              hmacAlgorithm,
-		DCSgType:               sgType,
-		DCCertificateChainHash: dcCertificateChainHash,
-		FdoGuid:                newGuid,
-	}, nil
-}
-
-func NewWawDeviceCredential(deviceCredBase WawDeviceCredBase) (*WawDeviceCredential, error) {
-	// Generate HmacSecret
-	var hmacSecret []byte = NewHmacKey(deviceCredBase.DCHmacAlg)
+	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, HmacToHashAlg[sgTypeInfo.HmacType])
 
 	dcSigInfo := SigInfo{
-		SgType: deviceCredBase.DCSgType,
-		Info:   []byte("virtual-device"),
+		SgType: sgType,
+		Info:   []byte("fido-fdo-virtual-device"),
 	}
+
+	var hmacSecret []byte = NewHmacKey(sgTypeInfo.HmacType)
 
 	return &WawDeviceCredential{
 		DCProtVer:    ProtVer101,
 		DCHmacSecret: hmacSecret,
-		DCHmacAlg:    deviceCredBase.DCHmacAlg,
-		DCHashAlg:    deviceCredBase.DCCertificateChainHash.Type,
-		DCDeviceInfo: "I am a virtual FIDO Alliance device!",
-		DCGuid:       deviceCredBase.FdoGuid,
-		DCSigInfo:    dcSigInfo,
-		DCRVInfo: []RendezvousInstrList{
-			{
-				// {
-				// 	Key: RVDns,
-				// 	Value: ,
-				// },
-			},
-		},
-		// DCPubKeyHash - come later via UpdateWithManufacturerCred
 
-		DCPrivateKeyDer:        deviceCredBase.DCPrivateKeyDer,
-		DCCertificateChain:     deviceCredBase.DCCertificateChain,
-		DCCertificateChainHash: deviceCredBase.DCCertificateChainHash,
+		DCCertificateChain:     dcCertificateChain,
+		DCCertificateChainHash: dcCertificateChainHash,
+
+		DCPrivateKeyDer: marshaledPrivateKey,
+
+		DCGuid:    newGuid,
+		DCSigInfo: dcSigInfo,
+
+		DCHmacAlg: sgTypeInfo.HmacType,
+		DCHashAlg: sgTypeInfo.HashType,
+
+		DCDeviceInfo: "I am a virtual FIDO Alliance device!",
 	}, nil
 }
 
