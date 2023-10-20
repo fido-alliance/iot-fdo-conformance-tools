@@ -65,8 +65,6 @@ func IopGetAuthz(ctx context.Context, comp IopComp) (string, error) {
 		return ctx.Value(CFG_ENV_INTEROP_DASHBOARD_RV_AUTHZ).(string), nil
 	case IopRV:
 		return ctx.Value(CFG_ENV_INTEROP_DASHBOARD_DO_AUTHZ).(string), nil
-	case IopDEVICE:
-		return ctx.Value(CFG_ENV_INTEROP_DASHBOARD_DEVICE_AUTHZ).(string), nil
 	}
 
 	return "", fmt.Errorf("invalid component %s", comp)

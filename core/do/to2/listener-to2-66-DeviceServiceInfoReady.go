@@ -87,7 +87,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Stores MaxSz for 68
-	session.OwnerSIMs, err = GetOwnerSIMs(session.Guid)
+	session.OwnerSIMs, err = h.GetOwnerSIMs(session.Guid)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating SIMs. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return

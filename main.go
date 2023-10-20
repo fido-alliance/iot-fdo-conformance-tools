@@ -18,11 +18,14 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to1"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to2"
 	fdodo "github.com/fido-alliance/fdo-fido-conformance-server/core/do"
+	dodbs "github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
+	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
 	fdorv "github.com/fido-alliance/fdo-fido-conformance-server/core/rv"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
 	testcomdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+
 	"github.com/joho/godotenv"
 
 	"github.com/dgraph-io/badger/v4"
@@ -99,6 +102,9 @@ func loadEnvToCtx() context.Context {
 			selectedPort = envPort
 		}
 	}
+
+	defaultUrl := fmt.Sprintf("http://localhost:%d", selectedPort)
+
 	ctx = context.WithValue(ctx, fdoshared.CFG_ENV_PORT, selectedPort)
 
 	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_MODE, fdoshared.CFG_MODE_ONPREM, false)
@@ -107,7 +113,7 @@ func loadEnvToCtx() context.Context {
 	onlineMandate := ctx.Value(fdoshared.CFG_ENV_MODE).(string) == fdoshared.CFG_MODE_ONLINE
 	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_KEY_RESULTS, "", onlineMandate)
 	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_API_BUILDS_URL, "", onlineMandate)
-	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_FDO_SERVICE_URL, "", onlineMandate)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_FDO_SERVICE_URL, defaultUrl, onlineMandate)
 
 	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_HOST, "", onlineMandate)
 	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_NOTIFY_SERVICE_SECRET, "", onlineMandate)
@@ -129,7 +135,7 @@ func loadEnvToCtx() context.Context {
 	ctx = context.WithValue(ctx, fdoshared.CFG_ENV_INTEROP_ENABLED, iopEnabled)
 	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DASHBOARD_RV_AUTHZ, "", iopEnabled)
 	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DASHBOARD_DO_AUTHZ, "", iopEnabled)
-	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DASHBOARD_DEVICE_AUTHZ, "", iopEnabled)
+	ctx = TryEnvAndSaveToCtx(ctx, fdoshared.CFG_ENV_INTEROP_DO_TOKEN_MAPPING, "", iopEnabled)
 
 	return ctx
 }

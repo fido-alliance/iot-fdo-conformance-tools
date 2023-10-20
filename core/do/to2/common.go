@@ -3,6 +3,7 @@ package to2
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -29,6 +30,7 @@ func NewDoTo2(db *badger.DB, ctx context.Context) DoTo2 {
 	newListenerDb := tdbs.NewListenerTestDB(db)
 	sessionDb := dbs.NewSessionDB(db)
 	voucherDb := dbs.NewVoucherDB(db)
+
 	return DoTo2{
 		session:    sessionDb,
 		voucher:    voucherDb,
@@ -45,10 +47,39 @@ func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) 
 	return nil
 }
 
-func GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV, error) {
+func (h *DoTo2) getEnvInteropMappings() (map[fdoshared.FdoGuid]string, error) {
+	mappings := map[fdoshared.FdoGuid]string{}
 
-	// TODO
-	return []fdoshared.ServiceInfoKV{
+	if h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+		rawTokens := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_DO_TOKEN_MAPPING).(string)
+
+		var envMappings [][]string
+		err := json.Unmarshal([]byte(rawTokens), &envMappings)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, mapping := range envMappings {
+			guidBytes, err := hex.DecodeString(mapping[0])
+			if err != nil {
+				return nil, err
+			}
+
+			guid := fdoshared.FdoGuid{}
+			err = guid.FromBytes(guidBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			mappings[guid] = mapping[1]
+		}
+	}
+
+	return mappings, nil
+}
+
+func (h *DoTo2) GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV, error) {
+	var ownerSims []fdoshared.ServiceInfoKV = []fdoshared.ServiceInfoKV{
 		{
 			ServiceInfoKey: "owner:test1",
 			ServiceInfoVal: []byte("1234"),
@@ -73,7 +104,23 @@ func GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV, error) {
 			ServiceInfoKey: "owner:test6",
 			ServiceInfoVal: []byte("1234"),
 		},
-	}, nil
+	}
+
+	interopMappings, err := h.getEnvInteropMappings()
+	if err != nil {
+		return nil, err
+	}
+
+	iopSIMVal, ok := interopMappings[guid]
+	if ok {
+		ownerSims = append(ownerSims, fdoshared.ServiceInfoKV{
+			ServiceInfoKey: fdoshared.IOPLOGGER_SIM,
+			ServiceInfoVal: []byte(iopSIMVal),
+		})
+	}
+
+	// TODO
+	return ownerSims, nil
 }
 
 func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, currentCmd fdoshared.FdoCmd) (*dbs.SessionEntry, []byte, string, []byte, *listenertestsdeps.RequestListenerInst, error) {
