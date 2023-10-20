@@ -85,7 +85,7 @@ func TryEnvAndSaveToCtx(ctx context.Context, envvar fdoshared.CONFIG_ENTRY, defa
 	return context.WithValue(ctx, envvar, resultEnvValue)
 }
 
-func loadEnvToCtx() context.Context {
+func loadEnvCtx() context.Context {
 	ctx := context.Background()
 
 	// PORT
@@ -155,7 +155,7 @@ func main() {
 					db := InitBadgerDB()
 					defer db.Close()
 
-					ctx := loadEnvToCtx()
+					ctx := loadEnvCtx()
 
 					// Setup FDO listeners
 					fdodo.SetupServer(db, ctx)
@@ -230,15 +230,17 @@ func main() {
 					return nil
 				},
 			},
-				Name:        "vdevice",
-				Description: "Virtual device emulation",
+			{
+				Name:        "iop",
+				Description: "Interop and virtual device emmulation",
 				Usage:       "vdevice [cmd]",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "generate",
 						Usage: "Generate virtual device credential and voucher",
 						Action: func(c *cli.Context) error {
-							credbase, err := fdoshared.NewWawDeviceCredBase(fdoshared.HASH_HMAC_SHA256, fdoshared.StSECP256R1)
+							deviceSgType := fdoshared.RandomSgType()
+							credbase, err := fdoshared.NewWawDeviceCredential(deviceSgType)
 							if err != nil {
 								log.Panicf("Error generating cred base. %s", err.Error())
 							}
@@ -313,7 +315,7 @@ func main() {
 								return nil
 							}
 
-							ctx := loadEnvToCtx()
+							ctx := loadEnvCtx()
 
 							url := c.Args().Get(0)
 							filepath := c.Args().Get(1)

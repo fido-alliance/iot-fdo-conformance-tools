@@ -93,12 +93,15 @@ func (h *VoucherDB) List() ([]fdoshared.FdoGuid, error) {
 	for it.Seek(h.prefix); it.ValidForPrefix(h.prefix); it.Next() {
 		item := it.Item()
 		keyBytes := item.KeyCopy(nil)
-		if len(keyBytes) != 16 {
+
+		guidBytes := keyBytes[len(h.prefix):]
+
+		if len(guidBytes) != 16 {
 			return nil, errors.New("invalid voucherdb entry key length")
 		}
 
 		var guid fdoshared.FdoGuid
-		guid.FromBytes(keyBytes[:])
+		guid.FromBytes(guidBytes[:])
 
 		result = append(result, guid)
 	}

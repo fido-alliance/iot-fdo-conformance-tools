@@ -27,6 +27,9 @@ const ServerWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 
 func (h *To0Requestor) getRVTO2AddrEntry() (*fdoshared.RVTO2AddrEntry, error) {
 	servUrl := h.ctx.Value(fdoshared.CFG_ENV_FDO_SERVICE_URL).(string)
+	if servUrl == "" {
+		return nil, fmt.Errorf("getRVTO2AddrEntry: FDO service URL not set")
+	}
 
 	return fdoshared.UrlToTOAddrEntry(servUrl)
 }
