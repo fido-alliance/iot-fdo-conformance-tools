@@ -474,6 +474,119 @@ func main() {
 							return nil
 						},
 					},
+					{
+						Name:      "do_load_vouchers",
+						Usage:     "Loads vouchers into DO DB from a folder",
+						UsageText: "[Path to vouchers folder]",
+						Action: func(c *cli.Context) error {
+							if c.Args().Len() != 1 {
+								return fmt.Errorf("missing folder path")
+							}
+
+							folderPath := c.Args().Get(0)
+
+							// VoucherDB
+							db := InitBadgerDB()
+							defer db.Close()
+							doVoucherDB := dodbs.NewVoucherDB(db)
+
+							// Getting file list
+							files, err := os.ReadDir(folderPath)
+							if err != nil {
+								return err
+							}
+
+							if len(files) == 0 {
+								return fmt.Errorf("no files found in folder")
+							}
+
+							for _, file := range files {
+								if !file.IsDir() && filepath.Ext(file.Name()) == ".pem" {
+									filePath := filepath.Join(folderPath, file.Name())
+									fileBytes, err := os.ReadFile(filePath)
+
+									if err != nil {
+										return fmt.Errorf("error reading file \"%s\". %s ", folderPath, err.Error())
+									}
+
+									if len(fileBytes) == 0 {
+										return fmt.Errorf("error reading file \"%s\". The file is empty", folderPath)
+									}
+
+									vandk, err := fdodocommon.DecodePemVoucherAndKey(string(fileBytes))
+									if err != nil {
+										return fmt.Errorf("error decoding voucher. %s", err.Error())
+									}
+
+									vheader, err := vandk.Voucher.GetOVHeader()
+									if err != nil {
+										return fmt.Errorf("error decoding voucher header. %s", err.Error())
+									}
+
+									err = doVoucherDB.Save(*vandk)
+									if err != nil {
+										return fmt.Errorf("error saving voucher. %s", err.Error())
+									}
+
+									log.Println("Saved voucher for " + vheader.OVGuid.GetFormatted())
+								}
+							}
+
+							return nil
+						},
+					},
+					{
+						Name:      "rv_push_vouchers",
+						Usage:     "Pushes vouchers to the specified RV",
+						UsageText: "[RV URL]",
+						Action: func(c *cli.Context) error {
+							if c.Args().Len() != 1 {
+								return fmt.Errorf("missing folder path")
+							}
+
+							rvUrl := c.Args().Get(0)
+
+							ctx := loadEnvCtx()
+
+							// VoucherDB
+							db := InitBadgerDB()
+							defer db.Close()
+							doVoucherDB := dodbs.NewVoucherDB(db)
+
+							voucherList, err := doVoucherDB.List()
+							if err != nil {
+								return fmt.Errorf("error listing vouchers. %s", err.Error())
+							}
+
+							for _, voucherGuid := range voucherList {
+								log.Println("Doing voucherGuid " + voucherGuid.GetFormatted())
+								vandk, err := doVoucherDB.Get(voucherGuid)
+								if err != nil {
+									return fmt.Errorf("error getting voucher. %s", err.Error())
+								}
+
+								to0 := to0.NewTo0Requestor(fdoshared.SRVEntry{
+									SrvURL: rvUrl,
+								}, *vandk, ctx)
+
+								helloAck21, _, err := to0.Hello20(testcom.NULL_TEST)
+								if err != nil {
+									log.Printf("Error running Hello20. %s", err.Error())
+									return nil
+								}
+
+								_, _, err = to0.OwnerSign22(helloAck21.NonceTO0Sign, testcom.NULL_TEST)
+								if err != nil {
+									log.Printf("Error running OwnerSign22. %s", err.Error())
+									return nil
+								}
+
+								log.Println("Success TO0 " + voucherGuid.GetFormatted())
+							}
+
+							return nil
+						},
+					},
 				},
 			},
 			{
