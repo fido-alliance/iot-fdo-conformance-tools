@@ -52,7 +52,7 @@ func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, 
 	if httpStatusCode != http.StatusOK {
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(rawResultBytes)
 		if err == nil {
-			return nil, nil, fmt.Errorf("HelloDevice60: %s", fdoErrInst.EMErrorStr)
+			return nil, nil, fmt.Errorf("Done70: %s", fdoErrInst.EMErrorStr)
 		}
 	}
 

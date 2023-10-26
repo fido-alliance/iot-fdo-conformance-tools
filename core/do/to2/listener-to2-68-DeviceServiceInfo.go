@@ -55,7 +55,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	var deviceServiceInfo fdoshared.DeviceServiceInfo68
 	err = fdoshared.CborCust.Unmarshal(bodyBytes, &deviceServiceInfo)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Done70: Error encrypting..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "DeviceServiceInfo68: Error encrypting..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	session.PrevCMD = fdoshared.TO2_69_OWNER_SERVICE_INFO
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
-		log.Println("ProveDevice64: Error saving session..." + err.Error())
+		log.Println("DeviceServiceInfo68: Error saving session..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_68_DEVICE_SERVICE_INFO, "Internal server error!", http.StatusInternalServerError)
 		return
 	}

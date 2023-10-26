@@ -26,7 +26,7 @@ func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceS
 	if fdoTestID == testcom.FIDO_DOT_68_BAD_ENCRYPTION {
 		deviceServiceInfo68BytesEnc, err = fdoshared.Conf_Fuzz_AddWrapping(deviceServiceInfo68BytesEnc, h.SessionKey, h.CipherSuiteName)
 		if err != nil {
-			return nil, nil, errors.New("DeviceServiceInfoReady66: Error encrypting... " + err.Error())
+			return nil, nil, errors.New("DeviceServiceInfo68: Error encrypting... " + err.Error())
 		}
 	}
 
@@ -43,7 +43,7 @@ func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceS
 	if httpStatusCode != http.StatusOK {
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(rawResultBytes)
 		if err == nil {
-			return nil, nil, fmt.Errorf("HelloDevice60: %s", fdoErrInst.EMErrorStr)
+			return nil, nil, fmt.Errorf("DeviceServiceInfo68: Server returned error (HTTP %d): (ErrorCID %d) %s", httpStatusCode, fdoErrInst.EMErrorCID, fdoErrInst.EMErrorStr)
 		}
 	}
 

@@ -35,7 +35,7 @@ func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTes
 	if httpStatusCode != http.StatusOK {
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(resultBytes)
 		if err == nil {
-			return nil, nil, fmt.Errorf("HelloDevice60: %s", fdoErrInst.EMErrorStr)
+			return nil, nil, fmt.Errorf("GetOVNextEntry62: %s", fdoErrInst.EMErrorStr)
 		}
 	}
 

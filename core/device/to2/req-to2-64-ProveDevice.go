@@ -83,7 +83,7 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	if httpStatusCode != http.StatusOK {
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(rawResultBytes)
 		if err == nil {
-			return nil, nil, fmt.Errorf("HelloDevice60: %s", fdoErrInst.EMErrorStr)
+			return nil, nil, fmt.Errorf("ProveDevice64: %s", fdoErrInst.EMErrorStr)
 		}
 	}
 

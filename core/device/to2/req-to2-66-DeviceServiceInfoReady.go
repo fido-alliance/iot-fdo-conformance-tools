@@ -47,7 +47,7 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 	if httpStatusCode != http.StatusOK {
 		fdoErrInst, err := fdoshared.DecodeErrorResponse(rawResultBytes)
 		if err == nil {
-			return nil, nil, fmt.Errorf("HelloDevice60: %s", fdoErrInst.EMErrorStr)
+			return nil, nil, fmt.Errorf("DeviceServiceInfoReady66: %s", fdoErrInst.EMErrorStr)
 		}
 	}
 
