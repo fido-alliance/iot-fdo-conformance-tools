@@ -82,32 +82,7 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 
 		switch testId {
 		case testcom.FIDO_DOT_68_POSITIVE:
-			var deviceSims []fdoshared.ServiceInfoKV = []fdoshared.ServiceInfoKV{ //TODO
-				{
-					ServiceInfoKey: "device:test1",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test2",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test3",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test4",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test5",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test6",
-					ServiceInfoVal: []byte("1234"),
-				},
-			}
+			var deviceSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
 
 			var ownerSims []fdoshared.ServiceInfoKV // TODO
 
@@ -140,9 +115,9 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 					return
 				}
 
-				log.Println("Receiving OwnerSim DeviceServiceInfo68 " + ownerSim.ServiceInfo.ServiceInfoKey)
+				log.Println("Receiving OwnerSim DeviceServiceInfo68 " + fdoshared.CastServiceInfo(ownerSim.ServiceInfo).ServiceInfoKey)
 
-				ownerSims = append(ownerSims, *ownerSim.ServiceInfo)
+				ownerSims = append(ownerSims, fdoshared.CastServiceInfo(ownerSim.ServiceInfo))
 
 				if ownerSim.IsDone {
 					break
@@ -163,32 +138,7 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 			})
 
 		default:
-			var deviceSims []fdoshared.ServiceInfoKV = []fdoshared.ServiceInfoKV{ //TODO
-				{
-					ServiceInfoKey: "device:test1",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test2",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test3",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test4",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test5",
-					ServiceInfoVal: []byte("1234"),
-				},
-				{
-					ServiceInfoKey: "device:test6",
-					ServiceInfoVal: []byte("1234"),
-				},
-			}
+			var deviceSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
 
 			randomIndex := fdoshared.NewRandomInt(0, len(deviceSims)-1)
 			for i, deviceSim := range deviceSims {

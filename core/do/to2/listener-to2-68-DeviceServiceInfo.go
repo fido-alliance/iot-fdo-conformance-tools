@@ -62,11 +62,25 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	ownerServiceInfo := fdoshared.OwnerServiceInfo69{}
 
 	if deviceServiceInfo.IsMoreServiceInfo {
+		// Device keeps sending more service info
 		ownerServiceInfo.IsDone = false
 		ownerServiceInfo.IsMoreServiceInfo = false
 
 		session.DeviceSIMs = append(session.DeviceSIMs, *deviceServiceInfo.ServiceInfo)
+
 	} else {
+		// Owner is sending its service info
+		if session.OwnerSIMsSendCounter == 0 {
+			resultSims, err := ValidateDeviceSIMs(session.Guid, session.DeviceSIMs)
+			if err != nil {
+				log.Println("DeviceServiceInfo68: Error validating device sims: " + err.Error())
+				fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_68_DEVICE_SERVICE_INFO, "DeviceServiceInfo68: Error validating device sims: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			log.Println("DeviceServiceInfo68: Validated device sims: ", *resultSims.SIM_DEVMOD_ARCH, *resultSims.SIM_DEVMOD_DEVICE, resultSims.SIM_DEVMOD_OS)
+		}
+
 		if int(session.OwnerSIMsSendCounter+1) >= len(session.OwnerSIMs) {
 			ownerServiceInfo.IsDone = true
 			ownerServiceInfo.IsMoreServiceInfo = false

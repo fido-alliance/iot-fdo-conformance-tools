@@ -17,7 +17,6 @@ import (
 )
 
 const MAX_NUM_OVENTRIES = 255
-const agreedWaitSeconds uint32 = 30 * 24 * 60 * 60 // 1 month
 
 type DoTo2 struct {
 	session    *dbs.SessionDB
@@ -38,13 +37,22 @@ func NewDoTo2(db *badger.DB, ctx context.Context) DoTo2 {
 	}
 }
 
-func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) error {
+func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) (*fdoshared.RESULT_SIMS, error) {
+	var mandatorySims fdoshared.SIMS = []fdoshared.SIM_ID{}
+
 	for _, module := range sims {
-		// TODO
-		log.Println(module.ServiceInfoKey)
+		if !mandatorySims.Contains(module.ServiceInfoKey) && fdoshared.MANDATORY_SIMS.Contains(module.ServiceInfoKey) {
+			mandatorySims = append(mandatorySims, module.ServiceInfoKey)
+		} else if mandatorySims.Contains(module.ServiceInfoKey) && fdoshared.MANDATORY_SIMS.Contains(module.ServiceInfoKey) {
+			return nil, fmt.Errorf("duplicate SIM %s", module.ServiceInfoKey)
+		}
 	}
 
-	return nil
+	if len(mandatorySims) != len(fdoshared.MANDATORY_SIMS) {
+		return nil, fmt.Errorf("missing mandatory SIMs")
+	}
+
+	return fdoshared.DecodeSims(sims)
 }
 
 func (h *DoTo2) getEnvInteropMappings() (map[fdoshared.FdoGuid]string, error) {
@@ -80,30 +88,7 @@ func (h *DoTo2) getEnvInteropMappings() (map[fdoshared.FdoGuid]string, error) {
 
 func (h *DoTo2) GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV, error) {
 	var ownerSims []fdoshared.ServiceInfoKV = []fdoshared.ServiceInfoKV{
-		{
-			ServiceInfoKey: "owner:test1",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "owner:test2",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "owner:test3",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "owner:test4",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "owner:test5",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "owner:test6",
-			ServiceInfoVal: []byte("1234"),
-		},
+		// TODO
 	}
 
 	interopMappings, err := h.getEnvInteropMappings()
@@ -142,7 +127,7 @@ func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, current
 	// Conformance
 	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
 	if err != nil {
-		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
+		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)

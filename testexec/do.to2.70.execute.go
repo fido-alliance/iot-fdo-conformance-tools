@@ -65,32 +65,7 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 		return nil, err
 	}
 
-	var deviceSims []fdoshared.ServiceInfoKV = []fdoshared.ServiceInfoKV{ //TODO
-		{
-			ServiceInfoKey: "device:test1",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "device:test2",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "device:test3",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "device:test4",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "device:test5",
-			ServiceInfoVal: []byte("1234"),
-		},
-		{
-			ServiceInfoKey: "device:test6",
-			ServiceInfoVal: []byte("1234"),
-		},
-	}
+	var deviceSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
 
 	var ownerSims []fdoshared.ServiceInfoKV // TODO
 
@@ -115,7 +90,7 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 			return nil, err
 		}
 
-		ownerSims = append(ownerSims, *ownerSim.ServiceInfo)
+		ownerSims = append(ownerSims, fdoshared.CastServiceInfo(ownerSim.ServiceInfo))
 
 		if ownerSim.IsDone {
 			break

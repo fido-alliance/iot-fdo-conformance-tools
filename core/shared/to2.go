@@ -67,7 +67,7 @@ type OwnerServiceInfo69 struct {
 	_                 struct{} `cbor:",toarray"`
 	IsMoreServiceInfo bool
 	IsDone            bool
-	ServiceInfo       *ServiceInfoKV
+	ServiceInfo       interface{}
 }
 
 type Done70 struct {

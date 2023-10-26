@@ -300,7 +300,10 @@ func main() {
 								return fmt.Errorf("error decoding TO1D payload! %s", err.Error())
 							}
 
-							log.Println(to1dPayload.To1dRV)
+							rvdns := to1dPayload.To1dRV[0].RVDNS
+							rvipd := to1dPayload.To1dRV[0].RVIP
+							rvport := to1dPayload.To1dRV[0].RVPort
+							log.Println("Success", *rvdns, *rvipd, rvport)
 
 							return nil
 						},
@@ -386,32 +389,7 @@ func main() {
 							}
 
 							//68
-							var deviceSims []fdoshared.ServiceInfoKV = []fdoshared.ServiceInfoKV{
-								{
-									ServiceInfoKey: "device:test1",
-									ServiceInfoVal: []byte("1234"),
-								},
-								{
-									ServiceInfoKey: "device:test2",
-									ServiceInfoVal: []byte("1234"),
-								},
-								{
-									ServiceInfoKey: "device:test3",
-									ServiceInfoVal: []byte("1234"),
-								},
-								{
-									ServiceInfoKey: "device:test4",
-									ServiceInfoVal: []byte("1234"),
-								},
-								{
-									ServiceInfoKey: "device:test5",
-									ServiceInfoVal: []byte("1234"),
-								},
-								{
-									ServiceInfoKey: "device:test6",
-									ServiceInfoVal: []byte("1234"),
-								},
-							}
+							var deviceSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
 
 							var ownerSims []fdoshared.ServiceInfoKV // TODO
 
@@ -437,9 +415,9 @@ func main() {
 									return nil
 								}
 
-								log.Println("Receiving OwnerSim DeviceServiceInfo68 " + ownerSim.ServiceInfo.ServiceInfoKey)
+								log.Println("Receiving OwnerSim DeviceServiceInfo68 " + fdoshared.CastServiceInfo(ownerSim.ServiceInfo).ServiceInfoKey)
 
-								ownerSims = append(ownerSims, *ownerSim.ServiceInfo)
+								ownerSims = append(ownerSims, fdoshared.CastServiceInfo(ownerSim.ServiceInfo))
 								if ownerSim.IsDone {
 									break
 								}
@@ -454,7 +432,6 @@ func main() {
 							log.Println("Success To2")
 
 							// FDO Interop
-
 							iopEnabled := ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
 							if iopEnabled {
 								authzval, ok := fdoshared.GetSim(ownerSims, fdoshared.IOPLOGGER_SIM)
