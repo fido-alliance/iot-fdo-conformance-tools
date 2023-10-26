@@ -31,7 +31,7 @@ func (h *OwnerSignDB) Save(deviceGuid fdoshared.FdoGuid, ownerSign fdoshared.Own
 	dbtxn := h.db.NewTransaction(true)
 	defer dbtxn.Discard()
 
-	entry := badger.NewEntry(ownerSignStorageId, ownerSignBytes).WithTTL(time.Second * time.Duration(ttlSec)) // Session entry will only exist for 10 minutes
+	entry := badger.NewEntry(ownerSignStorageId, ownerSignBytes).WithTTL(time.Second * time.Duration(ttlSec))
 	err = dbtxn.SetEntry(entry)
 	if err != nil {
 		return errors.New("Failed creating session db entry instance. The error is: " + err.Error())
