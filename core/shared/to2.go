@@ -39,8 +39,8 @@ type ProveDevice64 = CoseSignature // EAToken
 type SetupDevice65 = CoseSignature
 
 type TO2SetupDevicePayload struct {
-	_               struct{}    `cbor:",toarray"`
-	RendezvousInfo  interface{} // change
+	_               struct{} `cbor:",toarray"`
+	RendezvousInfo  []RendezvousInstrList
 	Guid            FdoGuid
 	NonceTO2SetupDv FdoNonce
 	Owner2Key       FdoPublicKey
@@ -60,7 +60,7 @@ type OwnerServiceInfoReady67 struct {
 type DeviceServiceInfo68 struct {
 	_                 struct{} `cbor:",toarray"`
 	IsMoreServiceInfo bool
-	ServiceInfo       *ServiceInfoKV
+	ServiceInfo       interface{}
 }
 
 type OwnerServiceInfo69 struct {

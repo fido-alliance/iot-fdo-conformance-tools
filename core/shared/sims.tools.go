@@ -160,3 +160,13 @@ func DecodeSims(sims []ServiceInfoKV) (*RESULT_SIMS, error) {
 func CastServiceInfo(serviceInfoIntf interface{}) ServiceInfoKV {
 	return serviceInfoIntf.(ServiceInfoKV)
 }
+
+func UintToBytes(val uint) []byte {
+	result, _ := cbor.Marshal(val)
+	return result
+}
+
+func SimsListToBytes(sims SIMS) []byte {
+	result, _ := cbor.Marshal(sims)
+	return result
+}

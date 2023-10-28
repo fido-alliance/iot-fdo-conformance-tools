@@ -104,7 +104,7 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 			maxCounter := 255
 			for {
 				ownerSim, _, err := to2requestor.DeviceServiceInfo68(fdoshared.DeviceServiceInfo68{
-					ServiceInfo:       nil,
+					ServiceInfo:       []string{},
 					IsMoreServiceInfo: false,
 				}, testcom.NULL_TEST)
 				if err != nil {
