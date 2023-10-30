@@ -13,6 +13,18 @@ type ServiceInfoKV struct {
 	ServiceInfoVal []byte
 }
 
+type SIMS []ServiceInfoKV
+
+func (h *SIMS) GetSimIDs() SIM_IDS {
+	result := SIM_IDS{}
+
+	for _, sim := range *h {
+		result = append(result, sim.ServiceInfoKey)
+	}
+
+	return result
+}
+
 func GetSim(sims []ServiceInfoKV, simID SIM_ID) ([]byte, bool) {
 	for _, sim := range sims {
 		if sim.ServiceInfoKey == simID {
@@ -166,7 +178,7 @@ func UintToBytes(val uint) []byte {
 	return result
 }
 
-func SimsListToBytes(sims SIMS) []byte {
+func SimsListToBytes(sims SIM_IDS) []byte {
 	result, _ := cbor.Marshal(sims)
 	return result
 }

@@ -38,7 +38,7 @@ func NewDoTo2(db *badger.DB, ctx context.Context) DoTo2 {
 }
 
 func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) (*fdoshared.RESULT_SIMS, error) {
-	var mandatorySims fdoshared.SIMS = []fdoshared.SIM_ID{}
+	var mandatorySims fdoshared.SIM_IDS = []fdoshared.SIM_ID{}
 
 	for _, module := range sims {
 		if !mandatorySims.Contains(module.ServiceInfoKey) && fdoshared.MANDATORY_SIMS.Contains(module.ServiceInfoKey) {

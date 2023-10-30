@@ -52,9 +52,9 @@ const (
 	SIM_DEVMOD_MODULES SIM_ID = "devmod:modules"
 )
 
-type SIMS []SIM_ID
+type SIM_IDS []SIM_ID
 
-func (h *SIMS) Contains(id SIM_ID) bool {
+func (h *SIM_IDS) Contains(id SIM_ID) bool {
 	for _, sim := range *h {
 		if sim == id {
 			return true
@@ -64,7 +64,7 @@ func (h *SIMS) Contains(id SIM_ID) bool {
 	return false
 }
 
-var MANDATORY_SIMS = SIMS{
+var MANDATORY_SIMS = SIM_IDS{
 	SIM_DEVMOD_ACTIVE,
 	SIM_DEVMOD_OS,
 	SIM_DEVMOD_ARCH,
