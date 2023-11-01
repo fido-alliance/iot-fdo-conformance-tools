@@ -36,7 +36,6 @@ type SessionEntry struct {
 	EASigInfo       fdoshared.SigInfo
 	PrivateKeyDER   []byte
 	CipherSuiteName fdoshared.CipherSuiteName
-	SignatureType   fdoshared.DeviceSgType
 	PublicKeyType   fdoshared.FdoPkType
 	Guid            fdoshared.FdoGuid
 	Voucher         fdoshared.OwnershipVoucher

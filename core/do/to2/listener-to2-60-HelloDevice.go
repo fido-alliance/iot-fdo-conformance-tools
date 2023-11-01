@@ -40,7 +40,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloDevice.Guid)
 	if err != nil {
-		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloDevice.Guid[:]), err.Error())
+		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloDevice.Guid[:]), err.Error())
 	}
 
 	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
@@ -135,19 +135,23 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newSessionInst := dbs.SessionEntry{
-		Protocol:                 fdoshared.To2,
-		PrevCMD:                  fdoshared.TO2_61_PROVE_OVHDR,
-		NonceTO2ProveOV60:        helloDevice.NonceTO2ProveOV,
-		PrivateKeyDER:            voucherDBEntry.PrivateKeyX509,
-		XAKex:                    *kex,
-		NonceTO2ProveDv61:        NonceTO2ProveDv,
-		KexSuiteName:             helloDevice.KexSuiteName,
-		CipherSuiteName:          helloDevice.CipherSuiteName,
-		SignatureType:            helloDevice.EASigInfo.SgType,
-		PublicKeyType:            voucherHeader.OVPublicKey.PkType,
-		Guid:                     helloDevice.Guid,
+		Protocol: fdoshared.To2,
+		PrevCMD:  fdoshared.TO2_61_PROVE_OVHDR,
+
+		XAKex:        *kex,
+		KexSuiteName: helloDevice.KexSuiteName,
+
+		NonceTO2ProveOV60: helloDevice.NonceTO2ProveOV,
+		NonceTO2ProveDv61: NonceTO2ProveDv,
+
+		EASigInfo:       helloDevice.EASigInfo,
+		PrivateKeyDER:   voucherDBEntry.PrivateKeyX509,
+		CipherSuiteName: helloDevice.CipherSuiteName,
+		PublicKeyType:   voucherHeader.OVPublicKey.PkType,
+		Guid:            helloDevice.Guid,
+		Voucher:         voucherDBEntry.Voucher, // Stored twice in db, much more accessible from here
+
 		NumOVEntries:             uint8(NumOVEntries),
-		Voucher:                  voucherDBEntry.Voucher, // Stored twice in db, much more accessible from here
 		OwnerSIMsFinishedSending: false,
 		OwnerSIMsSendCounter:     0,
 	}
