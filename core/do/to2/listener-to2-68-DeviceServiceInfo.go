@@ -74,7 +74,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 			resultSims, err := ValidateDeviceSIMs(session.Guid, session.DeviceSIMs)
 			if err != nil {
 				log.Println("DeviceServiceInfo68: Error validating device sims: " + err.Error())
-				fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_68_DEVICE_SERVICE_INFO, "DeviceServiceInfo68: Error validating device sims: "+err.Error(), http.StatusInternalServerError)
+				fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "DeviceServiceInfo68: Error validating device sims: "+err.Error(), http.StatusInternalServerError)
 				return
 			}
 
@@ -103,7 +103,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	ownerServiceInfoEncBytes, err := fdoshared.AddEncryptionWrapping(ownerServiceInfoBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
 		log.Println("DeviceServiceInfo68: Error encrypting..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_68_DEVICE_SERVICE_INFO, "Internal server error!", http.StatusInternalServerError)
+		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
 		log.Println("DeviceServiceInfo68: Error saving session..." + err.Error())
-		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_68_DEVICE_SERVICE_INFO, "Internal server error!", http.StatusInternalServerError)
+		fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
 		return
 	}
 

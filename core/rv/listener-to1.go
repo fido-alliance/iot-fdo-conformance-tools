@@ -40,21 +40,23 @@ func NewRvTo1(db *badger.DB, ctx context.Context) RvTo1 {
 func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving HelloRV30...")
 
+	var currentCmd fdoshared.FdoCmd = fdoshared.TO1_30_HELLO_RV
+
 	var testcomListener *listenertestsdeps.RequestListenerInst
-	if !fdoshared.CheckHeaders(w, r, fdoshared.TO1_30_HELLO_RV) {
+	if !fdoshared.CheckHeaders(w, r, currentCmd) {
 		return
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_30_HELLO_RV, "Failed to read body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to read body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
 	var helloRV30 fdoshared.HelloRV30
 	err = fdoshared.CborCust.Unmarshal(bodyBytes, &helloRV30)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_30_HELLO_RV, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -62,30 +64,30 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloRV30.Guid)
 	if err != nil {
-		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloRV30.Guid[:]), err.Error())
+		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloRV30.Guid[:]), err.Error())
 	}
 
-	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_30_HELLO_RV) {
-		if !testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_30_HELLO_RV) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
-			testcomListener.To1.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To1.ExpectedCmd, fdoshared.TO1_30_HELLO_RV))
+	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
+		if !testcomListener.To1.CheckExpectedCmd(currentCmd) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To1.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To1.ExpectedCmd, currentCmd))
 		} else if testcomListener.To1.CurrentTestIndex != 0 {
 			testcomListener.To1.PushSuccess()
 		}
 
-		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_30_HELLO_RV) {
+		if !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To1.GetNextTestID()
 		}
 
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_30_HELLO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 			return
 		}
 	}
 
 	_, err = h.ownersignDB.Get(helloRV30.Guid)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, fdoshared.TO1_30_HELLO_RV, "Could not find guid!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.RESOURCE_NOT_FOUND, currentCmd, "Could not find guid!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -100,7 +102,7 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_30_HELLO_RV, "Internal Server Error!", http.StatusInternalServerError, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal Server Error!", http.StatusInternalServerError, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -115,12 +117,12 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		helloRVAckBytes = fdoshared.Conf_RandomCborBufferFuzzing(helloRVAckBytes)
 	}
 
-	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_30_HELLO_RV) {
+	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To1.CheckExpectedCmd(currentCmd) {
 		testcomListener.To1.PushSuccess()
 		testcomListener.To1.CompleteCmdAndSetNext(fdoshared.TO1_32_PROVE_TO_RV)
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_30_HELLO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 			return
 		}
 	}
@@ -136,30 +138,32 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving ProveToRV32...")
 
+	var currentCmd fdoshared.FdoCmd = fdoshared.TO1_32_PROVE_TO_RV
+
 	var testcomListener *listenertestsdeps.RequestListenerInst
-	if !fdoshared.CheckHeaders(w, r, fdoshared.TO1_32_PROVE_TO_RV) {
+	if !fdoshared.CheckHeaders(w, r, currentCmd) {
 		return
 	}
 
-	headerIsOk, sessionId, authorizationHeader := fdoshared.ExtractAuthorizationHeader(w, r, fdoshared.TO1_32_PROVE_TO_RV)
+	headerIsOk, sessionId, authorizationHeader := fdoshared.ExtractAuthorizationHeader(w, r, currentCmd)
 	if !headerIsOk {
 		return
 	}
 
 	session, err := h.session.GetSessionEntry(sessionId)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Unauthorized", http.StatusUnauthorized, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Unauthorized", http.StatusUnauthorized, testcomListener, fdoshared.To1)
 		return
 	}
 
 	if session.Protocol != fdoshared.To1 {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Unauthorized", http.StatusUnauthorized, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Unauthorized", http.StatusUnauthorized, testcomListener, fdoshared.To1)
 		return
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to read body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to read body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -167,23 +171,23 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(session.Guid)
 	if err != nil {
-		log.Println("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
+		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
 	}
 
-	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_32_PROVE_TO_RV) {
-		if !testcomListener.To1.CheckExpectedCmd(fdoshared.TO1_32_PROVE_TO_RV) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
-			testcomListener.To1.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To1.ExpectedCmd, fdoshared.TO1_32_PROVE_TO_RV))
+	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
+		if !testcomListener.To1.CheckExpectedCmd(currentCmd) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To1.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To1.ExpectedCmd, currentCmd))
 		} else if testcomListener.To1.CurrentTestIndex != 0 {
 			testcomListener.To1.PushSuccess()
 		}
 
-		if !testcomListener.To1.CheckCmdTestingIsCompleted(fdoshared.TO1_32_PROVE_TO_RV) {
+		if !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To1.GetNextTestID()
 		}
 
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 			return
 		}
 	}
@@ -192,7 +196,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	err = fdoshared.CborCust.Unmarshal(bodyBytes, &proveToRV32)
 	if err != nil {
 		log.Println("Failed to decode proveToRV32 request: " + err.Error())
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -200,12 +204,12 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	err = fdoshared.CborCust.Unmarshal(proveToRV32.Payload, &pb)
 	if err != nil {
 		log.Println("Failed to decode proveToRV32 payload: " + err.Error())
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body payload!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body payload!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
 	if !bytes.Equal(pb.EatNonce[:], session.NonceTO1Proof[:]) {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, fmt.Sprintf("EatNonce is not set to NonceTO1Proof. Expected %s. Got %s", hex.EncodeToString(pb.EatNonce[:]), hex.EncodeToString(session.NonceTO1Proof[:])), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, fmt.Sprintf("EatNonce is not set to NonceTO1Proof. Expected %s. Got %s", hex.EncodeToString(pb.EatNonce[:]), hex.EncodeToString(session.NonceTO1Proof[:])), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -213,7 +217,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	savedOwnerSign, err := h.ownersignDB.Get(session.Guid)
 	if err != nil {
 		log.Println("Couldn't find item in database with guid" + err.Error())
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Server Error", http.StatusInternalServerError, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, "Server Error", http.StatusInternalServerError, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -222,20 +226,20 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error decoding To0d" + err.Error())
 
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
 	pkType, ok := fdoshared.SgTypeToFdoPkType[session.EASigInfo.SgType]
 	if !ok {
 		log.Println("ProveToRV32: Unknown signature type. ")
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 	err = fdoshared.VerifyCoseSignatureWithCertificate(proveToRV32, pkType, *to0d.OwnershipVoucher.OVDevCertChain)
 	if err != nil {
 		log.Println("ProveToRV32: Error verifying ProveToRV32 signature. " + err.Error())
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
 
@@ -254,7 +258,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		testcomListener.To1.CompleteTestRun()
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Conformance module failed to save result!", http.StatusInternalServerError, testcomListener, fdoshared.To1)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusInternalServerError, testcomListener, fdoshared.To1)
 			return
 		}
 	}

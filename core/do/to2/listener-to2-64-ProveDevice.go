@@ -70,9 +70,10 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	pkType, ok := fdoshared.SgTypeToFdoPkType[session.EASigInfo.SgType]
 	if !ok {
 		log.Println("ProveToRV32: Unknown signature type. ")
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO1_32_PROVE_TO_RV, "Error to verify signature ProveToRV32 ", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, "Error to verify signature ProveDevice64", http.StatusBadRequest, testcomListener, fdoshared.To1)
 		return
 	}
+
 	err = fdoshared.VerifyCoseSignatureWithCertificate(proveDevice64, pkType, *session.Voucher.OVDevCertChain)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Error validating cose signature with certificate..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
@@ -83,20 +84,20 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	var eatPayload fdoshared.EATPayloadBase
 	err = fdoshared.CborCust.Unmarshal(proveDevice64.Payload, &eatPayload)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error decoding EATPayload..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Error decoding EATPayload..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
 	// Verify Nonces
 	if !bytes.Equal(eatPayload.EatNonce[:], session.NonceTO2ProveDv61[:]) {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO2_64_PROVE_DEVICE, fmt.Sprintf("EatNonce is not set to NonceTO2ProveDv61. Expected %s. Got %s", hex.EncodeToString(eatPayload.EatNonce[:]), hex.EncodeToString(session.NonceTO2ProveDv61[:])), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, fmt.Sprintf("EatNonce is not set to NonceTO2ProveDv61. Expected %s. Got %s", hex.EncodeToString(eatPayload.EatNonce[:]), hex.EncodeToString(session.NonceTO2ProveDv61[:])), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
 	// KEX
 	sessionKey, err := fdoshared.DeriveSessionKey(session.XAKex, eatPayload.EatFDO.XBKeyExchange, false, privateKeyInst)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error generating session shSe..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Error generating session shSe..."+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -125,7 +126,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	// Response signature
 	setupDevice, err := fdoshared.GenerateCoseSignature(setupDevicePayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{}, privateKeyInst, session.SignatureType)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "ProveDevice64: Error generating setup device signature..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "ProveDevice64: Error generating setup device signature..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
@@ -142,14 +143,14 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	// Response encrypted
 	setupDeviceBytesEnc, err := fdoshared.AddEncryptionWrapping(setupDeviceBytes, *sessionKey, session.CipherSuiteName)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "ProveDevice64: Error encrypting..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "ProveDevice64: Error encrypting..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
 	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_64_BAD_ENC_WRAPPING {
 		setupDeviceBytesEnc, err = fdoshared.Conf_Fuzz_AddWrapping(setupDeviceBytesEnc, session.SessionKey, session.CipherSuiteName)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "Error encrypting..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error encrypting..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 			return
 		}
 	}
@@ -163,7 +164,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	session.PrevCMD = fdoshared.TO2_65_SETUP_DEVICE
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, fdoshared.TO2_64_PROVE_DEVICE, "ProveDevice64: Error saving session..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "ProveDevice64: Error saving session..."+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
