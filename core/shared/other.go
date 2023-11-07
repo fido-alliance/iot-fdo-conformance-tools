@@ -249,6 +249,7 @@ func TryCborUnmarshal(bodyBytes []byte, target interface{}) (*FdoError, error) {
 
 	return nil, nil
 }
+
 func NewRandomInt(min int, max int) int {
 	if min == max {
 		return min
@@ -298,7 +299,7 @@ func UrlToTOAddrEntry(inurl string) (*RVTO2AddrEntry, error) {
 
 	// FDO parsing
 	var tProt TransportProtocol = ProtHTTP
-	var selectedPort uint16 = 8080
+	var selectedPort uint16 = 80
 	if u.Scheme == "https" {
 		tProt = ProtHTTPS
 		selectedPort = 443
