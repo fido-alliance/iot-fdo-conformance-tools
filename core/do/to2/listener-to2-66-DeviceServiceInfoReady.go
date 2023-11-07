@@ -71,7 +71,6 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 	}
 
 	// ----- MAIN BODY ENDS ----- //
-
 	ownerServiceInfoReadyBytes, err := fdoshared.AddEncryptionWrapping(ownerServiceInfoReadyPayloadBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to encrypt OwnerServiceInfoReady. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)

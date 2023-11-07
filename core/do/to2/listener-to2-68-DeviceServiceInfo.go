@@ -99,7 +99,6 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	ownerServiceInfoBytes, _ := fdoshared.CborCust.Marshal(ownerServiceInfo)
 
 	// ----- MAIN BODY ENDS ----- //
-
 	ownerServiceInfoEncBytes, err := fdoshared.AddEncryptionWrapping(ownerServiceInfoBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
 		log.Println("DeviceServiceInfo68: Error encrypting..." + err.Error())

@@ -133,12 +133,12 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
 		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopDO)
 		if err != nil {
-			log.Println("IOT: Error getting authz header: " + err.Error())
+			log.Println("OwnerSign22: Error getting authz header: " + err.Error())
 		}
 
 		err = fdoshared.SubmitIopLoggerEvent(h.ctx, voucherHeader.OVGuid, fdoshared.To0, nonceTO0Sign, authzHeader)
 		if err != nil {
-			log.Println("IOT: Error sending iop logg event: " + err.Error())
+			log.Println("OwnerSign22: Error sending iop logg event: " + err.Error())
 		}
 	}
 

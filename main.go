@@ -303,7 +303,19 @@ func main() {
 							rvdns := to1dPayload.To1dRV[0].RVDNS
 							rvipd := to1dPayload.To1dRV[0].RVIP
 							rvport := to1dPayload.To1dRV[0].RVPort
-							log.Println("Success", *rvdns, *rvipd, rvport)
+
+							resultString := ""
+							if rvdns != nil {
+								resultString = resultString + fmt.Sprintf(" DNS: %s", *rvdns)
+							}
+
+							if rvipd != nil {
+								resultString = resultString + fmt.Sprintf(" IP: %s", *rvipd)
+							}
+
+							resultString = resultString + fmt.Sprintf(" Port: %d", rvport)
+
+							log.Println("Success", resultString)
 
 							return nil
 						},

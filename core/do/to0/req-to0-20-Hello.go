@@ -35,7 +35,7 @@ func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck
 
 	fdoErrInst, err := fdoshared.DecodeErrorResponse(resultBytes)
 	if err == nil {
-		return nil, nil, fmt.Errorf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
+		return nil, nil, fmt.Errorf("Hell20: Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
 	}
 
 	fdoError, err := fdoshared.TryCborUnmarshal(resultBytes, &helloAck21)

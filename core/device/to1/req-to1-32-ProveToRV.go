@@ -61,7 +61,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 	}
 
 	if err != nil {
-		return nil, nil, errors.New("HelloRV30: Error sending RV request: " + err.Error())
+		return nil, nil, errors.New("RVRedirect33: Error sending RV request: " + err.Error())
 	}
 
 	h.authzHeader = authzHeader
