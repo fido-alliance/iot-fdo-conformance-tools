@@ -120,9 +120,13 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		return nil, nil, fmt.Errorf("server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
 	}
 
-	err = fdoshared.CborCust.Unmarshal(resultBytes, &acceptOwner23)
+	fdoError, err := fdoshared.TryCborUnmarshal(resultBytes, &acceptOwner23)
 	if err != nil {
 		return nil, nil, errors.New("OwnerSign22: Failed to unmarshal AcceptOwner23. " + err.Error())
+	}
+
+	if fdoError != nil {
+		return nil, nil, errors.New("OwnerSign22: Received FDO Error: " + fdoError.Error())
 	}
 
 	voucherHeader, _ := h.voucherDBEntry.Voucher.GetOVHeader()

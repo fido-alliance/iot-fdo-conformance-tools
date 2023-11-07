@@ -64,9 +64,13 @@ func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, 
 	}
 
 	var done271 fdoshared.Done271
-	err = fdoshared.CborCust.Unmarshal(bodyBytes, &done271)
+	fdoError, err := fdoshared.TryCborUnmarshal(bodyBytes, &done271)
 	if err != nil {
 		return nil, nil, errors.New("Done70: Error decoding Done271... " + err.Error())
+	}
+
+	if fdoError != nil {
+		return nil, nil, errors.New("Done70: Received FDO Error: " + fdoError.Error())
 	}
 
 	if !bytes.Equal(done271.NonceTO2SetupDv[:], h.NonceTO2SetupDv64[:]) {

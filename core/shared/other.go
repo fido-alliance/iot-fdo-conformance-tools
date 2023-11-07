@@ -241,6 +241,14 @@ func DecodeErrorResponse(bodyBytes []byte) (*FdoError, error) {
 	return &errInst, nil
 }
 
+func TryCborUnmarshal(bodyBytes []byte, target interface{}) (*FdoError, error) {
+	err := CborCust.Unmarshal(bodyBytes, target)
+	if err != nil {
+		return DecodeErrorResponse(bodyBytes)
+	}
+
+	return nil, nil
+}
 func NewRandomInt(min int, max int) int {
 	if min == max {
 		return min

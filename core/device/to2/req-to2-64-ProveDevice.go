@@ -106,9 +106,13 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	}
 
 	var to2SetupDevicePayload fdoshared.TO2SetupDevicePayload
-	err = fdoshared.CborCust.Unmarshal(setupDevice.Payload, &to2SetupDevicePayload)
+	fdoError, err := fdoshared.TryCborUnmarshal(setupDevice.Payload, &to2SetupDevicePayload)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error decoding SetupDevice65 Payload... " + err.Error())
+	}
+
+	if fdoError != nil {
+		return nil, nil, errors.New("ProveDevice64: Received FDO Error: " + fdoError.Error())
 	}
 
 	if !bytes.Equal(to2SetupDevicePayload.NonceTO2SetupDv[:], h.NonceTO2SetupDv64[:]) {

@@ -44,9 +44,13 @@ func (h *To1Requestor) HelloRV30(fdoTestID testcom.FDOTestID) (*fdoshared.HelloR
 
 	h.authzHeader = authzHeader
 
-	err = fdoshared.CborCust.Unmarshal(resultBytes, &helloRVAck31)
+	fdoError, err := fdoshared.TryCborUnmarshal(resultBytes, &helloRVAck31)
 	if err != nil {
 		return nil, &testState, errors.New("HelloRV30: Failed to unmarshal HelloRvAck31. " + err.Error())
+	}
+
+	if fdoError != nil {
+		return nil, &testState, errors.New("HelloRV30: Received FDO Error: " + fdoError.Error())
 	}
 
 	return &helloRVAck31, &testState, nil

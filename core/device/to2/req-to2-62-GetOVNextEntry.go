@@ -42,9 +42,13 @@ func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTes
 	h.AuthzHeader = authzHeader
 
 	var nextEntry fdoshared.OVNextEntry63
-	err = fdoshared.CborCust.Unmarshal(resultBytes, &nextEntry)
+	fdoError, err := fdoshared.TryCborUnmarshal(resultBytes, &nextEntry)
 	if err != nil {
 		return nil, nil, errors.New("GetOVNextEntry64: Failed to unmarshal OVNextEntry63. " + err.Error())
+	}
+
+	if fdoError != nil {
+		return nil, nil, errors.New("GetOVNextEntry64: Received FDO Error: " + fdoError.Error())
 	}
 
 	return &nextEntry, &testState, nil

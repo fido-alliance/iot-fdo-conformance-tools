@@ -68,9 +68,13 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	h.ProveOVHdr61PubKey = *probableOwnerPubKey
 
 	var proveOvdrPayload fdoshared.TO2ProveOVHdrPayload
-	err = fdoshared.CborCust.Unmarshal(proveOVHdr61.Payload, &proveOvdrPayload)
+	fdoError, err := fdoshared.TryCborUnmarshal(proveOVHdr61.Payload, &proveOvdrPayload)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if fdoError != nil {
+		return nil, nil, errors.New("HelloDevice60: Received FDO Error: " + fdoError.Error())
 	}
 
 	err = proveOvdrPayload.EBSigInfo.Equal(helloDevice60.EASigInfo)

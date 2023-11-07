@@ -1,6 +1,7 @@
 package fdoshared
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -12,6 +13,10 @@ type FdoError struct {
 	EMErrorStr  string
 	EMErrorTs   FdoTimestamp
 	EMErrorCID  uint // CorrelationID
+}
+
+func (h *FdoError) Error() string {
+	return fmt.Sprintf("FDO Error: %d, %d, %s, %d, %d", h.EMErrorCode, h.EMPrevMsgID, h.EMErrorStr, h.EMErrorTs, h.EMErrorCID)
 }
 
 func NewFdoError(errorCode FdoErrorCode, prevMsgId FdoCmd, messageStr string) FdoError {

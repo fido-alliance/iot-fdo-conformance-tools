@@ -59,9 +59,13 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 	}
 
 	var ownerServiceInfoReady67 fdoshared.OwnerServiceInfoReady67
-	err = fdoshared.CborCust.Unmarshal(bodyBytes, &ownerServiceInfoReady67)
+	fdoError, err := fdoshared.TryCborUnmarshal(bodyBytes, &ownerServiceInfoReady67)
 	if err != nil {
 		return nil, nil, errors.New("DeviceServiceInfoReady66: Error decoding OwnerServiceInfoReady67... " + err.Error())
+	}
+
+	if fdoError != nil {
+		return nil, nil, errors.New("DeviceServiceInfoReady66: Received FDO Error: " + fdoError.Error())
 	}
 
 	return &ownerServiceInfoReady67, &testState, nil

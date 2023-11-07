@@ -38,9 +38,13 @@ func (h *To0Requestor) Hello20(fdoTestID testcom.FDOTestID) (*fdoshared.HelloAck
 		return nil, nil, fmt.Errorf("Server returned FDO error: %s %d", fdoErrInst.EMErrorStr, fdoErrInst.EMErrorCode)
 	}
 
-	err = fdoshared.CborCust.Unmarshal(resultBytes, &helloAck21)
+	fdoError, err := fdoshared.TryCborUnmarshal(resultBytes, &helloAck21)
 	if err != nil {
 		return nil, nil, errors.New("Hell20: Failed to unmarshal HelloAck21. " + err.Error())
+	}
+
+	if fdoError != nil {
+		return nil, nil, errors.New("Hell20: Received FDO Error: " + fdoError.Error())
 	}
 
 	return &helloAck21, &testState, nil
