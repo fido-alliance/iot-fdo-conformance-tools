@@ -58,7 +58,9 @@ func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) 
 func (h *DoTo2) getEnvInteropSimsMapping() (map[fdoshared.FdoGuid]string, error) {
 	mappings := map[fdoshared.FdoGuid]string{}
 
-	if h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED)
+
+	if iopEnabled != nil && iopEnabled.(bool) {
 		rawTokens := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_DO_TOKEN_MAPPING).(string)
 
 		var envMappings [][]string
