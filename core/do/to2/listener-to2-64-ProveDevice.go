@@ -103,12 +103,14 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 
 	// ----- RESPONSE ----- //
 
+	lastOvEntryPubKey, _ := session.Voucher.GetFinalOwnerPublicKey()
+
 	ownerHeader, _ := session.Voucher.GetOVHeader()
 	setupDevicePayload := fdoshared.TO2SetupDevicePayload{
-		RendezvousInfo:  []fdoshared.RendezvousInstrList{},
+		RendezvousInfo:  ownerHeader.OVRvInfo,
 		Guid:            session.Guid,
 		NonceTO2SetupDv: *proveDevice64.Unprotected.EUPHNonce,
-		Owner2Key:       ownerHeader.OVPublicKey,
+		Owner2Key:       lastOvEntryPubKey,
 	}
 
 	session.NonceTO2SetupDv64 = *proveDevice64.Unprotected.EUPHNonce

@@ -55,7 +55,7 @@ func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) 
 	return fdoshared.DecodeSims(sims)
 }
 
-func (h *DoTo2) getEnvInteropMappings() (map[fdoshared.FdoGuid]string, error) {
+func (h *DoTo2) getEnvInteropSimsMapping() (map[fdoshared.FdoGuid]string, error) {
 	mappings := map[fdoshared.FdoGuid]string{}
 
 	if h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
@@ -91,7 +91,7 @@ func (h *DoTo2) GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV,
 		// TODO
 	}
 
-	interopMappings, err := h.getEnvInteropMappings()
+	interopMappings, err := h.getEnvInteropSimsMapping()
 	if err != nil {
 		return nil, err
 	}
