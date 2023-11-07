@@ -34,6 +34,7 @@ func NewDoTo2(db *badger.DB, ctx context.Context) DoTo2 {
 		session:    sessionDb,
 		voucher:    voucherDb,
 		listenerDB: newListenerDb,
+		ctx:        ctx,
 	}
 }
 
