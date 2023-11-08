@@ -39,18 +39,14 @@ func NewDoTo2(db *badger.DB, ctx context.Context) DoTo2 {
 }
 
 func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) (*fdoshared.RESULT_SIMS, error) {
-	var mandatorySims fdoshared.SIM_IDS = []fdoshared.SIM_ID{}
-
+	deviceSimsIds := fdoshared.SIM_IDS{}
 	for _, module := range sims {
-		if !mandatorySims.Contains(module.ServiceInfoKey) && fdoshared.MANDATORY_SIMS.Contains(module.ServiceInfoKey) {
-			mandatorySims = append(mandatorySims, module.ServiceInfoKey)
-		} else if mandatorySims.Contains(module.ServiceInfoKey) && fdoshared.MANDATORY_SIMS.Contains(module.ServiceInfoKey) {
-			return nil, fmt.Errorf("duplicate SIM %s", module.ServiceInfoKey)
-		}
+		deviceSimsIds = append(deviceSimsIds, module.ServiceInfoKey)
 	}
 
-	if len(mandatorySims) != len(fdoshared.MANDATORY_SIMS) {
-		return nil, fmt.Errorf("missing mandatory SIMs")
+	delta := fdoshared.MANDATORY_SIMS.FindDelta(deviceSimsIds)
+	if len(delta) > 0 {
+		return nil, fmt.Errorf("missing mandatory SIMs: %v", delta.ToString())
 	}
 
 	return fdoshared.DecodeSims(sims)

@@ -411,13 +411,11 @@ func main() {
 								ServiceInfoVal: fdoshared.UintToBytes(1),
 							})
 
-							simids := deviceSims.GetSimIDs()
-							simids = append(simids, fdoshared.SIM_DEVMOD_MODULES)
-							simids = append(simids, fdoshared.IOPLOGGER_SIM)
-
 							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
 								ServiceInfoKey: fdoshared.SIM_DEVMOD_MODULES,
-								ServiceInfoVal: fdoshared.SimsListToBytes(simids),
+								ServiceInfoVal: fdoshared.SimsListToBytes(fdoshared.SIM_IDS{
+									fdoshared.IOPLOGGER_SIM,
+								}),
 							})
 
 							var ownerSims []fdoshared.ServiceInfoKV // TODO

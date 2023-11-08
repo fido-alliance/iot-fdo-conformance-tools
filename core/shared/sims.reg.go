@@ -64,6 +64,28 @@ func (h *SIM_IDS) Contains(id SIM_ID) bool {
 	return false
 }
 
+func (h *SIM_IDS) FindDelta(other SIM_IDS) SIM_IDS {
+	var delta SIM_IDS
+
+	for _, sim := range *h {
+		if !other.Contains(sim) {
+			delta = append(delta, sim)
+		}
+	}
+
+	return delta
+}
+
+func (h *SIM_IDS) ToString() string {
+	var str string = ""
+
+	for _, sim := range *h {
+		str += string(sim) + ","
+	}
+
+	return str
+}
+
 var MANDATORY_SIMS = SIM_IDS{
 	SIM_DEVMOD_ACTIVE,
 	SIM_DEVMOD_OS,
