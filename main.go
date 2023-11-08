@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -193,7 +194,6 @@ func main() {
 					return PreSeed(configdb, devbasedb)
 				},
 			},
-			{
 			{
 				Name: "decode_voucher",
 				Action: func(c *cli.Context) error {
