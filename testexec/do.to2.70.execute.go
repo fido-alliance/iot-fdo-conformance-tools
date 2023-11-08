@@ -71,7 +71,9 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 
 	for i, deviceSim := range deviceSims {
 		deviceInfo := fdoshared.DeviceServiceInfo68{
-			ServiceInfo:       &deviceSim,
+			ServiceInfo: []fdoshared.ServiceInfoKV{
+				deviceSim,
+			},
 			IsMoreServiceInfo: i+1 <= len(deviceSims),
 		}
 		_, _, err := to2requestor.DeviceServiceInfo68(deviceInfo, testcom.NULL_TEST)

@@ -66,8 +66,9 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		ownerServiceInfo.IsDone = false
 		ownerServiceInfo.IsMoreServiceInfo = false
 
-		session.DeviceSIMs = append(session.DeviceSIMs, deviceServiceInfo.ServiceInfo.(fdoshared.ServiceInfoKV))
-
+		for _, serviceInfo := range deviceServiceInfo.ServiceInfo {
+			session.DeviceSIMs = append(ownerServiceInfo.ServiceInfo, serviceInfo)
+		}
 	} else {
 		// Owner is sending its service info
 		if session.OwnerSIMsSendCounter == 0 {
@@ -91,7 +92,9 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 			ownerServiceInfo.IsDone = false
 			ownerServiceInfo.IsMoreServiceInfo = true
 		}
-		ownerServiceInfo.ServiceInfo = &session.OwnerSIMs[session.OwnerSIMsSendCounter]
+		ownerServiceInfo.ServiceInfo = []fdoshared.ServiceInfoKV{
+			session.OwnerSIMs[session.OwnerSIMsSendCounter],
+		}
 
 		session.OwnerSIMsSendCounter = session.OwnerSIMsSendCounter + 1
 	}

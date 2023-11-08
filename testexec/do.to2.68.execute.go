@@ -88,7 +88,9 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 
 			for i, deviceSim := range deviceSims {
 				deviceInfo := fdoshared.DeviceServiceInfo68{
-					ServiceInfo:       &deviceSim,
+					ServiceInfo: []fdoshared.ServiceInfoKV{
+						deviceSim,
+					},
 					IsMoreServiceInfo: i+1 <= len(deviceSims),
 				}
 				_, _, err := to2requestor.DeviceServiceInfo68(deviceInfo, testcom.NULL_TEST)
@@ -104,7 +106,7 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 			maxCounter := 255
 			for {
 				ownerSim, _, err := to2requestor.DeviceServiceInfo68(fdoshared.DeviceServiceInfo68{
-					ServiceInfo:       []string{},
+					ServiceInfo:       []fdoshared.ServiceInfoKV{},
 					IsMoreServiceInfo: false,
 				}, testcom.NULL_TEST)
 				if err != nil {
@@ -145,7 +147,9 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 				selectedTestId := testcom.NULL_TEST
 
 				deviceInfo := fdoshared.DeviceServiceInfo68{
-					ServiceInfo:       &deviceSim,
+					ServiceInfo: []fdoshared.ServiceInfoKV{
+						deviceSim,
+					},
 					IsMoreServiceInfo: i+1 <= len(deviceSims),
 				}
 
@@ -172,7 +176,10 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 				}
 
 				if testId == testcom.FIDO_DOT_68_BAD_COMPLETION_LOGIC && maxCounter != 255 {
-					getOwnerInfo.ServiceInfo = &deviceSims[fdoshared.NewRandomInt(0, len(deviceSims)-1)]
+					getOwnerInfo.ServiceInfo = []fdoshared.ServiceInfoKV{
+						deviceSims[fdoshared.NewRandomInt(0, len(deviceSims)-1)],
+					}
+
 					getOwnerInfo.IsMoreServiceInfo = true
 				}
 

@@ -60,14 +60,14 @@ type OwnerServiceInfoReady67 struct {
 type DeviceServiceInfo68 struct {
 	_                 struct{} `cbor:",toarray"`
 	IsMoreServiceInfo bool
-	ServiceInfo       interface{}
+	ServiceInfo       []ServiceInfoKV
 }
 
 type OwnerServiceInfo69 struct {
 	_                 struct{} `cbor:",toarray"`
 	IsMoreServiceInfo bool
 	IsDone            bool
-	ServiceInfo       interface{}
+	ServiceInfo       []ServiceInfoKV
 }
 
 type Done70 struct {

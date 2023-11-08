@@ -426,7 +426,9 @@ func main() {
 								log.Println("Sending DeviceServiceInfo68 for sim " + deviceSim.ServiceInfoKey)
 								log.Println(hex.EncodeToString(deviceSim.ServiceInfoVal))
 								_, _, err := to2inst.DeviceServiceInfo68(fdoshared.DeviceServiceInfo68{
-									ServiceInfo:       deviceSim,
+									ServiceInfo: []fdoshared.ServiceInfoKV{
+										deviceSim,
+									},
 									IsMoreServiceInfo: i+1 <= len(deviceSims),
 								}, testcom.NULL_TEST)
 								if err != nil {
@@ -437,7 +439,7 @@ func main() {
 
 							for {
 								ownerSim, _, err := to2inst.DeviceServiceInfo68(fdoshared.DeviceServiceInfo68{
-									ServiceInfo:       []string{},
+									ServiceInfo:       []fdoshared.ServiceInfoKV{},
 									IsMoreServiceInfo: false,
 								}, testcom.NULL_TEST)
 								if err != nil {
