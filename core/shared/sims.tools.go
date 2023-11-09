@@ -43,27 +43,27 @@ func GetDeviceOSSims() []ServiceInfoKV {
 		},
 		{
 			ServiceInfoKey: SIM_DEVMOD_OS,
-			ServiceInfoVal: []byte(runtime.GOOS),
+			ServiceInfoVal: StringToCborBytes(runtime.GOOS),
 		},
 		{
 			ServiceInfoKey: SIM_DEVMOD_ARCH,
-			ServiceInfoVal: []byte(runtime.GOARCH),
+			ServiceInfoVal: StringToCborBytes(runtime.GOARCH),
 		},
 		{
 			ServiceInfoKey: SIM_DEVMOD_VERSION,
-			ServiceInfoVal: []byte(runtime.Version()),
+			ServiceInfoVal: StringToCborBytes(runtime.Version()),
 		},
 		{
 			ServiceInfoKey: SIM_DEVMOD_DEVICE,
-			ServiceInfoVal: []byte("FIDO Device Onboard Virtual Device"),
+			ServiceInfoVal: StringToCborBytes("FIDO Device Onboard Virtual Device"),
 		},
 		{
 			ServiceInfoKey: SIM_DEVMOD_SEP,
-			ServiceInfoVal: []byte(";"),
+			ServiceInfoVal: StringToCborBytes(";"),
 		},
 		{
 			ServiceInfoKey: SIM_DEVMOD_BIN,
-			ServiceInfoVal: []byte(runtime.GOARCH),
+			ServiceInfoVal: StringToCborBytes(runtime.GOARCH),
 		},
 	}
 }
@@ -196,11 +196,12 @@ func DecodeSims(sims []ServiceInfoKV) (*RESULT_SIMS, error) {
 	return &result, nil
 }
 
-func CastServiceInfo(serviceInfoIntf interface{}) ServiceInfoKV {
-	return serviceInfoIntf.(ServiceInfoKV)
+func UintToCborBytes(val uint) []byte {
+	result, _ := cbor.Marshal(val)
+	return result
 }
 
-func UintToBytes(val uint) []byte {
+func StringToCborBytes(val string) []byte {
 	result, _ := cbor.Marshal(val)
 	return result
 }

@@ -117,9 +117,9 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 					return
 				}
 
-				log.Println("Receiving OwnerSim DeviceServiceInfo68 " + fdoshared.CastServiceInfo(ownerSim.ServiceInfo).ServiceInfoKey)
+				log.Println("Receiving OwnerSim DeviceServiceInfo68")
 
-				ownerSims = append(ownerSims, fdoshared.CastServiceInfo(ownerSim.ServiceInfo))
+				ownerSims = append(ownerSims, ownerSim.ServiceInfo...)
 
 				if ownerSim.IsDone {
 					break

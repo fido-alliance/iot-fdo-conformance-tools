@@ -99,7 +99,7 @@ func (h *DoTo2) GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV,
 	if ok {
 		ownerSims = append(ownerSims, fdoshared.ServiceInfoKV{
 			ServiceInfoKey: fdoshared.IOPLOGGER_SIM,
-			ServiceInfoVal: []byte(iopSIMVal),
+			ServiceInfoVal: fdoshared.StringToCborBytes(iopSIMVal),
 		})
 	}
 

@@ -92,7 +92,7 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 			return nil, err
 		}
 
-		ownerSims = append(ownerSims, fdoshared.CastServiceInfo(ownerSim.ServiceInfo))
+		ownerSims = append(ownerSims, ownerSim.ServiceInfo...)
 
 		if ownerSim.IsDone {
 			break
