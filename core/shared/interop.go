@@ -6,6 +6,8 @@ import (
 )
 
 var IOPLOGGER_SIM SIM_ID = "fido_alliance:dev_conformance"
+var IOPLOGGER_SIM_NAME SIM_ID = "fido_alliance"
+
 var IOPLOGGER_LOGGER_PATH = "/logger/101/msg/"
 
 var IOPLOGGER_LOGGER_CMD FdoCmd = 10

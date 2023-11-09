@@ -68,7 +68,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 
 		session.DeviceSIMs = append(session.DeviceSIMs, deviceServiceInfo.ServiceInfo...)
 	} else {
-		// Owner is sending its service info
+		// Owner is now sending its service info
 		if session.OwnerSIMsSendCounter == 0 {
 			resultSims, err := ValidateDeviceSIMs(session.Guid, session.DeviceSIMs)
 			if err != nil {

@@ -152,10 +152,37 @@ func DecodeSims(sims []ServiceInfoKV) (*RESULT_SIMS, error) {
 			}
 
 		case SIM_DEVMOD_MODULES:
-			var devModVal []string
+			if result.SIM_DEVMOD_MODULES == nil {
+				result.SIM_DEVMOD_MODULES = &[]string{}
+			}
+
+			var devModVal []interface{}
 			err = cbor.Unmarshal(sim.ServiceInfoVal, &devModVal)
 			if err == nil {
-				result.SIM_DEVMOD_MODULES = &devModVal
+				if len(devModVal) < 3 {
+					return nil, fmt.Errorf("invalid SIM_DEVMOD_MODULES")
+				}
+
+				_, ok := devModVal[0].(uint)
+				if !ok {
+					return nil, fmt.Errorf("invalid SIM_DEVMOD_MODULES. First element must be uint")
+				}
+
+				_, ok = devModVal[1].(uint)
+				if !ok {
+					return nil, fmt.Errorf("invalid SIM_DEVMOD_MODULES. Second element must be uint")
+				}
+
+				restItems := devModVal[2:]
+
+				for _, item := range restItems {
+					itemStr, ok := item.(string)
+					if !ok {
+						return nil, fmt.Errorf("invalid SIM_DEVMOD_MODULES. Item must be string")
+					}
+
+					*result.SIM_DEVMOD_MODULES = append(*result.SIM_DEVMOD_MODULES, itemStr)
+				}
 			}
 
 			// TODO: Optional modules
@@ -179,6 +206,15 @@ func UintToBytes(val uint) []byte {
 }
 
 func SimsListToBytes(sims SIM_IDS) []byte {
-	result, _ := cbor.Marshal(sims)
+	var resultList []interface{} = []interface{}{
+		0,
+		uint(len(sims)),
+	}
+
+	for _, sim := range sims {
+		resultList = append(resultList, sim)
+	}
+
+	result, _ := cbor.Marshal(resultList)
 	return result
 }

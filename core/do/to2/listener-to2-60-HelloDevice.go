@@ -154,6 +154,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		NumOVEntries:             uint8(NumOVEntries),
 		OwnerSIMsFinishedSending: false,
 		OwnerSIMsSendCounter:     0,
+		OwnerSIMs:                []fdoshared.ServiceInfoKV{},
 	}
 
 	sessionId, err := h.session.NewSessionEntry(newSessionInst)

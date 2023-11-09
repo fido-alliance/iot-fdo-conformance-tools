@@ -414,7 +414,7 @@ func main() {
 							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
 								ServiceInfoKey: fdoshared.SIM_DEVMOD_MODULES,
 								ServiceInfoVal: fdoshared.SimsListToBytes(fdoshared.SIM_IDS{
-									fdoshared.IOPLOGGER_SIM,
+									fdoshared.IOPLOGGER_SIM_NAME,
 								}),
 							})
 
