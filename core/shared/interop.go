@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+var IOPLOGGER_SIM_ACTIVE SIM_ID = "fido_alliance:active"
 var IOPLOGGER_SIM SIM_ID = "fido_alliance:dev_conformance"
 var IOPLOGGER_SIM_NAME SIM_ID = "fido_alliance"
 

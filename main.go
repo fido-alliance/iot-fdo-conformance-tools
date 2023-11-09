@@ -418,7 +418,7 @@ func main() {
 								}),
 							})
 
-							var ownerSims []fdoshared.ServiceInfoKV // TODO
+							var ownerSims fdoshared.SIMS // TODO
 
 							for i, deviceSim := range deviceSims {
 								log.Println("Sending DeviceServiceInfo68 for sim " + deviceSim.ServiceInfoKey)
@@ -445,9 +445,12 @@ func main() {
 									return nil
 								}
 
-								log.Println("Receiving OwnerSim DeviceServiceInfo68")
-
 								ownerSims = append(ownerSims, ownerSim.ServiceInfo...)
+
+								for _, ownerSim := range ownerSims {
+									log.Println("Receiving OwnerSim DeviceServiceInfo68: " + ownerSim.ServiceInfoKey)
+								}
+
 								if ownerSim.IsDone {
 									break
 								}
@@ -464,7 +467,7 @@ func main() {
 							// FDO Interop
 							iopEnabled := ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
 							if iopEnabled {
-								authzval, ok := fdoshared.GetSim(ownerSims, fdoshared.IOPLOGGER_SIM)
+								authzval, ok := ownerSims.GetSim(fdoshared.IOPLOGGER_SIM)
 								if !ok {
 									log.Println("IOP logger not found in owner sims")
 									return nil

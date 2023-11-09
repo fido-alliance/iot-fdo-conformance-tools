@@ -97,10 +97,18 @@ func (h *DoTo2) GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV,
 
 	iopSIMVal, ok := interopMappings[guid]
 	if ok {
-		ownerSims = append(ownerSims, fdoshared.ServiceInfoKV{
-			ServiceInfoKey: fdoshared.IOPLOGGER_SIM,
-			ServiceInfoVal: fdoshared.StringToCborBytes(iopSIMVal),
-		})
+		ownerSims = append(ownerSims,
+			[]fdoshared.ServiceInfoKV{
+				{
+					ServiceInfoKey: fdoshared.IOPLOGGER_SIM_ACTIVE,
+					ServiceInfoVal: fdoshared.CBOR_TRUE,
+				},
+				{
+					ServiceInfoKey: fdoshared.IOPLOGGER_SIM,
+					ServiceInfoVal: fdoshared.StringToCborBytes(iopSIMVal),
+				},
+			}...)
+
 	}
 
 	// TODO
