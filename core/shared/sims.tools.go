@@ -207,7 +207,7 @@ func UintToBytes(val uint) []byte {
 
 func SimsListToBytes(sims SIM_IDS) []byte {
 	var resultList []interface{} = []interface{}{
-		0,
+		1,
 		uint(len(sims)),
 	}
 
