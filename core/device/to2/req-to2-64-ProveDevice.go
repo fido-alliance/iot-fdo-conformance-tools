@@ -1,7 +1,6 @@
 package to2
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
@@ -115,9 +114,16 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		return nil, nil, errors.New("ProveDevice64: Received FDO Error: " + fdoError.Error())
 	}
 
-	if !bytes.Equal(to2SetupDevicePayload.NonceTO2SetupDv[:], h.NonceTO2SetupDv64[:]) {
+	if !to2SetupDevicePayload.NonceTO2SetupDv.Equals(h.NonceTO2SetupDv64) {
 		return nil, nil, errors.New("ProveDevice64: NonceTO2SetupDv64 nonces don't match...")
 	}
+
+	err = to2SetupDevicePayload.Validate()
+	if err != nil {
+		return nil, nil, errors.New("ProveDevice64: Error validating SetupDevice65 Payload... " + err.Error())
+	}
+
+	h.CredentialReuse = to2SetupDevicePayload.IsCredentialReuse(h.Credential.DCGuid)
 
 	return &to2SetupDevicePayload, &testState, nil
 }

@@ -16,6 +16,11 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 		ReplacementHMac:       &h.OvHmac,
 		MaxOwnerServiceInfoSz: &MaxOwnerServiceInfoSize,
 	}
+
+	if h.CredentialReuse {
+		deviceSrvInfoReady.ReplacementHMac = nil
+	}
+
 	deviceSrvInfoReadyBytes, _ := fdoshared.CborCust.Marshal(deviceSrvInfoReady)
 
 	if fdoTestID == testcom.FIDO_DOT_66_BAD_SRVINFO_PAYLOAD {

@@ -1,5 +1,7 @@
 package fdoshared
 
+import "fmt"
+
 type HelloDevice60 struct {
 	_                    struct{} `cbor:",toarray"`
 	MaxDeviceMessageSize uint16
@@ -39,11 +41,23 @@ type ProveDevice64 = CoseSignature // EAToken
 type SetupDevice65 = CoseSignature
 
 type TO2SetupDevicePayload struct {
-	_               struct{} `cbor:",toarray"`
-	RendezvousInfo  []RendezvousInstrList
-	Guid            FdoGuid
-	NonceTO2SetupDv FdoNonce
-	Owner2Key       FdoPublicKey
+	_                    struct{} `cbor:",toarray"`
+	RendezvousInfo       []RendezvousInstrList
+	ReplacementGuid      FdoGuid
+	NonceTO2SetupDv      FdoNonce
+	ReplacementOwner2Key FdoPublicKey
+}
+
+func (h *TO2SetupDevicePayload) Validate() error {
+	if len(h.RendezvousInfo) == 0 {
+		return fmt.Errorf("TO2SetupDevicePayload: RendezvousServerInfo is empty")
+	}
+
+	return nil
+}
+
+func (h *TO2SetupDevicePayload) IsCredentialReuse(oldGuid FdoGuid) bool {
+	return h.ReplacementGuid.Equals(oldGuid)
 }
 
 type DeviceServiceInfoReady66 struct {

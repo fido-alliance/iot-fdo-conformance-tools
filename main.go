@@ -408,7 +408,7 @@ func main() {
 
 							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
 								ServiceInfoKey: fdoshared.SIM_DEVMOD_NUMMODULES,
-								ServiceInfoVal: fdoshared.UintToBytes(1),
+								ServiceInfoVal: fdoshared.UintToCborBytes(1),
 							})
 
 							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
@@ -445,9 +445,9 @@ func main() {
 									return nil
 								}
 
-								log.Println("Receiving OwnerSim DeviceServiceInfo68 " + fdoshared.CastServiceInfo(ownerSim.ServiceInfo).ServiceInfoKey)
+								log.Println("Receiving OwnerSim DeviceServiceInfo68")
 
-								ownerSims = append(ownerSims, fdoshared.CastServiceInfo(ownerSim.ServiceInfo))
+								ownerSims = append(ownerSims, ownerSim.ServiceInfo...)
 								if ownerSim.IsDone {
 									break
 								}

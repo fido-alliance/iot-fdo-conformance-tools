@@ -1,12 +1,17 @@
 package fdoshared
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/pem"
 )
 
 type FdoNonce [16]byte
+
+func (h *FdoNonce) Equals(other FdoNonce) bool {
+	return bytes.Equal(h[:], other[:])
+}
 
 func NewFdoNonce() FdoNonce {
 	nonceBuff := make([]byte, 16)

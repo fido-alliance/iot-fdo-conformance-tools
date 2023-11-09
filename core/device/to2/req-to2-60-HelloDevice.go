@@ -55,7 +55,7 @@ func (h *To2Requestor) HelloDevice60(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	var proveOVHdr61 fdoshared.CoseSignature
 	err = fdoshared.CborCust.Unmarshal(resultBytes, &proveOVHdr61)
 	if err != nil {
-		return nil, nil, errors.New("HelloDevice60: Failed to unmarshal HelloRVAck31. " + err.Error())
+		return nil, nil, errors.New("HelloDevice60: Failed to unmarshal ProveOVHdr61. " + err.Error())
 	}
 
 	// Signature verification
