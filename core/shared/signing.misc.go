@@ -269,3 +269,10 @@ var SgTypeInfoMap = map[DeviceSgType]SgTypeInfo{
 		HmacType: HASH_HMAC_SHA384,
 	},
 }
+
+var PkToSgType = map[FdoPkType]DeviceSgType{
+	SECP256R1:    StSECP256R1,
+	SECP384R1:    StSECP384R1,
+	RSA2048RESTR: StRSA2048,
+	RSAPKCS:      StRSA3072,
+}

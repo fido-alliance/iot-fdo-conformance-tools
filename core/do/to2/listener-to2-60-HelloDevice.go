@@ -95,11 +95,6 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sgTypeInfo.PkType != voucherHeader.OVPublicKey.PkType {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Public key type and sgInfo mismatch...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
-		return
-	}
-
 	// Generating response
 	NumOVEntries := len(voucherDBEntry.Voucher.OVEntryArray)
 	proveOVHdrPayload := fdoshared.TO2ProveOVHdrPayload{
@@ -140,6 +135,12 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		CUPHOwnerPubKey: &lastOwnerPubKey,
 	}
 
+	signatureSgType, ok := fdoshared.PkToSgType[lastOwnerPubKey.PkType]
+	if !ok {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Unsupported pkType...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		return
+	}
+
 	newSessionInst := dbs.SessionEntry{
 		Protocol: fdoshared.To2,
 		PrevCMD:  fdoshared.TO2_61_PROVE_OVHDR,
@@ -154,6 +155,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		PrivateKeyDER:   voucherDBEntry.PrivateKeyX509,
 		CipherSuiteName: helloDevice.CipherSuiteName,
 		PublicKeyType:   voucherHeader.OVPublicKey.PkType,
+		SignatureSgType: signatureSgType,
 		Guid:            helloDevice.Guid,
 		Voucher:         voucherDBEntry.Voucher, // Stored twice in db, much more accessible from here
 
@@ -180,7 +182,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helloAck, err := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, proveOVHdrUnprotectedHeader, privateKeyInst, helloDevice.EASigInfo.SgType)
+	helloAck, err := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, proveOVHdrUnprotectedHeader, privateKeyInst, signatureSgType)
 	if err != nil {
 		log.Println("HelloDevice60: Error generating cose signature..." + err.Error())
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating cose signature.", http.StatusInternalServerError, testcomListener, fdoshared.To2)
