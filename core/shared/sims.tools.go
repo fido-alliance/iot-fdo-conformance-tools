@@ -165,12 +165,12 @@ func DecodeSims(sims []ServiceInfoKV) (*RESULT_SIMS, error) {
 					return nil, fmt.Errorf("invalid SIM_DEVMOD_MODULES")
 				}
 
-				_, ok := devModVal[0].(uint)
+				_, ok := devModVal[0].(uint64)
 				if !ok {
 					return nil, fmt.Errorf("invalid SIM_DEVMOD_MODULES. First element must be uint")
 				}
 
-				_, ok = devModVal[1].(uint)
+				_, ok = devModVal[1].(uint64)
 				if !ok {
 					return nil, fmt.Errorf("invalid SIM_DEVMOD_MODULES. Second element must be uint")
 				}

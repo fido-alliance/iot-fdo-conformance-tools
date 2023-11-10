@@ -90,8 +90,11 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 			ownerServiceInfo.IsDone = false
 			ownerServiceInfo.IsMoreServiceInfo = true
 		}
-		ownerServiceInfo.ServiceInfo = []fdoshared.ServiceInfoKV{
-			session.OwnerSIMs[session.OwnerSIMsSendCounter],
+
+		ownerServiceInfo.ServiceInfo = []fdoshared.ServiceInfoKV{}
+
+		if int(session.OwnerSIMsSendCounter)+1 <= len(session.OwnerSIMs) {
+			ownerServiceInfo.ServiceInfo = append(ownerServiceInfo.ServiceInfo, session.OwnerSIMs[session.OwnerSIMsSendCounter])
 		}
 
 		session.OwnerSIMsSendCounter = session.OwnerSIMsSendCounter + 1
