@@ -184,6 +184,10 @@ func (h FdoIPAddress) IsValid() bool {
 	return true
 }
 
+func (h *FdoIPAddress) String() string {
+	return net.IP(*h).String()
+}
+
 func FdoIPAddressV4FromString(ipv4Str string) (FdoIPAddress, error) {
 	ipv4BytesParts := strings.Split(ipv4Str, ".")
 	result := FdoIPAddress{0x00, 0x00, 0x00, 0x00}

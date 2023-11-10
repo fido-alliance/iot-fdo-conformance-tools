@@ -310,7 +310,7 @@ func main() {
 							}
 
 							if rvipd != nil {
-								resultString = resultString + fmt.Sprintf(" IP: %s", *rvipd)
+								resultString = resultString + fmt.Sprintf(" IP: %s", rvipd.String())
 							}
 
 							resultString = resultString + fmt.Sprintf(" Port: %d", rvport)
