@@ -79,7 +79,7 @@ func VerifySignature(payload []byte, signature []byte, publicKeyInst interface{}
 
 		pubKeyCasted, ok := publicKeyInst.(*ecdsa.PublicKey)
 		if !ok {
-			return errors.New("error verifying SECP384R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
+			return errors.New("error verifying SECP256R1 cose signature. Could not cast pubKey instance to ECDSA PubKey")
 		}
 
 		payloadHash := sha256.Sum256(payload)
@@ -270,6 +270,10 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 			return nil, errors.New("error generating ES256 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
 		}
 
+		if privKeyCasted.PublicKey.Curve.Params().Name != "P-256" {
+			return nil, errors.New("error generating ES256 cose signature. Private key curve is not P-256")
+		}
+
 		r, s, err := ecdsa.Sign(rand.Reader, privKeyCasted, payloadHash[:])
 		if err != nil {
 			return nil, errors.New("error generating ES256 cose signature. " + err.Error())
@@ -293,6 +297,10 @@ func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotecte
 		privKeyCasted, ok := privateKeyInterface.(*ecdsa.PrivateKey)
 		if !ok {
 			return nil, errors.New("error generating ES384 cose signature. Could not cast privKey instance to ECDSA PrivateKey")
+		}
+
+		if privKeyCasted.PublicKey.Curve.Params().Name != "P-384" {
+			return nil, errors.New("error generating ES384 cose signature. Private key curve is not P-384")
 		}
 
 		r, s, err := ecdsa.Sign(rand.Reader, privKeyCasted, payloadHash[:])

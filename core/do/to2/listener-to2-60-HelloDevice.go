@@ -95,6 +95,12 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if sgTypeInfo.PkType != voucherHeader.OVPublicKey.PkType {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Public key type and sgInfo mismatch...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		return
+	}
+
+	// Generating response
 	NumOVEntries := len(voucherDBEntry.Voucher.OVEntryArray)
 	proveOVHdrPayload := fdoshared.TO2ProveOVHdrPayload{
 		OVHeader:            voucherDBEntry.Voucher.OVHeaderTag,
@@ -176,7 +182,8 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 
 	helloAck, err := fdoshared.GenerateCoseSignature(proveOVHdrPayloadBytes, fdoshared.ProtectedHeader{}, proveOVHdrUnprotectedHeader, privateKeyInst, helloDevice.EASigInfo.SgType)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating cose signature...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		log.Println("HelloDevice60: Error generating cose signature..." + err.Error())
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Error generating cose signature.", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 

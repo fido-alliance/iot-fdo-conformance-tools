@@ -340,6 +340,7 @@ func main() {
 								return err
 							}
 
+							log.Println("Starting HelloDevice60")
 							to2inst := to2.NewTo2Requestor(fdoshared.SRVEntry{
 								SrvURL: url,
 							}, *wawcred, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM)
