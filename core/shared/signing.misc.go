@@ -30,10 +30,8 @@ type CoseSignature struct {
 }
 
 type EATPayloadBase struct {
-	// EatFDO   []byte   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
-	// EatFDO   `cbor:"-257,keyasint,omitempty"` // TODO change TYPE??
 	EatNonce FdoNonce              `cbor:"10,keyasint,omitempty"`
-	EatUEID  [17]byte              `cbor:"11,keyasint,omitempty"`
+	EatUEID  [17]byte              `cbor:"256,keyasint,omitempty"`
 	EatFDO   TO2ProveDevicePayload `cbor:"-257,keyasint,omitempty"`
 }
 
