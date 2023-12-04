@@ -9,7 +9,6 @@ import (
 	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
 	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
 	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
-	"github.com/fido-alliance/fdo-fido-conformance-server/services"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -18,7 +17,6 @@ const ONPREM_CONFIG string = "tester@fido.local"
 type UserAPI struct {
 	UserDB    *dbs.UserTestDB
 	SessionDB *dbs.SessionDB
-	Notify    *services.NotifyService
 }
 
 func isEmailValid(e string) bool {

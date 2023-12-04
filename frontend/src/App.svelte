@@ -1,6 +1,5 @@
 <script lang="ts">
     import Login from './routes/Login.svelte'
-    import Register from './routes/Register.svelte'
     import NotFound from './routes/NotFound.svelte'
     import FdoDashboard from './routes/FdoDashboard.svelte';
     import OnlineMenu from './routes/OnlineMenu.svelte';
@@ -9,32 +8,19 @@
     import Rv from './routes/RV.fdo.svelte';
     import Do from './routes/DO.fdo.svelte';
     import Device from './routes/Device.fdo.svelte';
-    import Builds from './routes/Builds.svelte';
-    import ErrorNotVerified from './routes/ErrorNotVerified.svelte';
-    import PasswordResetInit from './routes/PasswordResetInit.svelte';
-    import PasswordResetApply from './routes/PasswordResetApply.svelte';
-    import AdditionalInfo from './routes/AdditionalInfo.svelte';
-    import ErrorEmailValidation from './routes/ErrorEmailValidation.svelte';
 
     let routes = {
         "/": Login,
-        "/register": Register,
-        "/register/additionalinfo": AdditionalInfo,
         "/login": Login,
         "/test": FdoDashboard,
         "/menu": OnlineMenu,
-        "/builds": Builds,
         "/test/rv": Rv,
         "/test/do": Do,
         "/test/device": Device,
-        "/resetpassword/apply": PasswordResetApply,
-        "/resetpassword": PasswordResetInit,
-        "/error/notverified": ErrorNotVerified,
-        "/error/emailvalidation": ErrorEmailValidation,
         "*": NotFound,
     }
 
-    let mode: string = ""
+    let mode: string = "onprem"
     
     const handleLogout = async () => {
         await logout()
@@ -68,9 +54,7 @@
         {/if}
 
         {#if $location === "/login" || $location === "/"}
-            {#if mode !== "onprem"}
-                <li><a href="/#/register" class="button primary">Register</a></li>
-            {/if}
+
         {:else if $location === "/register"}
             <li><a href="/#/login" class="button primary">Login</a></li>
         {:else}
