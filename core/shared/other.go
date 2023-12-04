@@ -388,3 +388,10 @@ func UrlsToRendezvousInstrList(urls []string) ([]RendezvousInstrList, error) {
 
 	return rvInfoList, nil
 }
+
+func GenerateEatGuid(fdoGuid FdoGuid) [17]byte {
+	var result [17]byte
+	copy(result[:], append([]byte{0x01}, fdoGuid[:]...))
+
+	return result
+}

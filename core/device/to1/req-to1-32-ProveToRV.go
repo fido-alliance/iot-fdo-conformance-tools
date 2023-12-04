@@ -12,6 +12,7 @@ func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestI
 
 	var proveToRV32Payload fdoshared.EATPayloadBase = fdoshared.EATPayloadBase{
 		EatNonce: helloRVAck31.NonceTO1Proof,
+		EatUEID:  fdoshared.GenerateEatGuid(h.credential.DCGuid),
 	}
 
 	if fdoTestID == testcom.FIDO_DEVT_32_BAD_TO1PROOF_NONCE {

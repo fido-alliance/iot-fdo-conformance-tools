@@ -39,6 +39,7 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	eatPayload := fdoshared.EATPayloadBase{
 		EatNonce: h.NonceTO2ProveDv61,
 		EatFDO:   to2ProveDevicePayload,
+		EatUEID:  fdoshared.GenerateEatGuid(h.Credential.DCGuid),
 	}
 
 	if fdoTestID == testcom.FIDO_DOT_64_BAD_NONCE_PROVEDV61 {
