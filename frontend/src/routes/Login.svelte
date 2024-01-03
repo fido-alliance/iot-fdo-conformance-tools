@@ -1,25 +1,17 @@
 <script lang="ts">
     import svelteLogo from '../assets/FIDO_Alliance_logo_black_RGB.webp'
-    import {login, isLoggedIn, getConfig, loginOnprem} from '../lib/User.api'
+    import {login, isLoggedIn, loginOnprem} from '../lib/User.api'
     import {push} from "svelte-spa-router"
 
     let email: string = ""
     let password: string = ""
     let errorMsg: string = ""
-    let mode: string = ""
 
     const handleLogin = async (e) => {
         e.preventDefault()
         errorMsg = ""
         
-        let prom = undefined
-        if (mode == "online") {
-            prom = login(email, password)
-        } else {
-            prom = loginOnprem()
-        }
-        
-        await prom
+        await loginOnprem()
         .then(() => {
             errorMsg = "Successfully logged in"
             window.setTimeout(() => push("/test"), 1000)
@@ -31,15 +23,8 @@
 
     isLoggedIn()
     .then(async (isActually) => {
-        const cfg = await getConfig()
-        mode = cfg.mode;
-
         if (isActually) {
-            if (mode === "onprem") {
-                push("/test")
-            } else {
-                push("/menu")
-            }
+            push("/test")
         }
     })
     
@@ -61,15 +46,6 @@
 
             <form method="post" action="#">
                 <div class="row gtr-uniform">
-                    {#if mode === "online"}
-                        <div class="col-6 col-12-xsmall">
-                            <input class="login_input" bind:value={email} type="text" placeholder="Email">
-                        </div>
-                        <div class="col-6 col-12-xsmall">
-                            <input class="login_input" bind:value={password} type="password" placeholder="Password">
-                        </div>
-                    {/if}
-                    
                     <div class="col-9">
                         <ul class="actions">
                             <li><input type="submit" on:click={handleLogin} value="Login" class="primary" /></li>

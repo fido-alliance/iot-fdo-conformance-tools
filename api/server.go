@@ -82,7 +82,6 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
 	r.HandleFunc("/api/user/logout", userApiHandler.Logout)
 	r.HandleFunc("/api/user/purgetests", userApiHandler.PurgeTests)
-	r.HandleFunc("/api/user/config", userApiHandler.Config)
 
 	if ctx.Value(fdoshared.CFG_DEV_ENV) == fdoshared.CFG_ENV_DEV {
 		r.PathPrefix("/").HandlerFunc(ProxyDevUI)

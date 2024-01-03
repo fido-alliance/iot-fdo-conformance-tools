@@ -2,21 +2,21 @@
     import Login from './routes/Login.svelte'
     import NotFound from './routes/NotFound.svelte'
     import FdoDashboard from './routes/FdoDashboard.svelte';
-    import OnlineMenu from './routes/OnlineMenu.svelte';
-    import {getConfig, logout} from './lib/User.api'
+    import {logout} from './lib/User.api'
     import Router, {location, push} from "svelte-spa-router"
     import Rv from './routes/RV.fdo.svelte';
     import Do from './routes/DO.fdo.svelte';
     import Device from './routes/Device.fdo.svelte';
+    import Iop from './routes/IOP.svelte';
 
     let routes = {
         "/": Login,
         "/login": Login,
         "/test": FdoDashboard,
-        "/menu": OnlineMenu,
         "/test/rv": Rv,
         "/test/do": Do,
         "/test/device": Device,
+        "/iop/": Iop,
         "*": NotFound,
     }
 
@@ -26,11 +26,6 @@
         await logout()
         push('/login')
     }
-
-    getConfig()
-    .then((conf) => {
-        mode = conf.mode;
-    })
 </script>
 
 
@@ -47,10 +42,6 @@
 
         {#if $location.startsWith("/test/")}
             <li><a href="/#/test" class="button primary">Back to Dashboard</a></li>
-        {/if}
-
-        {#if mode === "online" && ($location === "/test" || $location === "/builds")}
-            <li><a href="/#/menu" class="button primary">Back to main menu</a></li>
         {/if}
 
         {#if $location === "/login" || $location === "/"}
@@ -75,7 +66,7 @@
           <li><a href="https://twitter.com/fidoalliance" class="icon brands fa-twitter alt"><span class="label">Twitter</span></a></li>
           <li><a href="https://github.com/fido-alliance" class="icon brands fa-github alt"><span class="label">GitHub</span></a></li>
         </ul>
-        <p class="copyright" style="text-align: left;">&copy; 2022 <a href="https://fidoalliance.org/">FIDO Alliance, Inc</a>. Designed by Yuriy Ackermann.</p>
+        <p class="copyright" style="text-align: left;">&copy; 2022 - {(new Date()).getFullYear()} <a href="https://fidoalliance.org/">FIDO Alliance, Inc</a>. Designed by Yuriy Ackermann.</p>
       </section>
     </footer>
 </div>

@@ -45,17 +45,6 @@ func (h *UserAPI) UserLoggedIn(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *UserAPI) Config(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)
-		return
-	}
-
-	commonapi.RespondSuccessStruct(w, commonapi.User_Config{
-		Mode: "onprem",
-	})
-}
-
 func (h *UserAPI) Logout(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		commonapi.RespondError(w, "Method not allowed!", http.StatusMethodNotAllowed)

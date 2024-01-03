@@ -47,19 +47,6 @@ export const isLoggedIn = async(): Promise<Boolean> => {
     return true
 }
 
-export const getConfig = async(): Promise<any> => {
-    let result = await fetch("/api/user/config", {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-
-    let resultJson = await result.json()
-
-    return resultJson
-}
-
 export const loginOnprem = async (): Promise<any> => {
     let result = await fetch("/api/user/login/onprem", {
         method: "POST",

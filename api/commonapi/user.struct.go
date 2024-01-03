@@ -16,7 +16,3 @@ type User_ResetPassword struct {
 type User_ResetPasswordReq struct {
 	Email string `json:"email"`
 }
-
-type User_Config struct {
-	Mode string `json:"mode"`
-}
