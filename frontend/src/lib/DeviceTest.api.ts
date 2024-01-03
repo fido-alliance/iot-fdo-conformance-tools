@@ -94,3 +94,27 @@ export const addNewTestRun = async (toprotocol: number, id: string): Promise<Arr
     return resultJson.rvts
 }
 
+export const iopRegisterVoucher = async (voucher): Promise<string[]> => {
+    let result = await fetch("/api/iop/do/add", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({voucher})
+    })
+
+    let resultJson = await result.json()
+
+    if (result.status !== 200) {
+        let statusText = result.statusText
+
+        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
+            statusText = resultJson.errorMessage
+        }
+
+        return Promise.reject(`Error sending request: ${statusText}`)
+    }
+
+    return resultJson.logs
+}
+

@@ -171,13 +171,13 @@ func (h *FdoSeedIDs) GetRandomTestGuidForSgType(sgType DeviceSgType) FdoGuid {
 // TIMET  = #6.1(uint)
 type FdoTimestamp interface{} // TODO
 
-const IPv6Len = 16
-const IPv4Len = 4
+const IP6Len = 16
+const IP4Len = 4
 
 type FdoIPAddress []byte
 
 func (h FdoIPAddress) IsValid() bool {
-	if len(h) != IPv4Len && len(h) != IPv6Len {
+	if len(h) != IP4Len && len(h) != IP6Len {
 		return false
 	}
 
@@ -188,24 +188,27 @@ func (h *FdoIPAddress) String() string {
 	return net.IP(*h).String()
 }
 
-func FdoIPAddressV4FromString(ipv4Str string) (FdoIPAddress, error) {
-	ipv4BytesParts := strings.Split(ipv4Str, ".")
-	result := FdoIPAddress{0x00, 0x00, 0x00, 0x00}
-
-	if len(ipv4BytesParts) != IPv4Len {
-		return nil, errors.New("Invalid IPv4 string")
+func FdoIPAddressFromString(ipStr string) (FdoIPAddress, error) {
+	parsedIPAddress := net.ParseIP(ipStr)
+	if parsedIPAddress == nil {
+		return nil, errors.New("invalid IP string")
 	}
 
-	for i, part := range ipv4BytesParts {
-		pint, err := strconv.ParseInt(part, 10, 64)
-		if err != nil {
-			return nil, errors.New("Invalid IPv4 string")
-		}
-
-		result[i] = byte(pint)
+	if parsedIPAddress.To4() != nil {
+		return FdoIPAddressFromBytes(parsedIPAddress.To4())
+	} else if parsedIPAddress.To16() != nil {
+		return FdoIPAddressFromBytes(parsedIPAddress.To16())
 	}
 
-	return result, nil
+	return nil, errors.New("invalid IP string")
+}
+
+func FdoIPAddressFromBytes(ipvBytes []byte) (FdoIPAddress, error) {
+	if len(ipvBytes) != IP4Len && len(ipvBytes) != IP6Len {
+		return nil, errors.New("invalid IP byte length. Must be IP4(4) or IP6(16) bytes")
+	}
+
+	return FdoIPAddress(ipvBytes), nil
 }
 
 type TransportProtocol uint16
@@ -239,7 +242,7 @@ func DecodeErrorResponse(bodyBytes []byte) (*FdoError, error) {
 	var errInst FdoError
 	err := CborCust.Unmarshal(bodyBytes, &errInst)
 	if err != nil {
-		return nil, errors.New("Error decoding FdoError " + err.Error())
+		return nil, errors.New("error decoding FdoError " + err.Error())
 	}
 
 	return &errInst, nil
@@ -322,17 +325,14 @@ func UrlToTOAddrEntry(inurl string) (*RVTO2AddrEntry, error) {
 	isIp := false
 	fdoIpAddress := FdoIPAddress{}
 	parsedIPAddress := net.ParseIP(u.Hostname())
-	if parsedIPAddress != nil && parsedIPAddress.To4() != nil {
-		fdoipTemp, err := FdoIPAddressV4FromString(u.Hostname())
+	if parsedIPAddress != nil {
+		fdoipTemp, err := FdoIPAddressFromString(u.Hostname())
 		if err != nil {
 			return nil, fmt.Errorf("invalid ip %s", u.Hostname())
 		}
 
 		isIp = true
 		fdoIpAddress = fdoipTemp
-	} else if parsedIPAddress != nil && parsedIPAddress.To16() != nil {
-		return nil, fmt.Errorf("IPv6 is not currently supported")
-		// isIp = true
 	}
 
 	result.RVProtocol = tProt

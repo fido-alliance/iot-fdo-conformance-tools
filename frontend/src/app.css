@@ -97,6 +97,23 @@ p.rvt-info {
   margin-bottom: 16px;
 }
 
+.maximise {
+  padding-bottom: 1rem;
+}
+
+.maximise > code {
+  float: right;
+  min-width: 100%;
+}
+
+.maximise > p {
+  margin: 0 0 1rem 0;
+}
+
+.button.maximise {
+  min-width: 100%;
+}
+
 /*
 a {
   font-weight: 500;
