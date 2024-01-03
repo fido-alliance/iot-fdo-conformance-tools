@@ -36,7 +36,7 @@ func (h *IopApi) submitVoucherToRvs(voucherdbe *fdoshared.VoucherDBEntry) ([]str
 		return logStrings, fmt.Errorf("error getting OVHeader. %s", err.Error())
 	}
 
-	mappedRvInfo, err := fdoshared.GetMappedRVInstructions(ovHeader.OVRvInfo)
+	mappedRvInfo, err := fdoshared.GetMappedRVInfo(ovHeader.OVRvInfo)
 	if err != nil {
 		return logStrings, fmt.Errorf("error getting mapped RVInfo. %s", err.Error())
 	}

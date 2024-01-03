@@ -227,7 +227,7 @@ func main() {
 								log.Panicf("Error generating cred base. %s", err.Error())
 							}
 
-							rvInfo, err := fdoshared.UrlsToRendezvousInstrList([]string{
+							rvInfo, err := fdoshared.UrlsToRendezvousInfo([]string{
 							})
 							if err != nil {
 								log.Panicln(err)

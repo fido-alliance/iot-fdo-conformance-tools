@@ -63,7 +63,7 @@ func GenerateOvEntry(
 	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
 }
 
-func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
+func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgType fdoshared.DeviceSgType, ovRVInfo fdoshared.RendezvousInfo, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
 	negotiatedHashHmac := fdoshared.NegotiateHashHmac(newDi.DCSigInfo.SgType, voucherSgType)
 
 	newDi.UpdatedToNewHashHmac(negotiatedHashHmac)
@@ -89,7 +89,7 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 	}
 
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_RVINFO_EMPTY {
-		voucherHeader.OVRvInfo = []fdoshared.RendezvousInstrList{}
+		voucherHeader.OVRvInfo = fdoshared.RendezvousInfo{}
 	}
 
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_HEADER_BAD_DEVICEINFO_EMPTY {
@@ -251,7 +251,7 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 	return &newWDC, err
 }
 
-func GenerateAndSaveDeviceCredAndVoucher(deviceCred fdoshared.WawDeviceCredential, voucherSgType fdoshared.DeviceSgType, ovRVInfo []fdoshared.RendezvousInstrList, fdoTestID testcom.FDOTestID) error {
+func GenerateAndSaveDeviceCredAndVoucher(deviceCred fdoshared.WawDeviceCredential, voucherSgType fdoshared.DeviceSgType, ovRVInfo fdoshared.RendezvousInfo, fdoTestID testcom.FDOTestID) error {
 	newdav, err := NewVirtualDeviceAndVoucher(deviceCred, voucherSgType, ovRVInfo, fdoTestID)
 	if err != nil {
 		return err

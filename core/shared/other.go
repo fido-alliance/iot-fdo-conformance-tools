@@ -348,7 +348,7 @@ func UrlToTOAddrEntry(inurl string) (*RVTO2AddrEntry, error) {
 	return &result, nil
 }
 
-func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
+func UrlToRvDirective(inurl string) (RendezvousDirective, error) {
 	rvto2addr, err := UrlToTOAddrEntry(inurl)
 	if err != nil {
 		return nil, err
@@ -359,34 +359,34 @@ func UrlToRvInfoList(inurl string) (RendezvousInstrList, error) {
 		return nil, fmt.Errorf("invalid protocol %d", rvto2addr.RVProtocol)
 	}
 
-	var rvInfoList = []RendezvousInstr{
+	var rvDirective = RendezvousDirective{
 		NewRendezvousInstr(RVProtocol, scheme),
 		NewRendezvousInstr(RVDevPort, rvto2addr.RVPort),
 		NewRendezvousInstr(RVOwnerPort, rvto2addr.RVPort), // TODO: Future
 	}
 
 	if rvto2addr.RVDNS == nil {
-		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVIPAddress, rvto2addr.RVIP))
+		rvDirective = append(rvDirective, NewRendezvousInstr_RawByte(RVIPAddress, *rvto2addr.RVIP))
 	} else {
-		rvInfoList = append(rvInfoList, NewRendezvousInstr(RVDns, rvto2addr.RVDNS))
+		rvDirective = append(rvDirective, NewRendezvousInstr(RVDns, rvto2addr.RVDNS))
 	}
 
-	return rvInfoList, nil
+	return rvDirective, nil
 }
 
-func UrlsToRendezvousInstrList(urls []string) ([]RendezvousInstrList, error) {
-	var rvInfoList = []RendezvousInstrList{}
+func UrlsToRendezvousInfo(urls []string) (RendezvousInfo, error) {
+	var rvInfo = RendezvousInfo{}
 
 	for _, url := range urls {
-		rvInfoMember, err := UrlToRvInfoList(url)
+		rvDirective, err := UrlToRvDirective(url)
 		if err != nil {
 			return nil, err
 		}
 
-		rvInfoList = append(rvInfoList, rvInfoMember)
+		rvInfo = append(rvInfo, rvDirective)
 	}
 
-	return rvInfoList, nil
+	return rvInfo, nil
 }
 
 func GenerateEatGuid(fdoGuid FdoGuid) [17]byte {

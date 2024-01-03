@@ -42,7 +42,7 @@ type SetupDevice65 = CoseSignature
 
 type TO2SetupDevicePayload struct {
 	_                    struct{} `cbor:",toarray"`
-	RendezvousInfo       []RendezvousInstrList
+	RendezvousInfo       RendezvousInfo
 	ReplacementGuid      FdoGuid
 	NonceTO2SetupDv      FdoNonce
 	ReplacementOwner2Key FdoPublicKey

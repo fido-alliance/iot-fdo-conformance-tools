@@ -18,7 +18,7 @@ type OwnershipVoucherHeader struct {
 	_                  struct{} `cbor:",toarray"`
 	OVHProtVer         ProtVersion
 	OVGuid             FdoGuid
-	OVRvInfo           []RendezvousInstrList
+	OVRvInfo           RendezvousInfo
 	OVDeviceInfo       string
 	OVPublicKey        FdoPublicKey
 	OVDevCertChainHash *HashOrHmac

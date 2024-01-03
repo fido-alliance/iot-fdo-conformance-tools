@@ -101,7 +101,7 @@ func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID
 	}
 
 	// TODO
-	rvInfo, err := fdoshared.UrlsToRendezvousInstrList([]string{
+	rvInfo, err := fdoshared.UrlsToRendezvousInfo([]string{
 		"https://localhost:8043",
 	})
 	if err != nil {

@@ -82,17 +82,19 @@ func NewRendezvousInstr(key RVVariable, val interface{}) RendezvousInstr {
 }
 
 type RendezvousInstrList []RendezvousInstr
+type RendezvousDirective []RendezvousInstr
+type RendezvousInfo []RendezvousDirective
 
 // Mapped RV Instructions to struct
 
-func GetMappedRVInstructions(instrLists []RendezvousInstrList) (MappedRVInstructions, error) {
-	return NewMappedRVInstructions(instrLists)
+func GetMappedRVInfo(instrLists RendezvousInfo) (MappedRVInfo, error) {
+	return NewMappedRVInfo(instrLists)
 }
 
-type MappedRVInstructions []RendezvousInstructionBlock
+type MappedRVInfo []MappedRVDirective
 
-func (h *MappedRVInstructions) GetOwnerOnly() MappedRVInstructions {
-	var result MappedRVInstructions
+func (h *MappedRVInfo) GetOwnerOnly() MappedRVInfo {
+	var result MappedRVInfo
 	for _, instr := range *h {
 		if instr.RVOwnerOnly || !instr.RVDevOnly {
 			result = append(result, instr)
@@ -102,8 +104,8 @@ func (h *MappedRVInstructions) GetOwnerOnly() MappedRVInstructions {
 	return result
 }
 
-func (h *MappedRVInstructions) GetDevOnly() MappedRVInstructions {
-	var result MappedRVInstructions
+func (h *MappedRVInfo) GetDevOnly() MappedRVInfo {
+	var result MappedRVInfo
 	for _, instr := range *h {
 		if instr.RVDevOnly || !instr.RVOwnerOnly {
 			result = append(result, instr)
@@ -113,11 +115,11 @@ func (h *MappedRVInstructions) GetDevOnly() MappedRVInstructions {
 	return result
 }
 
-func NewMappedRVInstructions(instrLists []RendezvousInstrList) (MappedRVInstructions, error) {
-	var result MappedRVInstructions
+func NewMappedRVInfo(instrLists RendezvousInfo) (MappedRVInfo, error) {
+	var result MappedRVInfo
 
 	for _, instrList := range instrLists {
-		instrBlock, err := NewRendezvousInstructionBlock(instrList)
+		instrBlock, err := NewMappedRVDirective(instrList)
 		if err != nil {
 			return result, err
 		}
@@ -128,7 +130,7 @@ func NewMappedRVInstructions(instrLists []RendezvousInstrList) (MappedRVInstruct
 	return result, nil
 }
 
-type RendezvousInstructionBlock struct {
+type MappedRVDirective struct {
 	RVOwnerOnly   bool
 	RVDevOnly     bool
 	RVIPAddresses []FdoIPAddress
@@ -147,7 +149,7 @@ type RendezvousInstructionBlock struct {
 	RVExtRV       *[]interface{}
 }
 
-func (h *RendezvousInstructionBlock) Validate() error {
+func (h *MappedRVDirective) Validate() error {
 	if len(h.RVIPAddresses) == 0 && h.RVDns == nil {
 		return errors.New("RVIPAddress and RVDns are both nil")
 	}
@@ -159,7 +161,7 @@ func (h *RendezvousInstructionBlock) Validate() error {
 	return nil
 }
 
-func (h *RendezvousInstructionBlock) GetOwnerUrls() []string {
+func (h *MappedRVDirective) GetOwnerUrls() []string {
 	var result []string
 
 	selectedPort := uint16(443)
@@ -179,8 +181,8 @@ func (h *RendezvousInstructionBlock) GetOwnerUrls() []string {
 	return result
 }
 
-func NewRendezvousInstructionBlock(instrList RendezvousInstrList) (RendezvousInstructionBlock, error) {
-	rvib := RendezvousInstructionBlock{}
+func NewMappedRVDirective(instrList RendezvousDirective) (MappedRVDirective, error) {
+	rvib := MappedRVDirective{}
 
 	recordedKeys := map[RVVariable]int{}
 	for _, instr := range instrList {
