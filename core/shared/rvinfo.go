@@ -3,7 +3,6 @@ package fdoshared
 import (
 	"errors"
 	"fmt"
-	"log"
 )
 
 type RVMediumValue uint8
@@ -66,6 +65,18 @@ const (
 	RVExtRV      RVVariable = 15
 )
 
+var RVVariableBoolean []RVVariable = []RVVariable{RVDevOnly, RVOwnerOnly, RVUserInput, RVBypass}
+
+func (h RVVariable) IsBoolean() bool {
+	for _, val := range RVVariableBoolean {
+		if h == val {
+			return true
+		}
+	}
+
+	return false
+}
+
 type RendezvousInstr struct {
 	_     struct{} `cbor:",toarray"`
 	Key   RVVariable
@@ -81,8 +92,40 @@ func NewRendezvousInstr(key RVVariable, val interface{}) RendezvousInstr {
 	}
 }
 
-type RendezvousInstrList []RendezvousInstr
 type RendezvousDirective []RendezvousInstr
+
+func (h *RendezvousDirective) AddInstr(instr RendezvousInstr) {
+	*h = append(*h, instr)
+}
+
+func (h *RendezvousDirective) AddInstrs(instrs []RendezvousInstr) {
+	*h = append(*h, instrs...)
+}
+
+func (h *RendezvousDirective) Validate() error {
+	recordedKeys := map[RVVariable]int{}
+	for _, instr := range *h {
+		if instr.Key != RVIPAddress && recordedKeys[instr.Key] > 0 {
+			return fmt.Errorf("duplicate key (%d) in RendezvousInstrList", instr.Key)
+		}
+
+		if instr.Key.IsBoolean() && instr.Value != nil {
+			return fmt.Errorf("boolean key (%d) has non-nil value", instr.Key)
+		}
+
+		// Is valid cbor
+		var v interface{}
+		err := CborCust.Unmarshal(instr.Value, &v)
+		if err != nil {
+			return fmt.Errorf("error decoding RVInstr (%d) value. %s", instr.Key, err.Error())
+		}
+
+		recordedKeys[instr.Key]++
+	}
+
+	return nil
+}
+
 type RendezvousInfo []RendezvousDirective
 
 // Mapped RV Instructions to struct
@@ -184,20 +227,23 @@ func (h *MappedRVDirective) GetOwnerUrls() []string {
 func NewMappedRVDirective(instrList RendezvousDirective) (MappedRVDirective, error) {
 	rvib := MappedRVDirective{}
 
-	recordedKeys := map[RVVariable]int{}
-	for _, instr := range instrList {
-		if instr.Key != RVIPAddress && recordedKeys[instr.Key] > 0 {
-			return rvib, errors.New("duplicate key in RendezvousInstrList")
-		}
+	// Validating the RendezvousDirective
+	err := instrList.Validate()
+	if err != nil {
+		return rvib, err
+	}
 
+	for _, instr := range instrList {
 		switch instr.Key {
 		case RVDevOnly:
 			rvib.RVDevOnly = true
 		case RVOwnerOnly:
 			rvib.RVOwnerOnly = true
 		case RVIPAddress:
-			log.Println("RVIPAddress", instr.Value)
-			ipv4addr, err := FdoIPAddressFromBytes(instr.Value)
+			var ipAddressBytes []byte
+			CborCust.Unmarshal(instr.Value, &ipAddressBytes)
+
+			ipv4addr, err := FdoIPAddressFromBytes(ipAddressBytes)
 			if err != nil {
 				return rvib, err
 			}
@@ -242,11 +288,10 @@ func NewMappedRVDirective(instrList RendezvousDirective) (MappedRVDirective, err
 			CborCust.Unmarshal(instr.Value, rvib.RVExtRV)
 
 		}
-
-		recordedKeys[instr.Key]++
 	}
 
-	err := rvib.Validate()
+	// Validating the result MappedRVDirective
+	err = rvib.Validate()
 
 	return rvib, err
 }

@@ -366,7 +366,7 @@ func UrlToRvDirective(inurl string) (RendezvousDirective, error) {
 	}
 
 	if rvto2addr.RVDNS == nil {
-		rvDirective = append(rvDirective, NewRendezvousInstr_RawByte(RVIPAddress, *rvto2addr.RVIP))
+		rvDirective = append(rvDirective, NewRendezvousInstr(RVIPAddress, rvto2addr.RVIP))
 	} else {
 		rvDirective = append(rvDirective, NewRendezvousInstr(RVDns, rvto2addr.RVDNS))
 	}
