@@ -4,6 +4,14 @@ build_loc := ./bin/
 fdotools_bin_loc := ~/conformance-test-infrastructure-new/iot-fdo-conformance/
 fdotools_infra_loc := ~/conformance-test-infrastructure-new/
 
+ifeq ($(OS),Windows_NT)
+    RM = cmd.exe /C del /S /Q
+    RMDIR = cmd.exe /C rmdir /S /Q
+else
+    RM = rm -rf
+    RMDIR = rm -rf
+endif
+
 preconfig_frontend:
 	echo "\n----- Preconfig: Setting up svelte frontend nodejs dependencies -----\n"
 
@@ -19,15 +27,19 @@ setup: preconfig_frontend preconfig_conformance_server
 # Compiling GO code
 compile_win:
 	echo "\n----- Building for Windows... -----\n"
-	GOOS=windows go build -o $(build_loc)/fdo-fido-conformance-server-windows.exe
+	set GOOS=windows
+	go build -o $(build_loc)/fdo-fido-conformance-server-windows.exe
 
 compile_linux:
 	echo "\n----- Building for Linux... -----\n"
-	GOOS=linux GOARCH=amd64 go build -o $(build_loc)/fdo-fido-conformance-server-linux
+	set GOOS=linux
+	set GOARCH=amd64
+	go build -o $(build_loc)/fdo-fido-conformance-server-linux
 
 compile_osx:
 	echo "\n----- Building for MacOS... -----\n"
-	GOOS=darwin go build -o $(build_loc)/fdo-fido-conformance-server-osx
+	set GOOS=darwin
+	go build -o $(build_loc)/fdo-fido-conformance-server-osx
 
 compile_all: compile_win compile_linux compile_osx
 
@@ -35,7 +47,7 @@ compile_all: compile_win compile_linux compile_osx
 build_frontend:
 	echo "\n----- Building frontend... -----\n"
 	cd ./frontend && npm run build
-	rm -rf $(build_loc)/frontend
+	$(RMDIR) $(build_loc)/frontend
 	cp -Rf ./frontend/dist $(build_loc)/frontend
 
 # Build frontend

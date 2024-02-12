@@ -27,7 +27,6 @@ The backend consists of five modules:
 ## Configuration:
 
 - `make setup` - will configure submodule, frontend nodejs deps, and goland packages
-    - `make preconfig_submodules` - Will only initialize git submodules, and pull latest updates
     - `make preconfig_frontend` - Will only configure frontend nodejs deps
     - `make preconfig_conformance_server` - Will only configure golang dependencies
 
@@ -47,8 +46,8 @@ The backend consists of five modules:
 For the onprem running now enviroment, except for `GODEBUG=x509sha1=1` env, is needed.
 For online deployment, take `example.env`. Set required variables, and rename to `.env`
 
-- `./fdo-fido-conformance-server-OS seed` will generate testing config, and pre-seed testing device credentials. This will take just a minute to run. Need to be run only once
-- `./fdo-fido-conformance-server-OS serve` will serve testing frontend on port 8080 (http://localhost:8080/)[http://localhost:8080/]
+- `./fdo-fido-conformance-server-{OS} seed` will generate testing config, and pre-seed testing device credentials. This will take just a minute to run. Need to be run only once
+- `./fdo-fido-conformance-server-{OS} serve` will serve testing frontend on port 8080 (http://localhost:8080/)[http://localhost:8080/]
     - If you experience issues with SHA1 checking, please run with `GODEBUG=x509sha1=1` env
 
 ## Development

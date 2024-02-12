@@ -146,7 +146,7 @@ func main() {
 					api.SetupServer(db, ctx)
 
 					selectedPort := ctx.Value(fdoshared.CFG_ENV_PORT).(int)
-					log.Printf("Starting server at port %d... \n", selectedPort)
+					log.Printf("Starting server at port %d... \n. http://localhost: %d", selectedPort, selectedPort)
 
 					err = http.ListenAndServe(fmt.Sprintf(":%d", selectedPort), nil)
 					if err != nil {
