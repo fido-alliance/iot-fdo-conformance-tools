@@ -3,13 +3,13 @@ package testexec
 import (
 	"context"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to1"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
-	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to1"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to0"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
+	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
 func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB, ctx context.Context) {

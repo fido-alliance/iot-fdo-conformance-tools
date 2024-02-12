@@ -1,9 +1,9 @@
 package testapi
 
 import (
-	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
 )
 
 type RVT_CreateTestCase struct {

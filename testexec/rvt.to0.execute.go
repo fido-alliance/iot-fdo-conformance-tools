@@ -3,13 +3,13 @@ package testexec
 import (
 	"context"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to0"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
+	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
 )
 
 func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB, ctx context.Context) {

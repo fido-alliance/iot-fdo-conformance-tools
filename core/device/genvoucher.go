@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
 const DIS_LOCATION string = "./_dis"

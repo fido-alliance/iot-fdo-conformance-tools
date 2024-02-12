@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
 type RequestListenerRunnerInst struct {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
 func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceServiceInfo68, fdoTestID testcom.FDOTestID) (*fdoshared.OwnerServiceInfo69, *testcom.FDOTestState, error) {

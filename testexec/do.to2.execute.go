@@ -5,11 +5,11 @@ import (
 	"log"
 	"sync"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
-	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
+	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
 const TEST_POSITIVE_BATCH_SIZE int = 20

@@ -19,7 +19,7 @@
 badger.local.db*/
 badger.local.db.*
 
-fdo-fido-conformance-server
+iot-fdo-conformance-tools
 *.voucher.pem
 *.dis.pem
 _randomKeys/

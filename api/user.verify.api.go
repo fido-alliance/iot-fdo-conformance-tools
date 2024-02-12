@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
 const MAX_PASSWORD_RESET time.Duration = time.Hour

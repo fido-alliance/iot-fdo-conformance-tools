@@ -12,13 +12,13 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	fdodeviceimplementation "github.com/fido-alliance/fdo-fido-conformance-server/core/device"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	testdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
-	reqtestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/request"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
-	"github.com/fido-alliance/fdo-fido-conformance-server/testexec"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
+	fdodeviceimplementation "github.com/fido-alliance/iot-fdo-conformance-tools/core/device"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
+	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/testexec"
 	"github.com/gorilla/mux"
 )
 

@@ -1,4 +1,4 @@
-module github.com/fido-alliance/fdo-fido-conformance-server
+module github.com/fido-alliance/iot-fdo-conformance-tools
 
 go 1.18
 

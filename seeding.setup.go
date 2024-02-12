@@ -5,8 +5,8 @@ import (
 	"log"
 	"sync"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
 const SeedingSize = 10000

@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 const DEVICE_CREDENTIAL_LOC string = "./_dis/"

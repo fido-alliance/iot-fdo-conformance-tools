@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	listenertestsdeps "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/listener"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	listenertestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/listener"
 )
 
 type ListenerTestDB struct {

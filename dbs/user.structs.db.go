@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/dgraph-io/badger/v4"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/google/uuid"
 )
 

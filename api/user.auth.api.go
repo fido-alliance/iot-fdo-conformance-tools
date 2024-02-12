@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
 func (h *UserAPI) OnPremNoLogin(w http.ResponseWriter, r *http.Request) {

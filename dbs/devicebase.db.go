@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/dgraph-io/badger/v4"
-	fdodeviceimplementation "github.com/fido-alliance/fdo-fido-conformance-server/core/device"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	fdodeviceimplementation "github.com/fido-alliance/iot-fdo-conformance-tools/core/device"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
 type DeviceBaseDB struct {

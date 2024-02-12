@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 func TestValidateDeviceSIMs(t *testing.T) {

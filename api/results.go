@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
 type ResultsAPI struct {

@@ -3,8 +3,8 @@ package to1
 import (
 	"errors"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
 func (h *To1Requestor) ProveToRV32(helloRVAck31 fdoshared.HelloRVAck31, fdoTestID testcom.FDOTestID) (*fdoshared.CoseSignature, *testcom.FDOTestState, error) {

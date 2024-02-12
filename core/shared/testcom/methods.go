@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 func ExpectFdoError(bodyBytes []byte, testId FDOTestID, expectedFdoError fdoshared.FdoErrorCode, httpStatus int) FDOTestState {

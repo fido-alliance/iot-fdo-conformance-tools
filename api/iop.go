@@ -7,12 +7,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	fdodocommon "github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
-	dodbs "github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
+	fdodocommon "github.com/fido-alliance/iot-fdo-conformance-tools/core/device/common"
+	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to0"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
 type Iop_AddVoucherToDoPayload struct {

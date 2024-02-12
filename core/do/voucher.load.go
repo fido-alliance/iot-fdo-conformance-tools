@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 const TEST_VOUCHER_LOC string = "./_test_vouchers/"

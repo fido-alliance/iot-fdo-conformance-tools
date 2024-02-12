@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to2"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to2"
 )
 
 func SetupServer(db *badger.DB, ctx context.Context) {

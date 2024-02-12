@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 func DecodePemVoucherAndKey(vandvpem string) (*fdoshared.VoucherDBEntry, error) {

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/api/commonapi"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 	"golang.org/x/crypto/scrypt"
 )
 

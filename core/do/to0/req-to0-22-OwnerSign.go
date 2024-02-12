@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
 func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId testcom.FDOTestID) (*fdoshared.AcceptOwner23, *testcom.FDOTestState, error) {

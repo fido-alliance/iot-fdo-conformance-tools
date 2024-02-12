@@ -13,19 +13,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/api"
-	fdodeviceimplementation "github.com/fido-alliance/fdo-fido-conformance-server/core/device"
-	fdodocommon "github.com/fido-alliance/fdo-fido-conformance-server/core/device/common"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to1"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/device/to2"
-	fdodo "github.com/fido-alliance/fdo-fido-conformance-server/core/do"
-	dodbs "github.com/fido-alliance/fdo-fido-conformance-server/core/do/dbs"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/do/to0"
-	fdorv "github.com/fido-alliance/fdo-fido-conformance-server/core/rv"
-	fdoshared "github.com/fido-alliance/fdo-fido-conformance-server/core/shared"
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom"
-	testcomdbs "github.com/fido-alliance/fdo-fido-conformance-server/core/shared/testcom/dbs"
-	"github.com/fido-alliance/fdo-fido-conformance-server/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/api"
+	fdodeviceimplementation "github.com/fido-alliance/iot-fdo-conformance-tools/core/device"
+	fdodocommon "github.com/fido-alliance/iot-fdo-conformance-tools/core/device/common"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to1"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to2"
+	fdodo "github.com/fido-alliance/iot-fdo-conformance-tools/core/do"
+	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to0"
+	fdorv "github.com/fido-alliance/iot-fdo-conformance-tools/core/rv"
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
+	testcomdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 
 	"github.com/joho/godotenv"
 
@@ -208,6 +208,99 @@ func main() {
 					}
 
 					log.Println("GUID: " + header.OVGuid.GetFormatted())
+					log.Println("RVINFO: ", header.OVRvInfo)
+
+					return nil
+				},
+			},
+			{
+				Name: "test_devmod",
+				Action: func(c *cli.Context) error {
+					devmodhex := "8301016d6669646f5f616c6c69616e6365"
+					devmodbytes, _ := hex.DecodeString(devmodhex)
+
+					var devModVal []interface{}
+					err := fdoshared.CborCust.Unmarshal(devmodbytes, &devModVal)
+					if err != nil {
+						log.Println(err)
+					}
+
+					_, ok := devModVal[0].(uint64)
+					if !ok {
+						return fmt.Errorf("invalid SIM_DEVMOD_MODULES. First element must be uint")
+					}
+
+					dval, ok := devModVal[2].(string)
+					if !ok {
+						return fmt.Errorf("invalid SIM_DEVMOD_MODULES. First element must be uint")
+					}
+
+					log.Println(dval)
+					return nil
+				},
+			},
+			{
+				Name: "generate_rvinfo",
+				Action: func(c *cli.Context) error {
+					rvInfo, err := fdoshared.UrlsToRendezvousInfo([]string{
+						"http://165.227.240.155:80",   // FIDO
+						"http://20.228.111.63:8080",   // Intel
+						"http://103.147.123.161:7040", // VinCSS
+						"http://44.210.118.60:8040/",  // Dell
+					})
+					if err != nil {
+						log.Panicln(err)
+					}
+
+					rvinfoBytes, _ := fdoshared.CborCust.Marshal(rvInfo)
+					log.Println("HTTP IP Only", hex.EncodeToString(rvinfoBytes))
+
+					// HTTPS + HTTP IP Only
+					rvInfo, err = fdoshared.UrlsToRendezvousInfo([]string{
+						"http://165.227.240.155:80",  // FIDO
+						"https://172.67.150.203:443", // FIDO
+						"https://104.21.0.92:443",    // FIDO
+
+						"http://20.228.111.63:8080", // Intel
+
+						"http://103.147.123.161:7040",  // VinCSS
+						"https://103.147.123.161:7040", // VinCSS
+
+						"http://44.210.118.60:8040/",  // Dell
+						"https://44.210.118.60:8041/", // Dell
+					})
+					if err != nil {
+						log.Panicln(err)
+					}
+
+					rvinfoBytes, _ = fdoshared.CborCust.Marshal(rvInfo)
+					log.Println("HTTP + HTTPS IP Only", hex.EncodeToString(rvinfoBytes))
+
+					// HTTPS + HTTP IP Only
+					rvInfo, err = fdoshared.UrlsToRendezvousInfo([]string{
+						"http://165.227.240.155:80",   // FIDO
+						"https://172.67.150.203:443",  // FIDO
+						"https://104.21.0.92:443",     // FIDO
+						"https://rv.fdo.tools:443",    // FIDO
+						"http://http.rv.fdo.tools:80", // FIDO
+
+						"http://20.228.111.63:8080",                      // Intel
+						"http://bmo-rrp.westus.cloudapp.azure.com:8080/", // Intel
+
+						"http://103.147.123.161:7040",    // VinCSS
+						"https://103.147.123.161:7040",   // VinCSS
+						"http://vincss-fdo-rv.fido2.vn",  // VinCSS
+						"https://vincss-fdo-rv.fido2.vn", // VinCSS
+
+						"http://44.210.118.60:8040/",  // Dell
+						"https://44.210.118.60:8041/", // Dell
+					})
+					if err != nil {
+						log.Panicln(err)
+					}
+
+					rvinfoBytes, _ = fdoshared.CborCust.Marshal(rvInfo)
+					log.Println("HTTP + HTTPS + DNS", hex.EncodeToString(rvinfoBytes))
 
 					return nil
 				},
@@ -228,10 +321,18 @@ func main() {
 							}
 
 							rvInfo, err := fdoshared.UrlsToRendezvousInfo([]string{
+								"http://165.227.240.155:80",   // FIDO
+								"http://20.228.111.63:8080",   // Intel
+								"http://103.147.123.161:7040", // VinCSS
+								"http://44.210.118.60:8040/",  // Dell
 							})
 							if err != nil {
 								log.Panicln(err)
 							}
+
+							// rvinfob, err := fdoshared.CborCust.Marshal(rvInfo)
+
+							// print("RVINFO: ", hex.EncodeToString(rvinfob))
 
 							voucherSgType := fdoshared.RandomSgType()
 							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, voucherSgType, rvInfo, testcom.NULL_TEST)

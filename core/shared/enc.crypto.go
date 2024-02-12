@@ -11,7 +11,7 @@ import (
 	"hash"
 	"math"
 
-	"github.com/fido-alliance/fdo-fido-conformance-server/core/shared/ccm"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/ccm"
 )
 
 type CipherSuiteName int
