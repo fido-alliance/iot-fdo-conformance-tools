@@ -22,7 +22,7 @@ The backend consists of five modules:
 - Node JS 18+ https://nodejs.org/en/
 - Golang 1.18+ https://go.dev/dl/
 - Github access with configured SSH key https://docs.github.com/en/authentication/connecting-to-github-with-ssh
-- (Windows) `make` - https://gnuwin32.sourceforge.net/packages/make.htm
+- (Windows) `make` - https://community.chocolatey.org/packages/make
 
 ## Configuration:
 
