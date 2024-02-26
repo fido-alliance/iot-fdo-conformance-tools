@@ -143,6 +143,11 @@ func checkAndSeed(db *badger.DB) error {
 	return nil
 }
 
+func checkFrontendExists() bool {
+	_, err := os.Stat("./frontend")
+	return !os.IsNotExist(err)
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -154,13 +159,26 @@ func main() {
 			{
 				Name:  "serve",
 				Usage: "Starts conformance server",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:    "force",
+						Aliases: []string{"f"},
+						Usage:   "Force server to start without checking for frontend folder",
+					},
+				},
 				Action: func(c *cli.Context) error {
+					force := c.Bool("force")
+
 					db := InitBadgerDB()
 					defer db.Close()
 
 					seedCheck := checkAndSeed(db)
 					if seedCheck != nil {
 						return seedCheck
+					}
+
+					if !checkFrontendExists() && !force {
+						return fmt.Errorf("./frontend folder not found")
 					}
 
 					ctx := loadEnvCtx()
