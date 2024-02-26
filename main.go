@@ -34,6 +34,7 @@ import (
 )
 
 const DEFAULT_PORT = 8080
+const BADGER_LOCATION = "./badger.local.db"
 
 func TryReadingWawDIFile(filepath string) (*fdoshared.WawDeviceCredential, error) {
 	fileBytes, err := os.ReadFile(filepath)
@@ -64,7 +65,7 @@ func TryReadingWawDIFile(filepath string) (*fdoshared.WawDeviceCredential, error
 }
 
 func InitBadgerDB() *badger.DB {
-	options := badger.DefaultOptions("./badger.local.db")
+	options := badger.DefaultOptions(BADGER_LOCATION)
 	options.Logger = nil
 
 	db, err := badger.Open(options)
@@ -123,6 +124,25 @@ func loadEnvCtx() context.Context {
 	return ctx
 }
 
+func checkAndSeed(db *badger.DB) error {
+	time.Sleep(4 * time.Second)
+
+	devbasedb := dbs.NewDeviceBaseDB(db)
+	configdb := dbs.NewConfigDB(db)
+
+	_, err := configdb.Get()
+	if err != nil {
+		log.Println("---------- NOTE ----------")
+		log.Println("\nPlease wait while tools pre-generate testing private keys. This may take up to five minutes...")
+		log.Println("---------- NOTE ----------")
+		return PreSeed(configdb, devbasedb)
+	} else {
+		log.Println("Database already seeded. Skipping...")
+	}
+
+	return nil
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -138,6 +158,11 @@ func main() {
 					db := InitBadgerDB()
 					defer db.Close()
 
+					seedCheck := checkAndSeed(db)
+					if seedCheck != nil {
+						return seedCheck
+					}
+
 					ctx := loadEnvCtx()
 
 					// Setup FDO listeners
@@ -146,7 +171,7 @@ func main() {
 					api.SetupServer(db, ctx)
 
 					selectedPort := ctx.Value(fdoshared.CFG_ENV_PORT).(int)
-					log.Printf("Starting server at port %d... \n. http://localhost: %d", selectedPort, selectedPort)
+					log.Printf("Starting server at port %d... \n. http://localhost:%d", selectedPort, selectedPort)
 
 					err = http.ListenAndServe(fmt.Sprintf(":%d", selectedPort), nil)
 					if err != nil {
@@ -161,19 +186,10 @@ func main() {
 				Usage:     "Seed FDO Cred Base",
 				UsageText: "Generates one hundred thousand cred bases to be used in testing",
 				Action: func(c *cli.Context) error {
-					log.Println("---------- NOTE ----------")
-					log.Println("\nPlease wait while tools pre-generate testing private keys. This may take up to five minutes...")
-					log.Println("---------- NOTE ENDS ----------")
-
-					time.Sleep(4 * time.Second)
-
 					db := InitBadgerDB()
 					defer db.Close()
 
-					devbasedb := dbs.NewDeviceBaseDB(db)
-					configdb := dbs.NewConfigDB(db)
-
-					return PreSeed(configdb, devbasedb)
+					return checkAndSeed(db)
 				},
 			},
 			{
@@ -314,7 +330,7 @@ func main() {
 						Name:  "generate",
 						Usage: "Generate virtual device credential and voucher",
 						Action: func(c *cli.Context) error {
-							deviceSgType := fdoshared.RandomSgType()
+							deviceSgType := fdoshared.RandomDeviceSgType()
 							credbase, err := fdoshared.NewWawDeviceCredential(deviceSgType)
 							if err != nil {
 								log.Panicf("Error generating cred base. %s", err.Error())

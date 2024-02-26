@@ -283,3 +283,13 @@ func RandomSgType() DeviceSgType {
 		}
 	}
 }
+
+func RandomDeviceSgType() DeviceSgType {
+	for {
+		randLoc := NewRandomInt(0, len(DeviceSgTypeList)-1)
+
+		if DeviceSgTypeList[randLoc] != StEPID10 && DeviceSgTypeList[randLoc] != StEPID11 {
+			return DeviceSgTypeList[randLoc]
+		}
+	}
+}
