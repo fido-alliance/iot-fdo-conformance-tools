@@ -71,17 +71,17 @@ You can find interop documentation here: https://github.com/fido-alliance/confor
 
 ## Virtual Device Usage
 
-- `./fdo-fido-conformance-server iop generate` - Will generate test credentials for virtual device credentail `./_dis` and voucher `./_vouchers` files. 
+- `./iot-fdo-conformance-tools iop generate` - Will generate test credentials for virtual device credentail `./_dis` and voucher `./_vouchers` files. 
 
 Example output:
 ```bash
-$./fdo-fido-conformance-server iop generate
+$./iot-fdo-conformance-tools iop generate
 2024/02/26 22:10:17 Successfully generate voucher and di files.
 2024/02/26 22:10:17 ./_vouchers/2024-02-26_22.10.57f1d0fd00184e4eab8c71d465f934f2c7.voucher.pem
 2024/02/26 22:10:17 ./_dis/2024-02-26_22.10.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 ```
 
-- `./fdo-fido-conformance-server iop to1 http://localhost:8080/ _dis/2024-02-26_22.10.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem` - Will start TO1 protocol testing to the server with the specified virtual device credential.
+- `./iot-fdo-conformance-tools iop to1 http://localhost:8080/ _dis/2024-02-26_22.10.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem` - Will start TO1 protocol testing to the server with the specified virtual device credential.
 
 ```bash
 ➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to1 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem  
@@ -96,44 +96,44 @@ $./fdo-fido-conformance-server iop generate
 2024/02/26 22:43:09 Success  DNS: localhost Port: 8080
 ```
 
-- `./fdo-fido-conformance-server iop to2 http://localhost:8080/ _dis/2024-02-26_22.10.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem` - Will start TO2 calls against the server with the specified virtual device credential.
+- `./iot-fdo-conformance-tools iop to2 http://localhost:8080/ _dis/2024-02-26_22.10.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem` - Will start TO2 calls against the server with the specified virtual device credential.
 
 ```bash
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:50 Starting HelloDevice60
 2024/02/26 22:45:50 Error running HelloDevice60. HelloDevice60: Unknown Header HMac. failed to verify HMAC. HMACs do not match
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:52 Starting HelloDevice60
 2024/02/26 22:45:52 Error running HelloDevice60. HelloDevice60: DO returned wrong NonceTO2ProveOV
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:53 Starting HelloDevice60
 2024/02/26 22:45:53 Error running HelloDevice60. HelloDevice60: Failed SigInfo check. sgTypes don't match
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:55 Starting HelloDevice60
 2024/02/26 22:45:55 Error running HelloDevice60. HelloDevice60: Failed to verify hello device Hash
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:56 Starting HelloDevice60
 2024/02/26 22:45:56 Error running HelloDevice60. failed to verify signature
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:57 Starting HelloDevice60
 2024/02/26 22:45:57 Error running HelloDevice60. error decoding FdoError cbor: 499 bytes of extraneous data starting at index 1
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:57 Starting HelloDevice60
 2024/02/26 22:45:57 Error running HelloDevice60. HelloDevice60: Failed to unmarshal ProveOVHdr61. cbor: 694 bytes of extraneous data starting at index 1
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:58 Starting HelloDevice60
 2024/02/26 22:45:58 Requesting GetOVNextEntry62 for entry 0 
 2024/02/26 22:45:58 GetOVNextEntry62: Unauthorized! Missing authorization header!
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:45:59 Starting HelloDevice60
 2024/02/26 22:45:59 Requesting GetOVNextEntry62 for entry 0 
 2024/02/26 22:45:59 Requesting GetOVNextEntry62 for entry 1 
 2024/02/26 22:45:59 GetOVNextEntry64: Failed to unmarshal OVNextEntry63. error decoding FdoError cbor: 243 bytes of extraneous data starting at index 4
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:46:00 Starting HelloDevice60
 2024/02/26 22:46:00 Requesting GetOVNextEntry62 for entry 0 
 2024/02/26 22:46:00 Server retured wrong entry. Expected 0. Got 247
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:46:00 Starting HelloDevice60
 2024/02/26 22:46:00 Requesting GetOVNextEntry62 for entry 0 
 2024/02/26 22:46:00 Requesting GetOVNextEntry62 for entry 1 
@@ -142,7 +142,7 @@ $./fdo-fido-conformance-server iop generate
 2024/02/26 22:46:00 Requesting GetOVNextEntry62 for entry 4 
 2024/02/26 22:46:00 Starting ProveDevice64
 2024/02/26 22:46:00 ProveDevice64: NonceTO2SetupDv64 nonces don't match...
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:46:01 Starting HelloDevice60
 2024/02/26 22:46:01 Requesting GetOVNextEntry62 for entry 0 
 2024/02/26 22:46:01 Requesting GetOVNextEntry62 for entry 1 
@@ -151,7 +151,7 @@ $./fdo-fido-conformance-server iop generate
 2024/02/26 22:46:01 Requesting GetOVNextEntry62 for entry 4 
 2024/02/26 22:46:01 Starting ProveDevice64
 2024/02/26 22:46:01 ProveDevice64: Error decoding SetupDevice65 Payload... error decoding FdoError unexpected EOF
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:46:14 Starting HelloDevice60
 2024/02/26 22:46:14 Requesting GetOVNextEntry62 for entry 0 
 2024/02/26 22:46:14 Requesting GetOVNextEntry62 for entry 1 
@@ -161,7 +161,7 @@ $./fdo-fido-conformance-server iop generate
 2024/02/26 22:46:14 Starting ProveDevice64
 2024/02/26 22:46:14 Starting DeviceServiceInfoReady66
 2024/02/26 22:46:14 DeviceServiceInfoReady66: Error decrypting... Error decrypting EMB GCM. cipher: message authentication failed
-➜  fdo-fido-conformance-server git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
+➜  iot-fdo-conformance-tools git:(main) ✗ ./iot-fdo-conformance-tools iop to2 http://localhost:8080 ./_dis/2024-02-26_22.39.57f1d0fd00184e4eab8c71d465f934f2c7.dis.pem
 2024/02/26 22:46:15 Starting HelloDevice60
 2024/02/26 22:46:15 Requesting GetOVNextEntry62 for entry 0 
 2024/02/26 22:46:15 Requesting GetOVNextEntry62 for entry 1 
@@ -192,7 +192,6 @@ $./fdo-fido-conformance-server iop generate
 2024/02/26 22:46:15 Success To2
 2024/02/26 22:46:15 IOP logger not found in owner sims
 ```
-
 
 ### Structure
 
