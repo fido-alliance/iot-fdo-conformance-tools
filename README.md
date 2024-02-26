@@ -216,10 +216,6 @@ $./iot-fdo-conformance-tools iop generate
 
 ### Common issues
 
-- If you have issues with `WebAuthnWorks` legacy repositories
-
-> Run `go clean -modcache && go get`
-
  - I am getting `insecure algorithm SHA1-RSA`
 
 > Try running with environment variable `GODEBUG=x509sha1=1`
