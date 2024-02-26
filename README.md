@@ -206,13 +206,12 @@ $./iot-fdo-conformance-tools iop generate
 
 - `/core` - Core implementations of RV, DO, Device see [General Info](#general-info)
 
-- [FDO: Shared /testcom/](https://github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/) - Contains common test methods, dbs, etc
-- [FDO: Shared /testcom/listener](https://github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/listener) - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
-- [FDO: Shared /testcom/request](https://github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request) - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
+- [FDO: Shared /testcom/](https://github.com/fido-alliance/iot-fdo-conformance-tools/tree/main/core/shared/testcom) - Contains common test methods, dbs, etc
+- [FDO: Shared /testcom/listener](https://github.com/fido-alliance/iot-fdo-conformance-tools/tree/main/core/shared/testcom/listener) - Contains all listener tests dependencies for `RV(TO0)`, `RV(TO1)`, and `DO(TO2)`
+- [FDO: Shared /testcom/request](https://github.com/fido-alliance/iot-fdo-conformance-tools/tree/main/core/shared/testcom/request) - Contains all requestor tests dependencies for `DO(TO0)`, `Device(TO1)`, `Device(TO2)`
 
-- `/frontend` - Contains frontend git submodule. See https://github.com/fido-alliance/fdo-fido-conformance-frontend
+- [/frontend](https://github.com/fido-alliance/iot-fdo-conformance-tools/tree/main/frontend) - Contains frontend.
 
-- `running.ctx.go` - Contain default context values
 
 ### Common issues
 
