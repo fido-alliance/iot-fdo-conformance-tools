@@ -169,6 +169,15 @@ func main() {
 				Action: func(c *cli.Context) error {
 					force := c.Bool("force")
 
+					// Enable SHA1 for x509
+					// https://go.dev/doc/go1.18#sha1
+					godebug := os.Getenv("GODEBUG")
+					if godebug != "" {
+						godebug += ","
+					}
+					godebug += "x509sha1=1"
+					os.Setenv("GODEBUG", godebug)
+
 					db := InitBadgerDB()
 					defer db.Close()
 
