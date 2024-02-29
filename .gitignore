@@ -24,3 +24,4 @@ iot-fdo-conformance-tools
 *.dis.pem
 _randomKeys/
 /bin
+._*
