@@ -34,6 +34,7 @@ setup: preconfig_frontend preconfig_conformance_server
 compile_win:
 	echo "\n----- Building for Windows... -----\n"
 	set GOOS=windows
+	set GOARCH=amd64
 	go build -o $(BUILD_LOC)/iot-fdo-conformance-tools-windows.exe
 	$(call copy_folder_or_file,./build_helper/start_server.bat,./$(BUILD_LOC)/start_server.bat)
 
@@ -41,11 +42,13 @@ compile_linux:
 	echo "\n----- Building for Linux... -----\n"
 	set GOOS=linux
 	set GOARCH=amd64
+	go env
 	go build -o $(BUILD_LOC)/iot-fdo-conformance-tools-linux
 
 compile_osx:
 	echo "\n----- Building for MacOS... -----\n"
 	set GOOS=darwin
+	set GOARCH=amd64
 	go build -o $(BUILD_LOC)/iot-fdo-conformance-tools-osx
 
 compile_all: compile_win compile_linux compile_osx
