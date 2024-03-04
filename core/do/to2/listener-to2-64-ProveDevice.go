@@ -37,7 +37,7 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 			testcomListener.To2.PushSuccess()
 		}
 
-		if !testcomListener.To2.CheckCmdTestingIsCompleted(fdoshared.TO2_64_PROVE_DEVICE) {
+		if !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
 		}
 
