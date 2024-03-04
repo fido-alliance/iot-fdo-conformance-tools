@@ -17,6 +17,7 @@ The backend consists of five modules:
 - [FIDO Conformance Server](https://github.com/fido-alliance/iot-fdo-conformance-tools) - A user facing conformance server. Has testing structs, conformance APIs, conformance tests ID and much much more.
 - [FIDO Conformance Server - Frontend](https://github.com/fido-alliance/iot-fdo-conformance-tools/tree/main/frontend) - A frontend for FIDO Conformance Server
 
+
 ## Pre requisites:
 
 - Node JS 18+ https://nodejs.org/en/
@@ -24,11 +25,13 @@ The backend consists of five modules:
 - Github access with configured SSH key https://docs.github.com/en/authentication/connecting-to-github-with-ssh
 - (Windows) `make` - https://community.chocolatey.org/packages/make
 
+
 ## Configuration:
 
 - `make setup` - will configure submodule, frontend nodejs deps, and goland packages
     - `make preconfig_frontend` - Will only configure frontend nodejs deps
     - `make preconfig_conformance_server` - Will only configure golang dependencies
+
 
 ## Building
 
@@ -41,6 +44,7 @@ The backend consists of five modules:
 
 - `make build_frontend` - will only regenerate static frontend
 
+
 ## Running
 
 For the onprem running now enviroment, except for `GODEBUG=x509sha1=1` env, is needed.
@@ -49,6 +53,7 @@ For online deployment, take `example.env`. Set required variables, and rename to
 - `./iot-fdo-conformance-tools-{OS} seed` will generate testing config, and pre-seed testing device credentials. This will take just a minute to run. Need to be run only once
 - `./iot-fdo-conformance-tools-{OS} serve` will serve testing frontend on port 8080 (http://localhost:8080/)[http://localhost:8080/]
     - If you experience issues with SHA1 checking, please run with `GODEBUG=x509sha1=1` env
+
 
 ## Development
 
@@ -65,9 +70,11 @@ To update packages without GOSUM check use env `GOSUMDB=off`
  * Example `GOSUMDB=off go get github.com/fido-alliance/iot-fdo-conformance-tools/core/device`
  * To update all `make update_fdo_packages`
 
+
 ## Interop
 
 You can find interop documentation here: https://github.com/fido-alliance/conformance-test-tools-resources/tree/master/docs/FDO/Pre-Interop
+
 
 ## Virtual Device Usage
 
@@ -193,6 +200,7 @@ $./iot-fdo-conformance-tools iop generate
 2024/02/26 22:46:15 IOP logger not found in owner sims
 ```
 
+
 ### Structure
 
 - `/dbs` - Contains database structs and menthods. To see db entry structs see `*.structs.db.go`
@@ -229,13 +237,13 @@ $./iot-fdo-conformance-tools iop generate
 
 - `INTEROP_DO_TOKEN_MAPPING` - DO SIM mapping for FIDO Dashboard extensions. Example: [["6bb682fea2ee4164a10e5cd16a86efa8", "Bearer DEVICE-kGPJdtwYrojARYkrSoxynJEGqB0U9xwd9DgJ+UT+Ues="]]
 
+
 ### Common issues
 
  - I am getting `insecure algorithm SHA1-RSA`
 
 > Try running with environment variable `GODEBUG=x509sha1=1`
 
- 
 
 ### [License](LICENSE.md)
 
