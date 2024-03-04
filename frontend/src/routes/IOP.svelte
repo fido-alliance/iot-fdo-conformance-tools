@@ -84,9 +84,7 @@
 
                 <div class="col-12 col-12-xsmall maximise">
                     <b><p>Additional Resource</p></b>
-                    <ul>
-                        <li><a href="https://github.com/fido-alliance/conformance-test-tools-resources/blob/main/docs/FDO/README.md">FIDO Alliance FDO Resources</a></li>
-                    </ul>
+                    <a href="https://github.com/fido-alliance/conformance-test-tools-resources/blob/main/docs/FDO">FIDO Alliance FDO Resources</a>
                 </div>
             </div>
         </div>

@@ -2,7 +2,7 @@
     import Login from './routes/Login.svelte'
     import NotFound from './routes/NotFound.svelte'
     import FdoDashboard from './routes/FdoDashboard.svelte';
-    import {logout} from './lib/User.api'
+    import {logout, isIopOnly} from './lib/User.api'
     import Router, {location, push} from "svelte-spa-router"
     import Rv from './routes/RV.fdo.svelte';
     import Do from './routes/DO.fdo.svelte';
@@ -19,18 +19,25 @@
         "/iop/": Iop,
         "*": NotFound,
     }
-
-    let mode: string = "onprem"
     
     const handleLogout = async () => {
         await logout()
         push('/login')
     }
+
+    const isIop = async () => {
+        let result = await isIopOnly()
+
+        if (result) {
+            push('/iop')
+        }
+    }
+
+    isIop()
 </script>
 
 
 <div id="wrapper">
-
   <!-- Header -->
     <header id="header" class="alt">
       <!-- <h1>FDO Conformance Tools</h1> -->
@@ -39,16 +46,14 @@
   <!-- Nav -->
     <nav id="nav">
       <ul>
-
         {#if $location.startsWith("/test/")}
             <li><a href="/#/test" class="button primary">Back to Dashboard</a></li>
         {/if}
 
         {#if $location === "/login" || $location === "/"}
-
         {:else if $location === "/register"}
             <li><a href="/#/login" class="button primary">Login</a></li>
-        {:else}
+        {:else if $location !== "/iop"}
             <li style="float: right;"><a href="#" on:click={handleLogout}>Logout</a></li>
         {/if}
       </ul>
@@ -81,6 +86,7 @@
   .logo.fido:hover {
     filter: drop-shadow(0 0 1em #fff564aa);
   }
+
   .read-the-docs {
     color: #888;
   }

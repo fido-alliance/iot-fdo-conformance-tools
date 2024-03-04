@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,6 +27,7 @@ type IopApiResponse struct {
 
 type IopApi struct {
 	DOVouchersDB *dodbs.VoucherDB
+	Ctx          context.Context
 }
 
 func (h *IopApi) submitVoucherToRvs(voucherdbe *fdoshared.VoucherDBEntry) ([]string, error) {
@@ -127,5 +129,15 @@ func (h *IopApi) IopAddVoucherToDO(w http.ResponseWriter, r *http.Request) {
 			ErrorMessage: "",
 		},
 		Logs: logStr,
+	})
+}
+
+type IopIsOipOnlyResponse struct {
+	OipOnly bool `json:"oipOnly"`
+}
+
+func (h *IopApi) IsOipOnly(w http.ResponseWriter, r *http.Request) {
+	commonapi.RespondSuccessStruct(w, IopIsOipOnlyResponse{
+		OipOnly: h.Ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool),
 	})
 }

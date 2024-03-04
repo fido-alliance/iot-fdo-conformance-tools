@@ -62,6 +62,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 
 	iopApi := IopApi{
 		DOVouchersDB: doVoucherDb,
+		Ctx:          ctx,
 	}
 
 	r := mux.NewRouter()
@@ -83,6 +84,7 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/device/testruns/{toprotocol}/{testinsthex}", deviceApiHandler.StartNewTestRun).Methods("POST")
 
 	r.HandleFunc("/api/iop/do/add", iopApi.IopAddVoucherToDO)
+	r.HandleFunc("/api/iop/is_iop_only", iopApi.IsOipOnly)
 
 	r.HandleFunc("/api/user/login/onprem", userApiHandler.OnPremNoLogin)
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
