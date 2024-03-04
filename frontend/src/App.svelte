@@ -29,7 +29,9 @@
         let result = await isIopOnly()
 
         if (result) {
+          setTimeout(() => {
             push('/iop')
+          }, 250)
         }
     }
 
