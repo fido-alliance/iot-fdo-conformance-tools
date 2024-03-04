@@ -215,19 +215,19 @@ $./iot-fdo-conformance-tools iop generate
 
 ### Environment variables
 
-- PORT - server port. Default 8080
+- `PORT` - server port. Default 8080
 
-- DEV - ENV_PROD(prod) for fully built version, ENV_DEV(dev) for development with frontend running in a dev mode
+- `DEV` - ENV_PROD(prod) for fully built version, ENV_DEV(dev) for development with frontend running in a dev mode
 
-- FDO_SERVICE_URL - Domain to access FDO endpoints. Will be returned in RVInfo etc. 
+- `FDO_SERVICE_URL` - Domain to access FDO endpoints. Will be returned in RVInfo etc. 
 
-- INTEROP_DASHBOARD_URL - Dashboard URL for submitting results. Example http://http.dashboard.fdo.tools
+- `INTEROP_DASHBOARD_URL` - Dashboard URL for submitting results. Example http://http.dashboard.fdo.tools
 
-- INTEROP_DASHBOARD_RV_AUTHZ - Access Token for Dashboard for RV operations: Example Bearer RV-xVqOOhmsSz/eTQBHPokXH16a48o9aU9kG3vkFG/vaaA=
+- `INTEROP_DASHBOARD_RV_AUTHZ` - Access Token for Dashboard for RV operations: Example Bearer RV-xVqOOhmsSz/eTQBHPokXH16a48o9aU9kG3vkFG/vaaA=
 
-- INTEROP_DASHBOARD_DO_AUTHZ - Access Token for Dashboard for DO Operations: Example Bearer RV-xVqOOhmsSz/eTQBHPokXH16a48o9aU9kG3vkFG/vaaA=
+- `INTEROP_DASHBOARD_DO_AUTHZ` - Access Token for Dashboard for DO Operations: Example Bearer RV-xVqOOhmsSz/eTQBHPokXH16a48o9aU9kG3vkFG/vaaA=
 
-- INTEROP_DO_TOKEN_MAPPING - DO SIM mapping for FIDO Dashboard extensions. Example: [["6bb682fea2ee4164a10e5cd16a86efa8", "Bearer DEVICE-kGPJdtwYrojARYkrSoxynJEGqB0U9xwd9DgJ+UT+Ues="]]
+- `INTEROP_DO_TOKEN_MAPPING` - DO SIM mapping for FIDO Dashboard extensions. Example: [["6bb682fea2ee4164a10e5cd16a86efa8", "Bearer DEVICE-kGPJdtwYrojARYkrSoxynJEGqB0U9xwd9DgJ+UT+Ues="]]
 
 ### Common issues
 
