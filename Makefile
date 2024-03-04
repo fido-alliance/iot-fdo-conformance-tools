@@ -1,22 +1,22 @@
 OS := $(if $(findstring Windows_NT,$(OS)),Windows,$(OS))
 
-define build_build_helper
-	go build ./build_helper
-endef
+BUILD_LOC = bin
+BUILD_HELPER_LOC := .build_helper
+OUTPUT_FILE := $(if $(findstring Windows,$(OS)),build_helper.exe,build_helper)
 
+define build_build_helper
+	go build -o $(OUTPUT_FILE) $(BUILD_HELPER_LOC)/main.go
+endef
 
 define delete_folder
 	$(call build_build_helper)
-	build_helper delete $(1)
+	./build_helper delete $(1)
 endef
-
 
 define copy_folder_or_file
 	$(call build_build_helper)
-	build_helper copy $(1) $(2)
+	./build_helper copy $(1) $(2)
 endef
-
-BUILD_LOC = bin
 
 preconfig_frontend:
 	echo "\n----- Preconfig: Setting up svelte frontend nodejs dependencies -----\n"
@@ -36,7 +36,7 @@ compile_win:
 	set GOOS=windows
 	set GOARCH=amd64
 	go build -o $(BUILD_LOC)/iot-fdo-conformance-tools-windows.exe
-	$(call copy_folder_or_file,./build_helper/start_server.bat,./$(BUILD_LOC)/start_server.bat)
+	$(call copy_folder_or_file,./$(BUILD_HELPER_LOC)/start_server.bat,./$(BUILD_LOC)/start_server.bat)
 
 compile_linux:
 	echo "\n----- Building for Linux... -----\n"
@@ -54,7 +54,7 @@ compile_osx:
 compile_all: compile_win compile_linux compile_osx
 
 cleanup_frontend:
-	$(call delete_folder,$(BUILD_LOC)/frontend)
+	$(call delete_folder,./$(BUILD_LOC)/frontend)
 
 # Build frontend
 build_frontend:
