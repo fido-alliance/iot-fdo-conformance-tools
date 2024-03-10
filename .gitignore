@@ -25,3 +25,4 @@ iot-fdo-conformance-tools
 _randomKeys/
 /bin
 ._*
+.env
