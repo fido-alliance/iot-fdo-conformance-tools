@@ -31,6 +31,8 @@ type To2Requestor struct {
 	Completed64 bool
 
 	CredentialReuse bool
+
+	ReplacementCredential fdoshared.TO2SetupDevicePayload
 }
 
 func NewTo2Requestor(srvEntry fdoshared.SRVEntry, credential fdoshared.WawDeviceCredential, kexSuitName fdoshared.KexSuiteName, cipherSuitName fdoshared.CipherSuiteName) To2Requestor {

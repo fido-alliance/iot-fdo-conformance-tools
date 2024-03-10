@@ -100,15 +100,15 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		return nil, nil, errors.New("ProveDevice64: Error decoding SetupDevice65... " + err.Error())
 	}
 
-	err = fdoshared.VerifyCoseSignature(setupDevice, h.ProveOVHdr61PubKey)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	var to2SetupDevicePayload fdoshared.TO2SetupDevicePayload
 	fdoError, err := fdoshared.TryCborUnmarshal(setupDevice.Payload, &to2SetupDevicePayload)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error decoding SetupDevice65 Payload... " + err.Error())
+	}
+
+	err = fdoshared.VerifyCoseSignature(setupDevice, to2SetupDevicePayload.ReplacementOwner2Key)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	if fdoError != nil {
@@ -125,6 +125,9 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	}
 
 	h.CredentialReuse = to2SetupDevicePayload.IsCredentialReuse(h.Credential.DCGuid)
+	if h.CredentialReuse {
+		h.ReplacementCredential = to2SetupDevicePayload
+	}
 
 	return &to2SetupDevicePayload, &testState, nil
 }
