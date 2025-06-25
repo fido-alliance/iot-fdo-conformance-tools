@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -16,16 +17,21 @@ type SRVEntry struct { // TODO: Unify type with DO
 }
 
 func SendCborPost(rvEntry SRVEntry, cmd FdoCmd, payload []byte, authzHeader *string) ([]byte, string, int, error) {
-	url := rvEntry.SrvURL + FDO_101_URL_BASE + cmd.ToString()
+	address, err := url.Parse(rvEntry.SrvURL)
+	if err != nil {
+		return nil, "", 0, fmt.Errorf("Error joining parsing url %s %s", rvEntry.SrvURL, err.Error())
+	}
+
+	address = address.JoinPath(FDO_101_URL_BASE, cmd.ToString())
 
 	if rvEntry.OverrideURL {
-		url = rvEntry.SrvURL + cmd.ToString()
+		address = address.JoinPath(cmd.ToString())
 	}
 
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", address.String(), bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, "", 0, errors.New("Error creating new request. " + err.Error())
 	}
@@ -37,13 +43,13 @@ func SendCborPost(rvEntry SRVEntry, cmd FdoCmd, payload []byte, authzHeader *str
 	req.Header.Set("Content-Type", "application/cbor")
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return nil, "", 0, fmt.Errorf("Error sending post request to %s url. %s", url, err.Error())
+		return nil, "", 0, fmt.Errorf("Error sending post request to %s url. %s", address, err.Error())
 	}
 
 	defer resp.Body.Close()
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, "", 0, fmt.Errorf("Error reading body bytes for %s url. %s", url, err.Error())
+		return nil, "", 0, fmt.Errorf("Error reading body bytes for %s url. %s", address, err.Error())
 	}
 
 	return bodyBytes, resp.Header.Get("Authorization"), resp.StatusCode, nil
