@@ -3,68 +3,69 @@ package do
 import (
 	"encoding/hex"
 	"encoding/pem"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"strings"
 
+	"github.com/google/uuid"
+
+	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
-const TEST_VOUCHER_LOC string = "./_test_vouchers/"
+const (
+	testVoucherFolder string = "./_test_vouchers/"
+	voucherSuffix     string = ".voucher.pem"
+)
 
-func GetVoucherFileList() ([]string, error) {
-	var voucherFiles []string
-
-	folderEntries, err := ioutil.ReadDir(TEST_VOUCHER_LOC)
+func LoadLocalVouchers(db *dodbs.VoucherDB) error {
+	folderEntries, err := os.ReadDir(testVoucherFolder)
 	if err != nil {
-		return []string{}, fmt.Errorf("Error reading directory \"%s\". %s", TEST_VOUCHER_LOC, err.Error())
+		return fmt.Errorf("Error reading directory \"%s\". %s", testVoucherFolder, err.Error())
 	}
 
+	var voucherPaths []string
+	var voucherGUIDs []fdoshared.FdoGuid
+
 	for _, folderEntry := range folderEntries {
-		if folderEntry.IsDir() || !strings.HasSuffix(folderEntry.Name(), ".voucher.pem") {
+		if folderEntry.IsDir() || !strings.HasSuffix(folderEntry.Name(), voucherSuffix) {
 			log.Println("Skipping " + folderEntry.Name())
 			continue
 		}
 
-		voucherFiles = append(voucherFiles, TEST_VOUCHER_LOC+folderEntry.Name())
-	}
-
-	return voucherFiles, nil
-}
-
-func LoadLocalVouchers() ([]fdoshared.VoucherDBEntry, error) {
-	var vouchers []fdoshared.VoucherDBEntry
-
-	fileList, err := GetVoucherFileList()
-	if err != nil {
-		return []fdoshared.VoucherDBEntry{}, errors.New("Error getting vouchers file list. " + err.Error())
-	}
-
-	for _, fileLoc := range fileList {
-		fileBytes, err := os.ReadFile(fileLoc)
+		u, err := uuid.Parse(strings.TrimSuffix(folderEntry.Name(), voucherSuffix))
 		if err != nil {
-			return []fdoshared.VoucherDBEntry{}, fmt.Errorf("Error reading file \"%s\". %s ", fileLoc, err.Error())
+			return fmt.Errorf("Error parsing UUID from file name \"%s\". %s", folderEntry.Name(), err.Error())
+		}
+
+		voucherPaths = append(voucherPaths, path.Join(testVoucherFolder, folderEntry.Name()))
+		voucherGUIDs = append(voucherGUIDs, [16]byte(u))
+	}
+
+	for i := range voucherPaths {
+		fileBytes, err := os.ReadFile(voucherPaths[i])
+		if err != nil {
+			return fmt.Errorf("Error reading file \"%s\". %s ", voucherPaths[i], err.Error())
 		}
 
 		if len(fileBytes) == 0 {
-			return vouchers, fmt.Errorf("Error reading file \"%s\". The file is empty.", fileLoc)
+			return fmt.Errorf("Error reading file \"%s\". The file is empty.", voucherPaths[i])
 		}
 
 		voucherBlock, rest := pem.Decode(fileBytes)
 		if voucherBlock == nil {
-			return vouchers, fmt.Errorf("%s: Could not find voucher PEM data!", fileLoc)
+			return fmt.Errorf("%s: Could not find voucher PEM data!", voucherPaths[i])
 		}
 
 		if voucherBlock.Type != fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE {
-			return vouchers, fmt.Errorf("%s: Failed to decode PEM voucher. Unexpected type: %s", fileLoc, voucherBlock.Type)
+			return fmt.Errorf("%s: Failed to decode PEM voucher. Unexpected type: %s", voucherPaths[i], voucherBlock.Type)
 		}
 
 		privateKeyBytes, rest := pem.Decode(rest)
 		if privateKeyBytes == nil {
-			return vouchers, fmt.Errorf("%s: Could not find key PEM data!", fileLoc)
+			return fmt.Errorf("%s: Could not find key PEM data!", voucherPaths[i])
 		}
 
 		// CBOR decode voucher
@@ -72,18 +73,18 @@ func LoadLocalVouchers() ([]fdoshared.VoucherDBEntry, error) {
 		var voucherInst fdoshared.OwnershipVoucher
 		err = fdoshared.CborCust.Unmarshal(voucherBlock.Bytes, &voucherInst)
 		if err != nil {
-			return vouchers, fmt.Errorf("%s: Could not CBOR unmarshal voucher! %s", fileLoc, err.Error())
+			return fmt.Errorf("%s: Could not CBOR unmarshal voucher! %s", voucherPaths[i], err.Error())
 		}
 
-		ovHeader, _ := voucherInst.GetOVHeader()
-		log.Println("Loading voucher " + hex.EncodeToString(ovHeader.OVGuid[:]))
+		log.Println("Loading voucher " + hex.EncodeToString(voucherGUIDs[i][:]))
 
-		vouchers = append(vouchers, fdoshared.VoucherDBEntry{
+		if err := db.SaveByGUID(voucherGUIDs[i], fdoshared.VoucherDBEntry{
 			Voucher:        voucherInst,
 			PrivateKeyX509: privateKeyBytes.Bytes,
-		})
+		}); err != nil {
+			return fmt.Errorf("Error saving voucher %s. %s", hex.EncodeToString(voucherGUIDs[i][:]), err.Error())
+		}
 	}
 
-	return vouchers, nil
-
+	return nil
 }

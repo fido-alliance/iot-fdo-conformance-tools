@@ -18,6 +18,7 @@ import (
 	fdodocommon "github.com/fido-alliance/iot-fdo-conformance-tools/core/device/common"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to1"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to2"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do"
 	fdodo "github.com/fido-alliance/iot-fdo-conformance-tools/core/do"
 	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to0"
@@ -360,6 +361,19 @@ func main() {
 
 					rvinfoBytes, _ = fdoshared.CborCust.Marshal(rvInfo)
 					log.Println("HTTP + HTTPS + DNS", hex.EncodeToString(rvinfoBytes))
+
+					return nil
+				},
+			},
+			{
+				Name: "load_test_vouchers",
+				Action: func(c *cli.Context) error {
+					db := InitBadgerDB()
+					defer db.Close()
+
+					if err := do.LoadLocalVouchers(dodbs.NewVoucherDB(db)); err != nil {
+						return fmt.Errorf("error loading test vouchers. %s", err.Error())
+					}
 
 					return nil
 				},
