@@ -169,7 +169,6 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 
 			maxCounter := 255
 			for {
-
 				getOwnerInfo := fdoshared.DeviceServiceInfo68{
 					ServiceInfo:       nil,
 					IsMoreServiceInfo: false,
@@ -194,6 +193,15 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 				if testId == testcom.FIDO_DOT_68_BAD_COMPLETION_LOGIC && maxCounter != 255 {
 					reqtDB.ReportTest(reqte.Uuid, testId, *testState)
 					break
+				}
+
+				maxCounter = maxCounter - 1
+				if maxCounter <= 0 {
+					reqtDB.ReportTest(reqte.Uuid, testId, testcom.FDOTestState{
+						Passed: false,
+						Error:  "Error running TO2 DeviceServiceInfoReady66 batch. Too many SIMs or retries. ",
+					})
+					return
 				}
 			}
 		}
