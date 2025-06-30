@@ -14,6 +14,15 @@
       "args": ["serve"]
     },
     {
+      "name": "Debug generate",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "envFile": "${workspaceFolder}/.env",
+      "program": "${workspaceFolder}",
+      "args": ["iop", "generate"]
+    },
+    {
       "name": "Debug iop to1",
       "type": "go",
       "request": "launch",
