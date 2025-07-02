@@ -63,9 +63,9 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloRV30.Guid)
-	if err != nil {
-		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloRV30.Guid[:]), err.Error())
-	}
+	// if err != nil {
+	// 	log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloRV30.Guid[:]), err.Error())
+	// }
 
 	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
 		if !testcomListener.To1.CheckExpectedCmd(currentCmd) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
@@ -170,9 +170,9 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(session.Guid)
-	if err != nil {
-		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
-	}
+	// if err != nil {
+	// 	log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
+	// }
 
 	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
 		if !testcomListener.To1.CheckExpectedCmd(currentCmd) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
@@ -133,9 +132,9 @@ func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, current
 
 	// Conformance
 	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
-	if err != nil {
-		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
-	}
+	// if err != nil {
+	// 	log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
+	// }
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {

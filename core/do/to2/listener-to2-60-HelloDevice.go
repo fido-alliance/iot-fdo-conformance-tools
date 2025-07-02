@@ -1,7 +1,6 @@
 package to2
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -39,9 +38,9 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloDevice.Guid)
-	if err != nil {
-		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloDevice.Guid[:]), err.Error())
-	}
+	// if err != nil {
+	// 	log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloDevice.Guid[:]), err.Error())
+	// }
 
 	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 		if !testcomListener.To2.CheckExpectedCmds([]fdoshared.FdoCmd{
