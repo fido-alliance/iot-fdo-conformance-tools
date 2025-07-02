@@ -23,7 +23,7 @@ func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTes
 	}
 
 	resultBytes, authzHeader, httpStatusCode, err := fdoshared.SendCborPost(h.SrvEntry, fdoshared.TO2_62_GET_OVNEXTENTRY, getOvNextEntryBytes, &h.AuthzHeader)
-	if fdoTestID != testcom.NULL_TEST {
+	if fdoTestID != testcom.NULL_TEST && fdoTestID != testcom.FIDO_DOT_62_POSITIVE {
 		testState = h.confCheckResponse(resultBytes, fdoTestID, httpStatusCode)
 		return nil, &testState, nil
 	}

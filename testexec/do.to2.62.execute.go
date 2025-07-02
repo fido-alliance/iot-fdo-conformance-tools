@@ -102,6 +102,7 @@ func executeTo2_62(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 
 					if testId == testcom.FIDO_DOT_62_GETOVNEXT_BAD_INDEX {
 						selectedNextEntry = fdoshared.NewRandomInt(int(proveOVHdrPayload61.NumOVEntries), 255)
+						selectedTestId = testcom.FIDO_DOT_62_GETOVNEXT_BAD_INDEX
 					}
 				}
 
@@ -112,6 +113,7 @@ func executeTo2_62(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 						Passed: false,
 						Error:  err.Error(),
 					})
+					return
 				}
 
 				if randomTestIndex == i {
