@@ -561,23 +561,7 @@ func main() {
 							}
 
 							//68
-							var osSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
-
-							var deviceSims fdoshared.SIMS
-							deviceSims = append(deviceSims, osSims...)
-
-							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
-								ServiceInfoKey: fdoshared.SIM_DEVMOD_NUMMODULES,
-								ServiceInfoVal: fdoshared.UintToCborBytes(1),
-							})
-
-							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
-								ServiceInfoKey: fdoshared.SIM_DEVMOD_MODULES,
-								ServiceInfoVal: fdoshared.SimsListToBytes(fdoshared.SIM_IDS{
-									fdoshared.IOPLOGGER_SIM_NAME,
-								}),
-							})
-
+							var deviceSims = fdoshared.GetDeviceOSSims()
 							var ownerSims fdoshared.SIMS // TODO
 
 							for i, deviceSim := range deviceSims {
