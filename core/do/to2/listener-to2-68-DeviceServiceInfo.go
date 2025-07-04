@@ -52,6 +52,11 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 
 	// ----- MAIN BODY ----- //
 
+	if session.OwnerSIMsFinishedSending {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, "DeviceServiceInfo68: Owner has already finished sending its service info", http.StatusBadRequest, testcomListener, fdoshared.To2)
+		return
+	}
+
 	var deviceServiceInfo fdoshared.DeviceServiceInfo68
 	err = fdoshared.CborCust.Unmarshal(bodyBytes, &deviceServiceInfo)
 	if err != nil {
