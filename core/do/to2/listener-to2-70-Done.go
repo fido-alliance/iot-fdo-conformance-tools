@@ -25,11 +25,18 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	// Test params setup
 	if testcomListener != nil {
 		if !testcomListener.To2.CheckExpectedCmd(currentCmd) {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO2 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+		} else if testcomListener.To2.CurrentTestIndex != 0 {
+			testcomListener.To2.PushSuccess()
 		}
 
 		if !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
+		}
+
+		if err := h.listenerDB.Update(testcomListener); err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
 		}
 	}
 

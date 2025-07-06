@@ -528,8 +528,7 @@ func main() {
 								ovEntries = append(ovEntries, nextEntry.OVEntry)
 							}
 
-							ovEntriesS := fdoshared.OVEntryArray(ovEntries)
-							err = ovEntriesS.VerifyEntries(to2proveOvhdrPayload.OVHeader, to2proveOvhdrPayload.HMac)
+							err = fdoshared.OVEntryArray(ovEntries).VerifyEntries(to2proveOvhdrPayload.OVHeader, to2proveOvhdrPayload.HMac)
 							if err != nil {
 								log.Println(err)
 								return nil
@@ -544,7 +543,7 @@ func main() {
 								return nil
 							}
 
-							//64
+							// 64
 							log.Println("Starting ProveDevice64")
 							_, _, err = to2inst.ProveDevice64(testcom.NULL_TEST)
 							if err != nil {
@@ -552,7 +551,7 @@ func main() {
 								return nil
 							}
 
-							//66
+							// 66
 							log.Println("Starting DeviceServiceInfoReady66")
 							_, _, err = to2inst.DeviceServiceInfoReady66(testcom.NULL_TEST)
 							if err != nil {
@@ -560,7 +559,9 @@ func main() {
 								return nil
 							}
 
-							//68
+							// 68
+							log.Println("Starting DeviceServiceInfo68")
+
 							var deviceSims = fdoshared.GetDeviceOSSims()
 							var ownerSims fdoshared.SIMS // TODO
 
@@ -600,12 +601,14 @@ func main() {
 								}
 							}
 
+							// 70
 							log.Println("Starting Done70")
 							_, _, err = to2inst.Done70(testcom.NULL_TEST)
 							if err != nil {
 								log.Println(err)
 								return nil
 							}
+
 							log.Println("Success To2")
 
 							// FDO Interop

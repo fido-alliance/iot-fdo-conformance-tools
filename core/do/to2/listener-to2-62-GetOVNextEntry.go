@@ -91,10 +91,6 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 		ovNextEntryBytes = fdoshared.Conf_RandomCborBufferFuzzing(ovNextEntryBytes)
 	}
 
-	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
-		testcomListener.To2.CompleteCmdAndSetNext(currentCmd)
-	}
-
 	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To2.CheckExpectedCmd(currentCmd) {
 		testcomListener.To2.PushSuccess()
 		testcomListener.To2.CompleteCmdAndSetNext(fdoshared.TO2_64_PROVE_DEVICE)
