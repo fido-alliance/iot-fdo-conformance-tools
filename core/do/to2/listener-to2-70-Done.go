@@ -24,8 +24,11 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	// Test params setup
 	if testcomListener != nil {
-		if !testcomListener.To2.CheckExpectedCmd(currentCmd) {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO2 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+		var isLastTestFailed bool
+
+		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To2.PushFail("Expected the device to fail, but it didn't")
+			isLastTestFailed = true
 		} else if testcomListener.To2.CurrentTestIndex != 0 {
 			testcomListener.To2.PushSuccess()
 		}
@@ -34,8 +37,13 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
 		}
 
-		if err := h.listenerDB.Update(testcomListener); err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
+		}
+
+		if isLastTestFailed {
 			return
 		}
 	}
