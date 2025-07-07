@@ -23,7 +23,7 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 
 	deviceSrvInfoReadyBytes, _ := fdoshared.CborCust.Marshal(deviceSrvInfoReady)
 
-	if fdoTestID == testcom.FIDO_DOT_66_BAD_SRVINFO_PAYLOAD {
+	if fdoTestID == testcom.FIDO_DOT_66_BAD_ENCODING {
 		deviceSrvInfoReadyBytes = fdoshared.Conf_RandomCborBufferFuzzing(deviceSrvInfoReadyBytes)
 	}
 

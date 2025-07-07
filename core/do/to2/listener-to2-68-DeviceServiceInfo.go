@@ -14,13 +14,9 @@ const MTU_BYTES = 1500
 
 func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	log.Println("DeviceServiceInfo68: Receiving...")
+
 	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_68_DEVICE_SERVICE_INFO
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-
-	var testcomListener *listenertestsdeps.RequestListenerInst
-	if !fdoshared.CheckHeaders(w, r, currentCmd) {
-		return
-	}
 
 	session, sessionId, authorizationHeader, bodyBytes, testcomListener, err := h.receiveAndDecrypt(w, r, currentCmd)
 	if err != nil {
@@ -31,6 +27,9 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		var isLastTestFailed bool
 
 		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To2.PushFail("Expected the device to fail, but it didn't")
+			isLastTestFailed = true
+		} else if testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE && session.PrevCMD == fdoshared.TO2_69_OWNER_SERVICE_INFO {
 			testcomListener.To2.PushFail("Expected the device to fail, but it didn't")
 			isLastTestFailed = true
 		} else if testcomListener.To2.CurrentTestIndex != 0 {
@@ -114,6 +113,10 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 
 	ownerServiceInfoBytes, _ := fdoshared.CborCust.Marshal(ownerServiceInfo)
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_68_BAD_ENCODING {
+		ownerServiceInfoBytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerServiceInfoBytes)
+	}
+
 	// ----- MAIN BODY ENDS ----- //
 	ownerServiceInfoEncBytes, err := fdoshared.AddEncryptionWrapping(ownerServiceInfoBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
@@ -122,7 +125,17 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_68_BAD_ENC_WRAPPING {
+		ownerServiceInfoEncBytes, err = fdoshared.Conf_Fuzz_AddWrapping(ownerServiceInfoEncBytes, session.SessionKey, session.CipherSuiteName)
+		if err != nil {
+			log.Println("DeviceServiceInfo68: Error fuzzing encryption..." + err.Error())
+			fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	session.PrevCMD = fdoshared.TO2_69_OWNER_SERVICE_INFO
+
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
 		log.Println("DeviceServiceInfo68: Error saving session..." + err.Error())

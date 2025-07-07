@@ -17,13 +17,14 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_70_DONE
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
+
 	session, _, authorizationHeader, bodyBytes, testcomListener, err := h.receiveAndDecrypt(w, r, currentCmd)
 	if err != nil {
 		return
 	}
 
 	// Test params setup
-	if testcomListener != nil {
+	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 		var isLastTestFailed bool
 
 		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
@@ -56,7 +57,9 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	var done70 fdoshared.Done70
 	err = fdoshared.CborCust.Unmarshal(bodyBytes, &done70)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to decode Done70. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		if testcomListener != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to decode Done70. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		}
 
 		log.Println("Done70: Error decoding request..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest)

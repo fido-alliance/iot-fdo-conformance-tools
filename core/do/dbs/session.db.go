@@ -43,9 +43,8 @@ type SessionEntry struct {
 
 	NumOVEntries uint8
 
-	MaxDeviceServiceInfoSz                  uint16
-	ServiceInfoMsgNo                        uint8
-	OwnerServiceInfoIsMoreServiceInfoIsTrue bool
+	MaxDeviceServiceInfoSz uint16
+	ServiceInfoMsgNo       uint8
 
 	DeviceSIMs               []fdoshared.ServiceInfoKV
 	OwnerSIMsSendCounter     uint16

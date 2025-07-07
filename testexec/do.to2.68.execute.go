@@ -154,6 +154,7 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 					selectedTestId = testId
 				}
 
+				// Here we want to do the device SIMs correctly
 				if testId == testcom.FIDO_DOT_68_BAD_COMPLETION_LOGIC {
 					selectedTestId = testcom.NULL_TEST
 				}
