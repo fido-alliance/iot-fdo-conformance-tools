@@ -171,8 +171,10 @@ func (h *FdoSeedIDs) GetRandomTestGuidForSgType(sgType DeviceSgType) FdoGuid {
 // TIMET  = #6.1(uint)
 type FdoTimestamp interface{} // TODO
 
-const IP6Len = 16
-const IP4Len = 4
+const (
+	IP6Len = 16
+	IP4Len = 4
+)
 
 type FdoIPAddress []byte
 
@@ -359,7 +361,7 @@ func UrlToRvDirective(inurl string) (RendezvousDirective, error) {
 		return nil, fmt.Errorf("invalid protocol %d", rvto2addr.RVProtocol)
 	}
 
-	var rvDirective = RendezvousDirective{
+	rvDirective := RendezvousDirective{
 		NewRendezvousInstr(RVProtocol, scheme),
 		NewRendezvousInstr(RVDevPort, rvto2addr.RVPort),
 		NewRendezvousInstr(RVOwnerPort, rvto2addr.RVPort), // TODO: Future
@@ -375,7 +377,7 @@ func UrlToRvDirective(inurl string) (RendezvousDirective, error) {
 }
 
 func UrlsToRendezvousInfo(urls []string) (RendezvousInfo, error) {
-	var rvInfo = RendezvousInfo{}
+	rvInfo := RendezvousInfo{}
 
 	for _, url := range urls {
 		rvDirective, err := UrlToRvDirective(url)

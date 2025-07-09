@@ -8,12 +8,13 @@ import (
 
 type CoseTagged uint64
 
-const COSE_SIGNATURE_TAGGED CoseTagged = 18
-const COSE_ENCRYPT_TAGGED CoseTagged = 16
-const COSE_MAC_TAGGED CoseTagged = 17
+const (
+	COSE_SIGNATURE_TAGGED CoseTagged = 18
+	COSE_ENCRYPT_TAGGED   CoseTagged = 16
+	COSE_MAC_TAGGED       CoseTagged = 17
+)
 
-type CBOR_CUSTOM_TAGS struct {
-}
+type CBOR_CUSTOM_TAGS struct{}
 
 func (h CBOR_CUSTOM_TAGS) getTags() cbor.TagSet {
 	var customTags cbor.TagSet = cbor.NewTagSet()

@@ -12,8 +12,10 @@ import (
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
-const TEST_POSITIVE_BATCH_SIZE int = 20
-const TEST_POSITIVE_BATCHES int = 5
+const (
+	TEST_POSITIVE_BATCH_SIZE int = 20
+	TEST_POSITIVE_BATCHES    int = 5
+)
 
 const TEST_NEGATIVE_PER_TEST_VOUCHERS int = 5
 

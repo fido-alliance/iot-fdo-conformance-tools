@@ -71,7 +71,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var done271Payload = fdoshared.Done271{
+	done271Payload := fdoshared.Done271{
 		NonceTO2SetupDv: session.NonceTO2SetupDv64,
 	}
 

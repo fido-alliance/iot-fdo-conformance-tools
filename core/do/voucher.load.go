@@ -63,7 +63,7 @@ func LoadLocalVouchers(db *dodbs.VoucherDB) error {
 			return fmt.Errorf("%s: Failed to decode PEM voucher. Unexpected type: %s", voucherPaths[i], voucherBlock.Type)
 		}
 
-		privateKeyBytes, rest := pem.Decode(rest)
+		privateKeyBytes, _ := pem.Decode(rest)
 		if privateKeyBytes == nil {
 			return fmt.Errorf("%s: Could not find key PEM data!", voucherPaths[i])
 		}

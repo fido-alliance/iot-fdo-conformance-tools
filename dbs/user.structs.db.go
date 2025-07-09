@@ -4,8 +4,9 @@ import (
 	"bytes"
 
 	"github.com/dgraph-io/badger/v4"
-	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/google/uuid"
+
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 type UserTestDB struct {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	listenertestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/listener"
 )
@@ -24,7 +25,7 @@ func NewListenerTestDB(db *badger.DB) *ListenerTestDB {
 		db:               db,
 		prefix:           []byte("lstdb-"),
 		mapperGuidPrefix: []byte("lstdb-guid-map-"),
-		ttl:              60 * 60 * 24 * 183, //6months storage
+		ttl:              60 * 60 * 24 * 183, // 6months storage
 	}
 }
 
@@ -56,8 +57,7 @@ func (h *ListenerTestDB) Save(reqListener listenertestsdeps.RequestListenerInst)
 		return errors.New("Failed saving listener entry." + err.Error())
 	}
 
-	h.SaveMapping(reqListener.Guid, reqListener.Uuid)
-	if err != nil {
+	if err := h.SaveMapping(reqListener.Guid, reqListener.Uuid); err != nil {
 		return errors.New("Failed saving listener entry guid mapping." + err.Error())
 	}
 

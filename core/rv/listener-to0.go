@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	tdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 )

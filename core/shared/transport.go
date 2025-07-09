@@ -6,8 +6,10 @@ import (
 	"strings"
 )
 
-const CONTENT_TYPE_CBOR string = "application/cbor"
-const FDO_101_URL_BASE string = "/fdo/101/msg/"
+const (
+	CONTENT_TYPE_CBOR string = "application/cbor"
+	FDO_101_URL_BASE  string = "/fdo/101/msg/"
+)
 
 func RespondFDOError(w http.ResponseWriter, r *http.Request, errorCode FdoErrorCode, prevMsgId FdoCmd, messageStr string, httpStatusCode int) {
 	fdoErrorInst := NewFdoError(errorCode, prevMsgId, messageStr)

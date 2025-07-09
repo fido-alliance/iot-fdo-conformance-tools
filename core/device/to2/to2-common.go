@@ -5,8 +5,10 @@ import (
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
-var MaxDeviceMessageSize uint16 = 2048
-var MaxOwnerServiceInfoSize uint16 = 2048
+var (
+	MaxDeviceMessageSize    uint16 = 2048
+	MaxOwnerServiceInfoSize uint16 = 2048
+)
 
 type To2Requestor struct {
 	SrvEntry        fdoshared.SRVEntry

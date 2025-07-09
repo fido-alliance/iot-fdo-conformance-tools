@@ -190,8 +190,10 @@ type COSEEncStructure struct { // It's just a god damn AAD FFS!
 	ExternalAAD []byte
 }
 
-const CONST_KDF_LABEL = "FIDO-KDF"
-const CONST_KDF_CONTEXT = "AutomaticOnboardTunnel"
+const (
+	CONST_KDF_LABEL   = "FIDO-KDF"
+	CONST_KDF_CONTEXT = "AutomaticOnboardTunnel"
+)
 
 // Implementation of SP800-108 section 5.1 KDF in Counter Mode
 // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-108.pdf
@@ -229,7 +231,7 @@ func Sp800108CounterKDF(sizeBytes int, hmacAlg HashType, key []byte, contextRand
 }
 
 func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
-	var algInfo = CipherSuitesInfoMap[cipherSuite]
+	algInfo := CipherSuitesInfoMap[cipherSuite]
 
 	// INNER ENCRYPTION BLOCK
 	protectedHeaderInner := ProtectedHeader{
@@ -255,7 +257,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 	svk := svksek[0:algInfo.SvkLen]
 	sek := svksek[algInfo.SvkLen : algInfo.SvkLen+algInfo.SekLen]
 
-	var ciphertext = make([]byte, len(plaintext))
+	ciphertext := make([]byte, len(plaintext))
 
 	block, err := aes.NewCipher(sek)
 	if err != nil {
@@ -267,7 +269,7 @@ func encryptETM(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		stream := cipher.NewCTR(block, nonceIvBytes)
 		stream.XORKeyStream(ciphertext, plaintext)
 	default:
-		return nil, errors.New("%s Error encoding inner ETM. " + err.Error())
+		return nil, errors.New("Error encoding inner ETM.")
 	}
 
 	innerBlock := EMB_ETMInnerBlock{
@@ -330,7 +332,7 @@ func decryptETM(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		return nil, errors.New("Error decoding protected header. " + err.Error())
 	}
 
-	var algInfo = CipherSuitesInfoMap[cipherSuite]
+	algInfo := CipherSuitesInfoMap[cipherSuite]
 
 	svksek, err := Sp800108CounterKDF(algInfo.SekLen+algInfo.SvkLen, algInfo.KdfHmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
@@ -400,7 +402,7 @@ type AEAD_Enc_Structure struct {
 }
 
 func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
-	var algInfo = CipherSuitesInfoMap[cipherSuite]
+	algInfo := CipherSuitesInfoMap[cipherSuite]
 
 	// INNER ENCRYPTION BLOCK
 	protectedHeader := ProtectedHeader{
@@ -451,7 +453,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 		ciphertext = aesccm.Seal(nil, nonceIvBytes, plaintext, aadBytes)
 
 	default:
-		return nil, errors.New("%s Error encoding EMB. " + err.Error())
+		return nil, errors.New("Error encoding EMB: unsupported encryption algorithm!")
 	}
 
 	embBlock := EMB_ETMInnerBlock{
@@ -469,7 +471,7 @@ func encryptEMB(plaintext []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 }
 
 func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite CipherSuiteName) ([]byte, error) {
-	var algInfo = CipherSuitesInfoMap[cipherSuite]
+	algInfo := CipherSuitesInfoMap[cipherSuite]
 
 	sevk, err := Sp800108CounterKDF(algInfo.SevkLength, algInfo.KdfHmacAlg, sessionKeyInfo.ShSe, sessionKeyInfo.ContextRand)
 	if err != nil {
@@ -534,7 +536,7 @@ func decryptEMB(encrypted []byte, sessionKeyInfo SessionKeyInfo, cipherSuite Cip
 
 		plaintext = prepPlaintext
 	default:
-		return nil, errors.New("%s Error encoding EMB. " + err.Error())
+		return nil, errors.New("Error encoding EMB: unsupported encryption algorithm!")
 	}
 
 	return plaintext, nil

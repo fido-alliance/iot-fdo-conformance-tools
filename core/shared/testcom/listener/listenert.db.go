@@ -2,7 +2,6 @@ package listener
 
 import (
 	"fmt"
-	"log"
 
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
@@ -126,8 +125,6 @@ func (h *RequestListenerRunnerInst) GetNextTestID() testcom.FDOTestID {
 
 	if h.CurrentTestIndex+1 < len(h.Tests[h.ExpectedCmd]) {
 		h.CurrentTestIndex = h.CurrentTestIndex + 1
-	} else {
-		log.Println("Was about to go out of index!") // TODO: Remove
 	}
 
 	return selectedTestID

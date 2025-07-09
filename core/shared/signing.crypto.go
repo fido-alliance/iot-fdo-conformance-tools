@@ -24,7 +24,6 @@ func VerifyCertificateChain(chain []X509CertificateBytes) ([]*x509.Certificate, 
 	leafCert, err := x509.ParseCertificate(leafCertBytes)
 	if err != nil {
 		return finalChain, errors.New("error decoding leaf certificate. " + err.Error())
-
 	}
 
 	rootCertBytes := chain[len(chain)-1]

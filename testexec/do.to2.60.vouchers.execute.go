@@ -39,5 +39,4 @@ func executeTo2_60_Vouchers(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.
 
 		reqtDB.ReportTest(reqte.Uuid, testId, *rvtTestState)
 	}
-
 }

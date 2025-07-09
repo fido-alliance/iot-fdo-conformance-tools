@@ -37,10 +37,12 @@ const (
 	KEX_ASYMKEX3072 KexSuiteName = "ASYMKEX3072"
 )
 
-const KEX_ECDH256_RANDOM_LEN int = 128 / 8
-const KEX_ECDH384_RANDOM_LEN int = 384 / 8
-const KEX_ASYMKEX2048_RANDOM_LEN int = 256 / 8
-const KEX_ASYMKEX3072_RANDOM_LEN int = 768 / 8
+const (
+	KEX_ECDH256_RANDOM_LEN     int = 128 / 8
+	KEX_ECDH384_RANDOM_LEN     int = 384 / 8
+	KEX_ASYMKEX2048_RANDOM_LEN int = 256 / 8
+	KEX_ASYMKEX3072_RANDOM_LEN int = 768 / 8
+)
 
 var KexSuitNames [6]KexSuiteName = [6]KexSuiteName{
 	KEX_ECDH256,

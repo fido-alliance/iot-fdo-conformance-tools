@@ -9,8 +9,10 @@ import (
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
-const SeedingSize = 10000
-const ThreadsPerAlg = 10
+const (
+	SeedingSize   = 10000
+	ThreadsPerAlg = 10
+)
 
 type SeedRunResult struct {
 	DeviceSgType fdoshared.DeviceSgType
@@ -20,7 +22,7 @@ type SeedRunResult struct {
 }
 
 func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *sync.WaitGroup, resultChannel chan SeedRunResult) {
-	var result = SeedRunResult{
+	result := SeedRunResult{
 		DeviceSgType: sgType,
 		Guids:        []fdoshared.FdoGuid{},
 		CredBases:    []fdoshared.WawDeviceCredential{},
@@ -85,7 +87,7 @@ func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 		for _, newDeviceBase := range result.CredBases {
 			err := devbasedb.Save(newDeviceBase)
 			if err != nil {
-				return fmt.Errorf("Error saving device base. " + err.Error())
+				return fmt.Errorf("Error saving device base: %w", err)
 			}
 		}
 
@@ -94,7 +96,7 @@ func PreSeed(configdb *dbs.ConfigDB, devbasedb *dbs.DeviceBaseDB) error {
 
 	err := configdb.Save(newConfig)
 	if err != nil {
-		return fmt.Errorf("error saving config. " + err.Error())
+		return fmt.Errorf("error saving config: %w", err)
 	}
 
 	log.Println("Done!")

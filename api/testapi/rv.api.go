@@ -10,13 +10,14 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/gorilla/mux"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/testexec"
-	"github.com/gorilla/mux"
 )
 
 const RVSeedIDsBatchSize int = 20
@@ -34,7 +35,6 @@ func (h *RVTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestDBEnt
 	sessionCookie, err := r.Cookie("session")
 	if err != nil {
 		return nil, errors.New("Failed to read cookie. " + err.Error())
-
 	}
 
 	if sessionCookie == nil {

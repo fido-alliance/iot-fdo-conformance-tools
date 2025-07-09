@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
@@ -45,8 +46,7 @@ func (h *VoucherDB) Save(voucherDBEntry fdoshared.VoucherDBEntry) error {
 		return errors.New("Failed creating voucherDB entry instance. " + err.Error())
 	}
 
-	dbtxn.Commit()
-	if err != nil {
+	if err := dbtxn.Commit(); err != nil {
 		return errors.New("Failed saving voucherDB entry. " + err.Error())
 	}
 
@@ -71,8 +71,7 @@ func (h *VoucherDB) SaveByGUID(guid fdoshared.FdoGuid, voucherDBEntry fdoshared.
 		return errors.New("Failed creating voucherDB entry instance. " + err.Error())
 	}
 
-	dbtxn.Commit()
-	if err != nil {
+	if err := dbtxn.Commit(); err != nil {
 		return errors.New("Failed saving voucherDB entry. " + err.Error())
 	}
 

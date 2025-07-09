@@ -4,7 +4,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -17,7 +16,7 @@ const DEVICE_CREDENTIAL_LOC string = "./_dis/"
 func GetCredentials() ([]string, error) {
 	var credentialFiles []string
 
-	folderEntries, err := ioutil.ReadDir(DEVICE_CREDENTIAL_LOC)
+	folderEntries, err := os.ReadDir(DEVICE_CREDENTIAL_LOC)
 	if err != nil {
 		return []string{}, fmt.Errorf("Error reading directory \"%s\". %s", DEVICE_CREDENTIAL_LOC, err.Error())
 	}
@@ -31,7 +30,6 @@ func GetCredentials() ([]string, error) {
 		return credentialFiles, nil // return first result
 	}
 	return nil, nil
-
 }
 
 func LoadLocalCredentials() (fdoshared.WawDeviceCredential, error) {
@@ -71,5 +69,4 @@ func LoadLocalCredentials() (fdoshared.WawDeviceCredential, error) {
 	}
 
 	return credential, nil
-
 }

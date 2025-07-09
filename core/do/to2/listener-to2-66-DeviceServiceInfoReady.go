@@ -69,7 +69,7 @@ func (h *DoTo2) DeviceServiceInfoReady66(w http.ResponseWriter, r *http.Request)
 		maxDeviceServiceInfoSz = *deviceServiceInfoReady.MaxOwnerServiceInfoSz
 	}
 
-	var ownerServiceInfoReadyPayload = fdoshared.OwnerServiceInfoReady67{
+	ownerServiceInfoReadyPayload := fdoshared.OwnerServiceInfoReady67{
 		MaxDeviceServiceInfoSz: &maxDeviceServiceInfoSz,
 	}
 	ownerServiceInfoReadyPayloadBytes, _ := fdoshared.CborCust.Marshal(ownerServiceInfoReadyPayload)

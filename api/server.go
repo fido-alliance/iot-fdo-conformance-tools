@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/gorilla/mux"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api/testapi"
 	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
-	"github.com/gorilla/mux"
 )
 
 func AddContext(next http.Handler, ctx context.Context) http.Handler {

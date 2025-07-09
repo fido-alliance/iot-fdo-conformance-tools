@@ -56,8 +56,6 @@ func (h *WawDeviceCredential) UpdateWithManufacturerCred(ovHeader []byte, ovPubK
 	return &ovHmac, nil
 }
 
-// BUG: the problem is with these certificates
-
 const TestRootCert string = `
 -----BEGIN CERTIFICATE-----
 MIIFzTCCA7WgAwIBAgIUQTMpoTm7STUMuELyfpWLShiM+dYwDQYJKoZIhvcNAQEL

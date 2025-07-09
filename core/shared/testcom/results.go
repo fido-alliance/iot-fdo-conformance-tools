@@ -1,8 +1,9 @@
 package testcom
 
 import (
-	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/google/uuid"
+
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 type FDOConformanceResults_Vendor struct {

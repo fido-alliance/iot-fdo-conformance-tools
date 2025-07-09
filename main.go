@@ -13,12 +13,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dgraph-io/badger/v4"
+	"github.com/joho/godotenv"
+	"github.com/urfave/cli/v2"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api"
 	fdodeviceimplementation "github.com/fido-alliance/iot-fdo-conformance-tools/core/device"
 	fdodocommon "github.com/fido-alliance/iot-fdo-conformance-tools/core/device/common"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to1"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to2"
-	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do"
 	fdodo "github.com/fido-alliance/iot-fdo-conformance-tools/core/do"
 	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to0"
@@ -27,15 +30,12 @@ import (
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 	testcomdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
-
-	"github.com/joho/godotenv"
-
-	"github.com/dgraph-io/badger/v4"
-	"github.com/urfave/cli/v2"
 )
 
-const DEFAULT_PORT = 8080
-const BADGER_LOCATION = "./badger.local.db"
+const (
+	DEFAULT_PORT    = 8080
+	BADGER_LOCATION = "./badger.local.db"
+)
 
 func TryReadingWawDIFile(filepath string) (*fdoshared.WawDeviceCredential, error) {
 	fileBytes, err := os.ReadFile(filepath)
@@ -371,7 +371,7 @@ func main() {
 					db := InitBadgerDB()
 					defer db.Close()
 
-					if err := do.LoadLocalVouchers(dodbs.NewVoucherDB(db)); err != nil {
+					if err := fdodo.LoadLocalVouchers(dodbs.NewVoucherDB(db)); err != nil {
 						return fmt.Errorf("error loading test vouchers. %s", err.Error())
 					}
 
@@ -411,7 +411,7 @@ func main() {
 							voucherSgType := fdoshared.RandomSgType()
 							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, voucherSgType, rvInfo, testcom.NULL_TEST)
 							if err != nil {
-								log.Panicf(err.Error())
+								log.Panic(err.Error())
 							}
 
 							return nil
@@ -562,7 +562,7 @@ func main() {
 							// 68
 							log.Println("Starting DeviceServiceInfo68")
 
-							var deviceSims = fdoshared.GetDeviceOSSims()
+							deviceSims := fdoshared.GetDeviceOSSims()
 							var ownerSims fdoshared.SIMS // TODO
 
 							for i, deviceSim := range deviceSims {
@@ -661,7 +661,6 @@ func main() {
 								if !file.IsDir() && filepath.Ext(file.Name()) == ".pem" {
 									filePath := filepath.Join(folderPath, file.Name())
 									fileBytes, err := os.ReadFile(filePath)
-
 									if err != nil {
 										return fmt.Errorf("error reading file \"%s\". %s ", folderPath, err.Error())
 									}

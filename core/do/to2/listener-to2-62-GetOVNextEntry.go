@@ -79,7 +79,7 @@ func (h *DoTo2) GetOVNextEntry62(w http.ResponseWriter, r *http.Request) {
 
 	ovEntry := session.Voucher.OVEntryArray[getOVNextEntry.GetOVNextEntry]
 
-	var ovNextEntry63 = fdoshared.OVNextEntry63{
+	ovNextEntry63 := fdoshared.OVNextEntry63{
 		OVEntryNum: getOVNextEntry.GetOVNextEntry,
 		OVEntry:    ovEntry,
 	}

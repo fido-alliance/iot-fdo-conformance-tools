@@ -31,7 +31,6 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 		nextEntry, _, err := to2requestor.GetOVNextEntry62(uint8(i), testcom.NULL_TEST)
 		if err != nil {
 			return nil, err
-
 		}
 
 		if nextEntry.OVEntryNum != uint8(i) {

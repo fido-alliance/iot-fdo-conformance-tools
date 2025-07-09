@@ -99,5 +99,7 @@ var MANDATORY_SIMS = SIM_IDS{
 }
 
 // SIM helpers
-var CBOR_TRUE = []byte{0xF5}
-var CBOR_FALSE = []byte{0xF4}
+var (
+	CBOR_TRUE  = []byte{0xF5}
+	CBOR_FALSE = []byte{0xF4}
+)

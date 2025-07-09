@@ -61,9 +61,7 @@ func (h *IopApi) submitVoucherToRvs(voucherdbe *fdoshared.VoucherDBEntry) ([]str
 				continue
 			}
 
-			if err == nil {
-				break
-			}
+			break
 		}
 	}
 

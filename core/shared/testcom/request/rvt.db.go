@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
-	"github.com/google/uuid"
 )
 
 type TestVouchers map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher

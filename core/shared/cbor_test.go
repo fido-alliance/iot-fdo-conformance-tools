@@ -6,9 +6,8 @@ import (
 )
 
 func TestCBOR_CUSTOM_TAGS_Unmarshal(t *testing.T) {
-
 	// CoseSig
-	var coseSig = CoseSignature{}
+	coseSig := CoseSignature{}
 	bts, err := CborCust.Marshal(coseSig)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -19,7 +18,7 @@ func TestCBOR_CUSTOM_TAGS_Unmarshal(t *testing.T) {
 	}
 
 	// CoseMac
-	var coseMac = COSEMacStructure{}
+	coseMac := COSEMacStructure{}
 	bts, err = CborCust.Marshal(coseMac)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -30,7 +29,7 @@ func TestCBOR_CUSTOM_TAGS_Unmarshal(t *testing.T) {
 	}
 
 	// ETMInnerBlock / EMBlock
-	var etmInnerBlock = EMB_ETMInnerBlock{}
+	etmInnerBlock := EMB_ETMInnerBlock{}
 	bts, err = CborCust.Marshal(etmInnerBlock)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

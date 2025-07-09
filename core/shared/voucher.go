@@ -91,7 +91,6 @@ func (h OwnershipVoucher) Validate() error {
 func (h OwnershipVoucher) GetOVHeader() (OwnershipVoucherHeader, error) {
 	var ovHeader OwnershipVoucherHeader
 	err := CborCust.Unmarshal(h.OVHeaderTag, &ovHeader)
-
 	if err != nil {
 		return OwnershipVoucherHeader{}, errors.New("error decoding OVHeader. " + err.Error())
 	}

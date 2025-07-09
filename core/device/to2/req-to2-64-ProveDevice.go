@@ -61,7 +61,6 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 	proveDevice, err := fdoshared.GenerateCoseSignature(eatPayloadBytes, fdoshared.ProtectedHeader{}, fdoshared.UnprotectedHeader{EUPHNonce: &h.NonceTO2SetupDv64}, privateKeyInst, h.Credential.DCSigInfo.SgType)
 	if err != nil {
 		return nil, nil, errors.New("ProveDevice64: Error generating device EAT... " + err.Error())
-
 	}
 
 	if fdoTestID == testcom.FIDO_DOT_64_BAD_SIGNATURE {
