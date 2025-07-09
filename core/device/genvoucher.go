@@ -172,16 +172,6 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 		}
 
 		chosenSgType := voucherSgType
-		// Test
-		if i == badOvEntryIndex {
-			if fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_HDRINFO_HASH {
-				oveHdrInfoHash = *fdoshared.Conf_RandomTestHashHmac(oveHdrInfoHash, oveHdrInfo, []byte{})
-			}
-
-			if fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_SG_TYPE {
-				chosenSgType = fdoshared.Conf_NewRandomSgTypeExcept(chosenSgType)
-			}
-		}
 
 		newPrivKeyInst, newPrivMashaled, newOvEntry, err := GenerateOvEntry(prevEntryHash, oveHdrInfoHash, prevEntryPrivKey, prevEntrySgType, chosenSgType, fdoTestID)
 		if err != nil {
@@ -211,6 +201,12 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 		OVEntryArray:   ovEntryArray,
 	}
 
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_CHAIN {
+		fakeCert := fdoshared.Conf_RandomCborBufferFuzzing(newDi.DCCertificateChain[0])
+		fakeCertChain := append(*voucherInst.OVDevCertChain, fakeCert)
+		voucherInst.OVDevCertChain = &fakeCertChain
+	}
+
 	// Test
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_PROT_VERSION {
 		voucherInst.OVProtVer = fdoshared.ProtVersion(uint16(fdoshared.NewRandomInt(105, 10000)))
@@ -232,10 +228,6 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 		chainTemp[1] = leafCert
 
 		voucherInst.OVDevCertChain = &chainTemp
-	}
-
-	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
-		voucherInst.OVEntryArray = []fdoshared.CoseSignature{}
 	}
 
 	voucherDBEInst := fdoshared.VoucherDBEntry{

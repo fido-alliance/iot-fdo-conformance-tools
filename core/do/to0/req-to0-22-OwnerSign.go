@@ -47,6 +47,11 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		return nil, nil, errors.New("OwnerSign22: Error getting RV TO2 address entry. " + err.Error())
 	}
 
+	if fdoTestId == testcom.FIDO_RVT_22_BAD_RENDEVOUZ_BLOB {
+		rvTo2AddrEntry.RVIP = nil
+		rvTo2AddrEntry.RVDNS = nil
+	}
+
 	var to1dPayload fdoshared.To1dBlobPayload = fdoshared.To1dBlobPayload{
 		To1dRV: []fdoshared.RVTO2AddrEntry{
 			*rvTo2AddrEntry,
@@ -61,14 +66,12 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 
 	// TO1D CoseSignature
 	var lastOvEntryPubKeyPkType fdoshared.FdoPkType = fdoshared.SECP256R1
-	if fdoTestId != testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
-		lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
-		if err != nil {
-			return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
-		}
-
-		lastOvEntryPubKeyPkType = lastOvEntryPubKey.PkType
+	lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
+	if err != nil {
+		return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
 	}
+
+	lastOvEntryPubKeyPkType = lastOvEntryPubKey.PkType
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.voucherDBEntry.PrivateKeyX509)
 	if err != nil {

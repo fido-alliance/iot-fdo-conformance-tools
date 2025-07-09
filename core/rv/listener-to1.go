@@ -60,6 +60,11 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !helloRV30.EASigInfo.IsValid() {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to validate EASigInfo!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		return
+	}
+
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
 	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloRV30.Guid)

@@ -133,6 +133,15 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Verify all the RVTO2AddrEntry
+	for _, rvEntry := range to1dPayload.To1dRV {
+		if rvEntry.RVDNS == nil && rvEntry.RVIP == nil {
+			log.Println("OwnerSign22: Invalid RVTO2AddrEntry, both RVDNS and RVIP are nil!")
+			fdoshared.RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, fdoshared.TO0_22_OWNER_SIGN, "Failed to validate owner sign!", http.StatusBadRequest)
+			return
+		}
+	}
+
 	/* ----- Verify OwnerSign ----- */
 
 	if !bytes.Equal(to0d.NonceTO0Sign[:], session.NonceTO0Sign[:]) {

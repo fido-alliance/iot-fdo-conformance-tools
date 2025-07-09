@@ -53,27 +53,11 @@ func Conf_RandomTestHashHmac(hashHmac HashOrHmac, originalPayload []byte, origin
 		Hash: hashHmac.Hash,
 	}
 
-	randomNumber := NewRandomInt(0, 150)
+	randomNumber := NewRandomInt(0, 100)
 	if randomNumber < 50 {
 		newHashHmac.Hash = NewRandomBuffer(len(newHashHmac.Hash))
-	} else if randomNumber > 100 {
-		newHashHmac.Type = Conf_NewRandomHashHmacAlgExcept(newHashHmac.Type)
 	} else {
-		switch newHashHmac.Type {
-		case HASH_SHA256, HASH_SHA384:
-			if newHashHmac.Type == HASH_SHA256 {
-				newHashHmac, _ = GenerateFdoHash(originalPayload, HASH_SHA384)
-			} else {
-				newHashHmac, _ = GenerateFdoHash(originalPayload, HASH_SHA256)
-			}
-
-		case HASH_HMAC_SHA256, HASH_HMAC_SHA384:
-			if newHashHmac.Type == HASH_SHA256 {
-				newHashHmac, _ = GenerateFdoHmac(originalPayload, HASH_HMAC_SHA384, originalMasterSecret)
-			} else {
-				newHashHmac, _ = GenerateFdoHmac(originalPayload, HASH_HMAC_SHA256, originalMasterSecret)
-			}
-		}
+		newHashHmac.Type = Conf_NewRandomHashHmacAlgExcept(newHashHmac.Type)
 	}
 
 	return &newHashHmac
