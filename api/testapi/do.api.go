@@ -252,7 +252,7 @@ func (h *DOTestMgmtAPI) GetVouchers(w http.ResponseWriter, r *http.Request) {
 	writer := zip.NewWriter(zipBuffer)
 
 	for _, vanv := range voucherList {
-		zipFile, err := writer.Create(fmt.Sprintf("%s.voucher.pem", hex.EncodeToString(vanv.WawDeviceCredential.DCGuid[:])))
+		zipFile, err := writer.Create(fmt.Sprintf("%s.voucher.pem", vanv.WawDeviceCredential.DCGuid.GetFormatted()))
 		if err != nil {
 			log.Println("Error creating new zip file instance. " + err.Error())
 			commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
