@@ -262,7 +262,8 @@ func NewWawDeviceCredential(sgType DeviceSgType) (*WawDeviceCredential, error) {
 
 	dcSigInfo := SigInfo{
 		SgType: sgType,
-		Info:   []byte("fido-fdo-virtual-device"),
+		Info:   []byte{},
+		// Info:   []byte("fido-fdo-virtual-device"),
 	}
 
 	var hmacSecret []byte = NewHmacKey(sgTypeInfo.HmacType)

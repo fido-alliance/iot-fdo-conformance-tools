@@ -145,19 +145,10 @@ func Conf_RandomCborBufferFuzzing(inputBuff []byte) []byte {
 }
 
 func Conf_RandomTestFuzzSigInfo(sigInfo SigInfo) SigInfo {
-	newSigInfo := SigInfo{
-		SgType: sigInfo.SgType,
+	return SigInfo{
+		SgType: DeviceSgType(NewRandomInt(100, 6312)),
 		Info:   sigInfo.Info,
 	}
-
-	randomNumber := NewRandomInt(0, 100)
-	if randomNumber < 50 {
-		newSigInfo.SgType = DeviceSgType(NewRandomInt(12, 6312))
-	} else {
-		newSigInfo.Info = []byte{}
-	}
-
-	return newSigInfo
 }
 
 type Conf_EncFuzzTypes string

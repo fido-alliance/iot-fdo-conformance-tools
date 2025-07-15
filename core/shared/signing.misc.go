@@ -209,18 +209,12 @@ type SigInfo struct {
 }
 
 func (h SigInfo) IsValid() bool {
-	var isSgTypeValid, isInfoValid bool
-
 	switch h.SgType {
 	case StSECP256R1, StSECP384R1, StRSA2048, StRSA3072, StEPID10, StEPID11:
-		isSgTypeValid = true
+		return true
+	default:
+		return false
 	}
-
-	if len(h.Info) > 0 {
-		isInfoValid = true
-	}
-
-	return isSgTypeValid && isInfoValid
 }
 
 func (h SigInfo) Equal(bsiginfo SigInfo) error {
