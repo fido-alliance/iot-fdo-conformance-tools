@@ -17,8 +17,6 @@ const (
 	TEST_POSITIVE_BATCHES    int = 5
 )
 
-const TEST_NEGATIVE_PER_TEST_VOUCHERS int = 5
-
 type GenVouchersResult struct {
 	TestID                testcom.FDOTestID
 	DeviceCredAndVouchers []fdoshared.DeviceCredAndVoucher
@@ -49,35 +47,23 @@ func GenerateTo2Vouchers_Thread(testId testcom.FDOTestID, guids fdoshared.FdoGui
 }
 
 func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB) (map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher, error) {
-	var vouchers map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher = map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher{}
+	var (
+		wg           sync.WaitGroup
+		totalThreads = TEST_POSITIVE_BATCHES
+		chn          = make(chan GenVouchersResult, totalThreads)
 
-	totalThreads := len(testcom.FIDO_TEST_LIST_VOUCHER) + TEST_POSITIVE_BATCHES
+		randomGuids = guidList.GetRandomSelection(TEST_POSITIVE_BATCHES * TEST_POSITIVE_BATCH_SIZE)
+	)
 
-	var wg sync.WaitGroup
-
-	chn := make(chan GenVouchersResult, totalThreads)
-
-	testsLen := len(testcom.FIDO_TEST_LIST_VOUCHER)
-	randomGuids := guidList.GetRandomSelection(testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS + TEST_POSITIVE_BATCHES*TEST_POSITIVE_BATCH_SIZE)
-
-	randomNegativeTestGuids := randomGuids[0 : testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS]
-
-	for i, testId := range testcom.FIDO_TEST_LIST_VOUCHER {
-		indexStart := i * TEST_NEGATIVE_PER_TEST_VOUCHERS
-		indexEnd := (i + 1) * TEST_NEGATIVE_PER_TEST_VOUCHERS
-
-		wg.Add(1)
-		go GenerateTo2Vouchers_Thread(testId, randomNegativeTestGuids[indexStart:indexEnd], devDB, &wg, chn)
-	}
-
-	randomPositiveTestGuids := randomGuids[testsLen*TEST_NEGATIVE_PER_TEST_VOUCHERS:]
 	for i := 0; i < TEST_POSITIVE_BATCHES; i++ {
 		indexStart := i * TEST_POSITIVE_BATCH_SIZE
 		indexEnd := (i + 1) * TEST_POSITIVE_BATCH_SIZE
 
 		wg.Add(1)
-		go GenerateTo2Vouchers_Thread(testcom.NULL_TEST, randomPositiveTestGuids[indexStart:indexEnd], devDB, &wg, chn)
+		go GenerateTo2Vouchers_Thread(testcom.NULL_TEST, randomGuids[indexStart:indexEnd], devDB, &wg, chn)
 	}
+
+	vouchers := map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher{}
 
 	for i := 0; i < totalThreads; i++ {
 		result := <-chn
@@ -98,7 +84,6 @@ func ExecuteDOTestsTo2(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	reqtDB.StartNewRun(reqte.Uuid)
 
 	executeTo2_60(reqte, reqtDB)
-	executeTo2_60_Vouchers(reqte, reqtDB)
 	executeTo2_62(reqte, reqtDB)
 	executeTo2_64(reqte, reqtDB)
 	executeTo2_66(reqte, reqtDB)

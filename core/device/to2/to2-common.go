@@ -66,9 +66,13 @@ func (h *To2Requestor) confCheckResponse(bodyBytes []byte, fdoTestID testcom.FDO
 	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_DOT_70, fdoTestID):
 		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
 
-	}
-	return testcom.FDOTestState{
-		Passed: false,
-		Error:  "Unsupported test " + string(fdoTestID),
+	case testcom.ExpectGroupTests(testcom.FIDO_TEST_LIST_VOUCHER, fdoTestID):
+		return testcom.ExpectAnyFdoError(bodyBytes, fdoTestID, fdoshared.MESSAGE_BODY_ERROR, httpStatusCode)
+
+	default:
+		return testcom.FDOTestState{
+			Passed: false,
+			Error:  "Unsupported test " + string(fdoTestID),
+		}
 	}
 }
