@@ -125,17 +125,6 @@ func loadEnvCtx() context.Context {
 	return ctx
 }
 
-// Enable SHA1 for x509
-// https://go.dev/doc/go1.18#sha1
-func enforceSha1GoDebug() {
-	godebug := os.Getenv("GODEBUG")
-	if godebug != "" {
-		godebug += ","
-	}
-	godebug += "x509sha1=1"
-	os.Setenv("GODEBUG", godebug)
-}
-
 func checkAndSeed(db *badger.DB) error {
 	time.Sleep(4 * time.Second)
 
@@ -191,9 +180,6 @@ func main() {
 				},
 				Action: func(c *cli.Context) error {
 					force := c.Bool("force")
-
-					// Enable SHA1 for x509
-					enforceSha1GoDebug()
 
 					db := InitBadgerDB()
 					defer db.Close()
@@ -366,19 +352,6 @@ func main() {
 				},
 			},
 			{
-				Name: "load_test_vouchers",
-				Action: func(c *cli.Context) error {
-					db := InitBadgerDB()
-					defer db.Close()
-
-					if err := fdodo.LoadLocalVouchers(dodbs.NewVoucherDB(db)); err != nil {
-						return fmt.Errorf("error loading test vouchers. %s", err.Error())
-					}
-
-					return nil
-				},
-			},
-			{
 				Name:        "iop",
 				Description: "Interop and virtual device emmulation",
 				Usage:       "vdevice [cmd]",
@@ -387,7 +360,6 @@ func main() {
 						Name:  "generate",
 						Usage: "Generate virtual device credential and voucher",
 						Action: func(c *cli.Context) error {
-							enforceSha1GoDebug()
 							deviceSgType := fdoshared.RandomDeviceSgType()
 							credbase, err := fdoshared.NewWawDeviceCredential(deviceSgType)
 							if err != nil {
@@ -404,10 +376,6 @@ func main() {
 								log.Panicln(err)
 							}
 
-							// rvinfob, err := fdoshared.CborCust.Marshal(rvInfo)
-
-							// print("RVINFO: ", hex.EncodeToString(rvinfob))
-
 							voucherSgType := fdoshared.RandomSgType()
 							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, voucherSgType, rvInfo, testcom.NULL_TEST)
 							if err != nil {
@@ -422,7 +390,6 @@ func main() {
 						Usage:     "Execute TO1 exchange with RV server",
 						UsageText: "[FDO RV Server URL] [Path to DI file]",
 						Action: func(c *cli.Context) error {
-							enforceSha1GoDebug()
 							if c.Args().Len() != 2 {
 								log.Println("Missing URL or Filename. Expected: [FDO RV Server URL] [Path to DI file]")
 								return nil
@@ -483,7 +450,6 @@ func main() {
 						Usage:     "Execute TO exchange with RV server",
 						UsageText: "[FDO RV Server URL] [Path to DI file]",
 						Action: func(c *cli.Context) error {
-							enforceSha1GoDebug()
 							if c.Args().Len() != 2 {
 								log.Println("Missing URL or Filename")
 								return nil
