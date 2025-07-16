@@ -108,7 +108,8 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
+	if fdoTestId == testcom.NULL_TEST && iopEnabled {
 		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopDO)
 		if err != nil {
 			log.Println("IOT: Error getting authz header: " + err.Error())
@@ -118,6 +119,8 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("IOT: Error sending iop logg event: " + err.Error())
 		}
+	} else if !iopEnabled {
+		log.Println("Interop is not enabled, skipping IOP logger event submission")
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)

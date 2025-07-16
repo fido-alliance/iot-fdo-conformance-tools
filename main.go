@@ -592,6 +592,8 @@ func main() {
 									log.Println(err)
 									return nil
 								}
+							} else {
+								log.Println("Interop is not enabled, skipping IOP logger event submission")
 							}
 
 							return nil

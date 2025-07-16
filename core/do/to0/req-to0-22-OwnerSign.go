@@ -132,8 +132,10 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		return nil, nil, errors.New("OwnerSign22: Received FDO Error: " + fdoError.Error())
 	}
 
-	voucherHeader, _ := h.voucherDBEntry.Voucher.GetOVHeader()
-	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
+	if fdoTestId == testcom.NULL_TEST && iopEnabled {
+		voucherHeader, _ := h.voucherDBEntry.Voucher.GetOVHeader()
+
 		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopDO)
 		if err != nil {
 			log.Println("OwnerSign22: Error getting authz header: " + err.Error())
@@ -143,6 +145,8 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		if err != nil {
 			log.Println("OwnerSign22: Error sending iop logg event: " + err.Error())
 		}
+	} else if !iopEnabled {
+		log.Println("Interop is not enabled, skipping IOP logger event submission")
 	}
 
 	return &acceptOwner23, &testState, nil

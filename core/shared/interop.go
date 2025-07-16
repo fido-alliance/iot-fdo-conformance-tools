@@ -3,6 +3,7 @@ package fdoshared
 import (
 	"context"
 	"fmt"
+	"log"
 )
 
 var (
@@ -61,6 +62,7 @@ func SubmitIopLoggerEvent(ctx context.Context, guid FdoGuid, toProtocol FdoToPro
 		return fmt.Errorf("error submitting IOP logger event. FDO status code: %s", fdoErrInst.EMErrorStr)
 	}
 
+	log.Println("IOP logger event submitted successfully")
 	return nil
 }
 

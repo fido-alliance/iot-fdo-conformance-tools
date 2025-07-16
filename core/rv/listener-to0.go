@@ -205,8 +205,9 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 	}
 	acceptOwnerBytes, _ := fdoshared.CborCust.Marshal(acceptOwner)
 
+	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
 	// TODO: Add testid check
-	if h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+	if iopEnabled {
 		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopRV)
 		if err != nil {
 			log.Println("IOT: Error getting authz header: " + err.Error())
@@ -216,6 +217,8 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("IOT: Error sending iop logg event: " + err.Error())
 		}
+	} else if !iopEnabled {
+		log.Println("Interop is not enabled, skipping IOP logger event submission")
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)
