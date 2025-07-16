@@ -1,0 +1,35 @@
+{
+  "go.useLanguageServer": true,
+
+  // gopls is the language server for Go.
+  // It also has checks which are executed automatically by the IDE.
+  //
+  // Can be executed from the command line with:
+  // find . -name "*.go" | xargs gopls check
+  "gopls": {
+    "ui.semanticTokens": true,
+
+    // This setting is refered to the goimports tool, it moves the prefixed imports
+    // to the bottom of the imports list.
+    //
+    // Can be executed from the command line with:
+    // goimports -w -local "github.com/fido-alliance/iot-fdo-conformance-tools" .
+    "formatting.local": "github.com/fido-alliance/iot-fdo-conformance-tools",
+
+    // More on checks: https://staticcheck.dev/docs/checks/
+    "ui.diagnostic.analyses": {
+      "ST1000": false,
+      "ST1003": false,
+      "ST1005": false,
+      "ST1020": false,
+      "ST1021": false,
+      "ST1022": false,
+      "ST1023": false
+    },
+    // staticcheck can be also executed from the command line with:
+    // staticcheck -checks "all, -ST1000, -ST1003, -ST1005, -ST1020, -ST1021, -ST1022, -ST1023" ./...
+    "ui.diagnostic.staticcheck": true
+  },
+
+  "go.lintOnSave": "package"
+}
