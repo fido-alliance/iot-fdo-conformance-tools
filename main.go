@@ -610,9 +610,16 @@ func main() {
 
 							folderPath := c.Args().Get(0)
 
-							// VoucherDB
+							// Check if the db is available
+							defer func() {
+								if r := recover(); r != nil {
+									os.Exit(1)
+								}
+							}()
+
 							db := InitBadgerDB()
 							defer db.Close()
+
 							doVoucherDB := dodbs.NewVoucherDB(db)
 
 							// Getting file list
