@@ -67,6 +67,16 @@ func GetDeviceOSSims() []ServiceInfoKV {
 			ServiceInfoKey: SIM_DEVMOD_BIN,
 			ServiceInfoVal: StringToCborBytes(runtime.GOARCH),
 		},
+		{
+			ServiceInfoKey: SIM_DEVMOD_NUMMODULES,
+			ServiceInfoVal: UintToCborBytes(1),
+		},
+		{
+			ServiceInfoKey: SIM_DEVMOD_MODULES,
+			ServiceInfoVal: SimsListToBytes(SIM_IDS{
+				IOPLOGGER_SIM_NAME,
+			}),
+		},
 	}
 }
 

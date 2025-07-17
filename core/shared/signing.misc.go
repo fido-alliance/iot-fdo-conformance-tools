@@ -208,6 +208,15 @@ type SigInfo struct {
 	Info   []byte
 }
 
+func (h SigInfo) IsValid() bool {
+	switch h.SgType {
+	case StSECP256R1, StSECP384R1, StRSA2048, StRSA3072, StEPID10, StEPID11:
+		return true
+	default:
+		return false
+	}
+}
+
 func (h SigInfo) Equal(bsiginfo SigInfo) error {
 	if bsiginfo.SgType != h.SgType {
 		return errors.New("sgTypes don't match")

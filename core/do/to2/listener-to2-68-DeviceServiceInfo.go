@@ -14,13 +14,9 @@ const MTU_BYTES = 1500
 
 func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	log.Println("DeviceServiceInfo68: Receiving...")
+
 	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_68_DEVICE_SERVICE_INFO
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-
-	var testcomListener *listenertestsdeps.RequestListenerInst
-	if !fdoshared.CheckHeaders(w, r, currentCmd) {
-		return
-	}
 
 	session, sessionId, authorizationHeader, bodyBytes, testcomListener, err := h.receiveAndDecrypt(w, r, currentCmd)
 	if err != nil {
@@ -28,8 +24,14 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
+		var isLastTestFailed bool
+
 		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO2 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+			testcomListener.To2.PushFail("Expected the device to fail, but it didn't")
+			isLastTestFailed = true
+		} else if testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE && session.PrevCMD == fdoshared.TO2_69_OWNER_SERVICE_INFO {
+			testcomListener.To2.PushFail("Expected the device to fail, but it didn't")
+			isLastTestFailed = true
 		} else if testcomListener.To2.CurrentTestIndex != 0 {
 			testcomListener.To2.PushSuccess()
 		}
@@ -43,6 +45,10 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
 			return
 		}
+
+		if isLastTestFailed {
+			return
+		}
 	}
 
 	if session.PrevCMD != fdoshared.TO2_67_OWNER_SERVICE_INFO_READY && session.PrevCMD != fdoshared.TO2_69_OWNER_SERVICE_INFO {
@@ -51,6 +57,11 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// ----- MAIN BODY ----- //
+
+	if session.OwnerSIMsFinishedSending {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INVALID_MESSAGE_ERROR, currentCmd, "DeviceServiceInfo68: Owner has already finished sending its service info", http.StatusBadRequest, testcomListener, fdoshared.To2)
+		return
+	}
 
 	var deviceServiceInfo fdoshared.DeviceServiceInfo68
 	err = fdoshared.CborCust.Unmarshal(bodyBytes, &deviceServiceInfo)
@@ -102,6 +113,10 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 
 	ownerServiceInfoBytes, _ := fdoshared.CborCust.Marshal(ownerServiceInfo)
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_68_BAD_ENCODING {
+		ownerServiceInfoBytes = fdoshared.Conf_RandomCborBufferFuzzing(ownerServiceInfoBytes)
+	}
+
 	// ----- MAIN BODY ENDS ----- //
 	ownerServiceInfoEncBytes, err := fdoshared.AddEncryptionWrapping(ownerServiceInfoBytes, session.SessionKey, session.CipherSuiteName)
 	if err != nil {
@@ -110,7 +125,17 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if fdoTestId == testcom.FIDO_LISTENER_DEVICE_68_BAD_ENC_WRAPPING {
+		ownerServiceInfoEncBytes, err = fdoshared.Conf_Fuzz_AddWrapping(ownerServiceInfoEncBytes, session.SessionKey, session.CipherSuiteName)
+		if err != nil {
+			log.Println("DeviceServiceInfo68: Error fuzzing encryption..." + err.Error())
+			fdoshared.RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Internal server error!", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	session.PrevCMD = fdoshared.TO2_69_OWNER_SERVICE_INFO
+
 	err = h.session.UpdateSessionEntry(sessionId, *session)
 	if err != nil {
 		log.Println("DeviceServiceInfo68: Error saving session..." + err.Error())
@@ -118,13 +143,9 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE {
-		testcomListener.To2.CompleteCmdAndSetNext(currentCmd)
-	}
-
 	if fdoTestId == testcom.FIDO_LISTENER_POSITIVE && testcomListener.To2.CheckExpectedCmd(currentCmd) {
 		testcomListener.To2.PushSuccess()
-		testcomListener.To2.CompleteCmdAndSetNext(fdoshared.TO2_64_PROVE_DEVICE)
+		testcomListener.To2.CompleteCmdAndSetNext(fdoshared.TO2_70_DONE)
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
 			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)

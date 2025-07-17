@@ -28,7 +28,12 @@ preconfig_conformance_server:
 
 	go get
 
-setup: preconfig_frontend preconfig_conformance_server
+preconfig_dotenv_file:
+	echo "\n----- Preconfig: Copying .env.example to .env -----\n"
+
+	cp ./example.env ./.env
+
+setup: preconfig_dotenv_file preconfig_frontend preconfig_conformance_server
 
 # Compiling GO code
 compile_win:
@@ -64,24 +69,3 @@ build_frontend:
 	$(call copy_folder_or_file,./frontend/dist,./$(BUILD_LOC)/frontend)
 
 build: cleanup_frontend build_frontend compile_all
-
-
-FDOTOOLS_BIN_LOC = ~/conformance-test-infrastructure-new/iot-fdo-conformance/
-FDOTOOLS_INFRA_LOC = ~/conformance-test-infrastructure-new/
-
-# Build frontend
-fdotools__push_new_bin:
-	echo "\n----- Updating FDO tools binary... -----\n"
-	scp -P ${FDO_BUILD_PUSH_PORT} ./bin/iot-fdo-conformance-tools-linux ${FDO_BUILD_PUSH_HOST}:$(FDOTOOLS_BIN_LOC)
-
-# Build frontend
-fdotools__push_new_ui:
-	echo "\n----- Updating FDO tools ui... -----\n"
-	scp -R ./bin/frontend ${FDO_BUILD_PUSH_HOST}:$(FDOTOOLS_BIN_LOC)
-
-# Build frontend
-fdotools__restart_docker_compose:
-	echo "\n----- Restarting docker compose... -----\n"
-	ssh ${FDO_BUILD_PUSH_HOST} "cd $(FDOTOOLS_INFRA_LOC) && docker-compose up --build --force -d"
-
-# fdotools__restart_docker_update:

@@ -24,7 +24,7 @@ func DecodePemVoucherAndKey(vandvpem string) (*fdoshared.VoucherDBEntry, error) 
 		return nil, fmt.Errorf("Failed to decode PEM voucher. Unexpected type: %s", voucherBlock.Type)
 	}
 
-	privateKeyBytes, rest := pem.Decode(rest)
+	privateKeyBytes, _ := pem.Decode(rest)
 	if privateKeyBytes == nil {
 		return nil, errors.New("Could not find key PEM data!")
 	}

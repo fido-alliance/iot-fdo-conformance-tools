@@ -17,19 +17,35 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 	var currentCmd fdoshared.FdoCmd = fdoshared.TO2_70_DONE
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
+
 	session, _, authorizationHeader, bodyBytes, testcomListener, err := h.receiveAndDecrypt(w, r, currentCmd)
 	if err != nil {
 		return
 	}
 
 	// Test params setup
-	if testcomListener != nil {
-		if !testcomListener.To2.CheckExpectedCmd(currentCmd) {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO1 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
+		var isLastTestFailed bool
+
+		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
+			testcomListener.To2.PushFail("Expected the device to fail, but it didn't")
+			isLastTestFailed = true
+		} else if testcomListener.To2.CurrentTestIndex != 0 {
+			testcomListener.To2.PushSuccess()
 		}
 
 		if !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
+		}
+
+		err := h.listenerDB.Update(testcomListener)
+		if err != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
+		}
+
+		if isLastTestFailed {
+			return
 		}
 	}
 
@@ -41,7 +57,9 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 	var done70 fdoshared.Done70
 	err = fdoshared.CborCust.Unmarshal(bodyBytes, &done70)
 	if err != nil {
-		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to decode Done70. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		if testcomListener != nil {
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Failed to decode Done70. "+err.Error(), http.StatusInternalServerError, testcomListener, fdoshared.To2)
+		}
 
 		log.Println("Done70: Error decoding request..." + err.Error())
 		fdoshared.RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to decode body!", http.StatusBadRequest)
@@ -53,7 +71,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var done271Payload = fdoshared.Done271{
+	done271Payload := fdoshared.Done271{
 		NonceTO2SetupDv: session.NonceTO2SetupDv64,
 	}
 
@@ -90,7 +108,8 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
+	if fdoTestId == testcom.NULL_TEST && iopEnabled {
 		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopDO)
 		if err != nil {
 			log.Println("IOT: Error getting authz header: " + err.Error())
@@ -100,6 +119,8 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("IOT: Error sending iop logg event: " + err.Error())
 		}
+	} else if !iopEnabled {
+		log.Println("Interop is not enabled, skipping IOP logger event submission")
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)

@@ -5,11 +5,10 @@ import (
 
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to0"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
-	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
-	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
-
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
+	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 )
 
 func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB, devDB *dbs.DeviceBaseDB, ctx context.Context) {
@@ -18,7 +17,6 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	for _, rv20test := range testcom.FIDO_TEST_LIST_RVT_20 {
 		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
 		testCredV, err := devDB.GetVANDV(randomGuid, rv20test)
-
 		if err != nil {
 			errTestState := testcom.FDOTestState{
 				Passed: false,
@@ -67,7 +65,6 @@ func ExecuteRVTestsTo0(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	for _, rv22test := range testcom.FIDO_TEST_LIST_RVT_22 {
 		randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
 		testCredV, err := devDB.GetVANDV(randomGuid, rv22test)
-
 		if err != nil {
 			errTestState := testcom.FDOTestState{
 				Passed: false,

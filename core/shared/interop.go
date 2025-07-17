@@ -3,11 +3,14 @@ package fdoshared
 import (
 	"context"
 	"fmt"
+	"log"
 )
 
-var IOPLOGGER_SIM_ACTIVE SIM_ID = "fido_alliance:active"
-var IOPLOGGER_SIM SIM_ID = "fido_alliance:dev_conformance"
-var IOPLOGGER_SIM_NAME SIM_ID = "fido_alliance"
+var (
+	IOPLOGGER_SIM_ACTIVE SIM_ID = "fido_alliance:active"
+	IOPLOGGER_SIM        SIM_ID = "fido_alliance:dev_conformance"
+	IOPLOGGER_SIM_NAME   SIM_ID = "fido_alliance"
+)
 
 var IOPLOGGER_LOGGER_PATH = "/logger/101/msg/"
 
@@ -33,7 +36,7 @@ func SubmitIopLoggerEvent(ctx context.Context, guid FdoGuid, toProtocol FdoToPro
 		return nil
 	}
 
-	var payload = IopLoggerPayload{
+	payload := IopLoggerPayload{
 		Guid:       guid,
 		TOProtocol: toProtocol,
 		Nonce:      nonce,
@@ -59,6 +62,7 @@ func SubmitIopLoggerEvent(ctx context.Context, guid FdoGuid, toProtocol FdoToPro
 		return fmt.Errorf("error submitting IOP logger event. FDO status code: %s", fdoErrInst.EMErrorStr)
 	}
 
+	log.Println("IOP logger event submitted successfully")
 	return nil
 }
 

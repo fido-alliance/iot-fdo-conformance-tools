@@ -13,6 +13,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dgraph-io/badger/v4"
+	"github.com/joho/godotenv"
+	"github.com/urfave/cli/v2"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api"
 	fdodeviceimplementation "github.com/fido-alliance/iot-fdo-conformance-tools/core/device"
 	fdodocommon "github.com/fido-alliance/iot-fdo-conformance-tools/core/device/common"
@@ -26,15 +30,12 @@ import (
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 	testcomdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
-
-	"github.com/joho/godotenv"
-
-	"github.com/dgraph-io/badger/v4"
-	"github.com/urfave/cli/v2"
 )
 
-const DEFAULT_PORT = 8080
-const BADGER_LOCATION = "./badger.local.db"
+const (
+	DEFAULT_PORT    = 8080
+	BADGER_LOCATION = "./badger.local.db"
+)
 
 func TryReadingWawDIFile(filepath string) (*fdoshared.WawDeviceCredential, error) {
 	fileBytes, err := os.ReadFile(filepath)
@@ -124,17 +125,6 @@ func loadEnvCtx() context.Context {
 	return ctx
 }
 
-// Enable SHA1 for x509
-// https://go.dev/doc/go1.18#sha1
-func enforceSha1GoDebug() {
-	godebug := os.Getenv("GODEBUG")
-	if godebug != "" {
-		godebug += ","
-	}
-	godebug += "x509sha1=1"
-	os.Setenv("GODEBUG", godebug)
-}
-
 func checkAndSeed(db *badger.DB) error {
 	time.Sleep(4 * time.Second)
 
@@ -190,9 +180,6 @@ func main() {
 				},
 				Action: func(c *cli.Context) error {
 					force := c.Bool("force")
-
-					// Enable SHA1 for x509
-					enforceSha1GoDebug()
 
 					db := InitBadgerDB()
 					defer db.Close()
@@ -373,7 +360,6 @@ func main() {
 						Name:  "generate",
 						Usage: "Generate virtual device credential and voucher",
 						Action: func(c *cli.Context) error {
-							enforceSha1GoDebug()
 							deviceSgType := fdoshared.RandomDeviceSgType()
 							credbase, err := fdoshared.NewWawDeviceCredential(deviceSgType)
 							if err != nil {
@@ -390,14 +376,10 @@ func main() {
 								log.Panicln(err)
 							}
 
-							// rvinfob, err := fdoshared.CborCust.Marshal(rvInfo)
-
-							// print("RVINFO: ", hex.EncodeToString(rvinfob))
-
 							voucherSgType := fdoshared.RandomSgType()
 							err = fdodeviceimplementation.GenerateAndSaveDeviceCredAndVoucher(*credbase, voucherSgType, rvInfo, testcom.NULL_TEST)
 							if err != nil {
-								log.Panicf(err.Error())
+								log.Panic(err.Error())
 							}
 
 							return nil
@@ -408,7 +390,6 @@ func main() {
 						Usage:     "Execute TO1 exchange with RV server",
 						UsageText: "[FDO RV Server URL] [Path to DI file]",
 						Action: func(c *cli.Context) error {
-							enforceSha1GoDebug()
 							if c.Args().Len() != 2 {
 								log.Println("Missing URL or Filename. Expected: [FDO RV Server URL] [Path to DI file]")
 								return nil
@@ -469,7 +450,6 @@ func main() {
 						Usage:     "Execute TO exchange with RV server",
 						UsageText: "[FDO RV Server URL] [Path to DI file]",
 						Action: func(c *cli.Context) error {
-							enforceSha1GoDebug()
 							if c.Args().Len() != 2 {
 								log.Println("Missing URL or Filename")
 								return nil
@@ -514,8 +494,7 @@ func main() {
 								ovEntries = append(ovEntries, nextEntry.OVEntry)
 							}
 
-							ovEntriesS := fdoshared.OVEntryArray(ovEntries)
-							err = ovEntriesS.VerifyEntries(to2proveOvhdrPayload.OVHeader, to2proveOvhdrPayload.HMac)
+							err = fdoshared.OVEntryArray(ovEntries).VerifyEntries(to2proveOvhdrPayload.OVHeader, to2proveOvhdrPayload.HMac)
 							if err != nil {
 								log.Println(err)
 								return nil
@@ -530,7 +509,7 @@ func main() {
 								return nil
 							}
 
-							//64
+							// 64
 							log.Println("Starting ProveDevice64")
 							_, _, err = to2inst.ProveDevice64(testcom.NULL_TEST)
 							if err != nil {
@@ -538,7 +517,7 @@ func main() {
 								return nil
 							}
 
-							//66
+							// 66
 							log.Println("Starting DeviceServiceInfoReady66")
 							_, _, err = to2inst.DeviceServiceInfoReady66(testcom.NULL_TEST)
 							if err != nil {
@@ -546,24 +525,10 @@ func main() {
 								return nil
 							}
 
-							//68
-							var osSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
+							// 68
+							log.Println("Starting DeviceServiceInfo68")
 
-							var deviceSims fdoshared.SIMS
-							deviceSims = append(deviceSims, osSims...)
-
-							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
-								ServiceInfoKey: fdoshared.SIM_DEVMOD_NUMMODULES,
-								ServiceInfoVal: fdoshared.UintToCborBytes(1),
-							})
-
-							deviceSims = append(deviceSims, fdoshared.ServiceInfoKV{
-								ServiceInfoKey: fdoshared.SIM_DEVMOD_MODULES,
-								ServiceInfoVal: fdoshared.SimsListToBytes(fdoshared.SIM_IDS{
-									fdoshared.IOPLOGGER_SIM_NAME,
-								}),
-							})
-
+							deviceSims := fdoshared.GetDeviceOSSims()
 							var ownerSims fdoshared.SIMS // TODO
 
 							for i, deviceSim := range deviceSims {
@@ -602,12 +567,14 @@ func main() {
 								}
 							}
 
+							// 70
 							log.Println("Starting Done70")
 							_, _, err = to2inst.Done70(testcom.NULL_TEST)
 							if err != nil {
 								log.Println(err)
 								return nil
 							}
+
 							log.Println("Success To2")
 
 							// FDO Interop
@@ -625,6 +592,8 @@ func main() {
 									log.Println(err)
 									return nil
 								}
+							} else {
+								log.Println("Interop is not enabled, skipping IOP logger event submission")
 							}
 
 							return nil
@@ -641,9 +610,16 @@ func main() {
 
 							folderPath := c.Args().Get(0)
 
-							// VoucherDB
+							// Check if the db is available
+							defer func() {
+								if r := recover(); r != nil {
+									os.Exit(1)
+								}
+							}()
+
 							db := InitBadgerDB()
 							defer db.Close()
+
 							doVoucherDB := dodbs.NewVoucherDB(db)
 
 							// Getting file list
@@ -660,7 +636,6 @@ func main() {
 								if !file.IsDir() && filepath.Ext(file.Name()) == ".pem" {
 									filePath := filepath.Join(folderPath, file.Name())
 									fileBytes, err := os.ReadFile(filePath)
-
 									if err != nil {
 										return fmt.Errorf("error reading file \"%s\". %s ", folderPath, err.Error())
 									}

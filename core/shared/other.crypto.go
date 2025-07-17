@@ -31,8 +31,8 @@ func NewRandomBuffer(size int) []byte {
 }
 
 func NewRandomString(size int) string {
-	var randBuffer = NewRandomBuffer(size)
-	var randString = base64.RawURLEncoding.EncodeToString(randBuffer)
+	randBuffer := NewRandomBuffer(size)
+	randString := base64.RawURLEncoding.EncodeToString(randBuffer)
 
 	return randString[0:size]
 }

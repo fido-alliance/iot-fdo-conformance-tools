@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 	tdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
@@ -60,12 +61,14 @@ func (h *RvTo1) Handle30HelloRV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !helloRV30.EASigInfo.IsValid() {
+		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.MESSAGE_BODY_ERROR, currentCmd, "Failed to validate EASigInfo!", http.StatusBadRequest, testcomListener, fdoshared.To1)
+		return
+	}
+
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(helloRV30.Guid)
-	if err != nil {
-		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(helloRV30.Guid[:]), err.Error())
-	}
+	testcomListener, _ = h.listenerDB.GetEntryByFdoGuid(helloRV30.Guid)
 
 	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
 		if !testcomListener.To1.CheckExpectedCmd(currentCmd) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
@@ -169,10 +172,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 
 	// Test stuff
 	var fdoTestId testcom.FDOTestID = testcom.NULL_TEST
-	testcomListener, err = h.listenerDB.GetEntryByFdoGuid(session.Guid)
-	if err != nil {
-		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
-	}
+	testcomListener, _ = h.listenerDB.GetEntryByFdoGuid(session.Guid)
 
 	if testcomListener != nil && !testcomListener.To1.CheckCmdTestingIsCompleted(currentCmd) {
 		if !testcomListener.To1.CheckExpectedCmd(currentCmd) && testcomListener.To1.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
@@ -263,7 +263,8 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
+	if fdoTestId == testcom.NULL_TEST && iopEnabled {
 		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopRV)
 		if err != nil {
 			log.Println("IOT: Error getting authz header: " + err.Error())
@@ -273,6 +274,8 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("IOT: Error sending iop logg event: " + err.Error())
 		}
+	} else if !iopEnabled {
+		log.Println("Interop is not enabled, skipping IOP logger event submission")
 	}
 
 	w.Header().Set("Authorization", authorizationHeader)

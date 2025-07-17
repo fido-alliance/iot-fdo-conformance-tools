@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/to2"
 )
 

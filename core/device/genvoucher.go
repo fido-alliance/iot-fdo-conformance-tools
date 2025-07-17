@@ -13,8 +13,10 @@ import (
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
-const DIS_LOCATION string = "./_dis"
-const VOUCHERS_LOCATION string = "./_vouchers"
+const (
+	DIS_LOCATION      string = "./_dis"
+	VOUCHERS_LOCATION string = "./_vouchers"
+)
 
 func GenerateOvEntry(
 	prevEntryHash fdoshared.HashOrHmac,
@@ -127,7 +129,7 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 
 	// Test params preparation
 	var ovEntriesCount int = fdoshared.NewRandomInt(3, 7)
-	var badOvEntryIndex = fdoshared.NewRandomInt(0, ovEntriesCount)
+	badOvEntryIndex := fdoshared.NewRandomInt(0, ovEntriesCount)
 
 	var prevEntryPrivKey interface{} = mfgPrivateKey
 	var prevEntryHash fdoshared.HashOrHmac
@@ -144,10 +146,6 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 				return nil, err
 			}
 
-			if err != nil {
-				log.Println("Error generating hash: ", err.Error())
-				return nil, err
-			}
 			prevEntryPayloadBytes := append(ovHeaderBytes, headerHmacBytes...)
 
 			prevEntryHash, err = fdoshared.GenerateFdoHash(prevEntryPayloadBytes, newDi.DCHashAlg)
@@ -172,16 +170,6 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 		}
 
 		chosenSgType := voucherSgType
-		// Test
-		if i == badOvEntryIndex {
-			if fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_HDRINFO_HASH {
-				oveHdrInfoHash = *fdoshared.Conf_RandomTestHashHmac(oveHdrInfoHash, oveHdrInfo, []byte{})
-			}
-
-			if fdoTestID == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_SG_TYPE {
-				chosenSgType = fdoshared.Conf_NewRandomSgTypeExcept(chosenSgType)
-			}
-		}
 
 		newPrivKeyInst, newPrivMashaled, newOvEntry, err := GenerateOvEntry(prevEntryHash, oveHdrInfoHash, prevEntryPrivKey, prevEntrySgType, chosenSgType, fdoTestID)
 		if err != nil {
@@ -211,6 +199,12 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 		OVEntryArray:   ovEntryArray,
 	}
 
+	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_CHAIN {
+		fakeCert := fdoshared.Conf_RandomCborBufferFuzzing(newDi.DCCertificateChain[0])
+		fakeCertChain := append(*voucherInst.OVDevCertChain, fakeCert)
+		voucherInst.OVDevCertChain = &fakeCertChain
+	}
+
 	// Test
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_PROT_VERSION {
 		voucherInst.OVProtVer = fdoshared.ProtVersion(uint16(fdoshared.NewRandomInt(105, 10000)))
@@ -232,10 +226,6 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 		chainTemp[1] = leafCert
 
 		voucherInst.OVDevCertChain = &chainTemp
-	}
-
-	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
-		voucherInst.OVEntryArray = []fdoshared.CoseSignature{}
 	}
 
 	voucherDBEInst := fdoshared.VoucherDBEntry{
@@ -275,7 +265,7 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCred fdoshared.WawDeviceCredentia
 	filename := filetimestamp + hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:])
 
 	voucherWriteLocation := fmt.Sprintf("%s/%s.voucher.pem", VOUCHERS_LOCATION, filename)
-	err = os.WriteFile(voucherWriteLocation, voucherFileBytes, 0644)
+	err = os.WriteFile(voucherWriteLocation, voucherFileBytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("error saving di \"%s\". %s", voucherWriteLocation, err.Error())
 	}
@@ -288,7 +278,7 @@ func GenerateAndSaveDeviceCredAndVoucher(deviceCred fdoshared.WawDeviceCredentia
 
 	diBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.CREDENTIAL_PEM_TYPE, Bytes: diBytes})
 	disWriteLocation := fmt.Sprintf("%s/%s.dis.pem", DIS_LOCATION, filename)
-	err = os.WriteFile(disWriteLocation, diBytesPem, 0644)
+	err = os.WriteFile(disWriteLocation, diBytesPem, 0o644)
 	if err != nil {
 		return fmt.Errorf("error saving di \"%s\". %s", disWriteLocation, err.Error())
 	}
@@ -313,5 +303,4 @@ func MarshalVoucherAndPrivateKey(vdbEntry fdoshared.VoucherDBEntry) ([]byte, err
 	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
 
 	return voucherFileBytes, nil
-
 }

@@ -31,8 +31,11 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 	// Test stuff
 
 	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
+		var isLastTestFailed bool
+
 		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
-			testcomListener.To2.PushFail(fmt.Sprintf("Expected TO2 %d. Got %d", testcomListener.To2.ExpectedCmd, currentCmd))
+			testcomListener.To2.PushFail("Expected the device to fail, but it didn't")
+			isLastTestFailed = true
 		} else if testcomListener.To2.CurrentTestIndex != 0 {
 			testcomListener.To2.PushSuccess()
 		}
@@ -41,15 +44,13 @@ func (h *DoTo2) ProveDevice64(w http.ResponseWriter, r *http.Request) {
 			fdoTestId = testcomListener.To2.GetNextTestID()
 		}
 
-		for i := 0; i < int(session.NumOVEntries); i++ {
-			if !session.Conf_RequestedOVEntriesContain(uint8(i)) {
-				testcomListener.To2.PushFail(fmt.Sprintf("The %d OVEntry was never requested.", i))
-			}
-		}
-
 		err := h.listenerDB.Update(testcomListener)
 		if err != nil {
-			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result!", http.StatusBadRequest, testcomListener, fdoshared.To2)
+			listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Conformance module failed to save result! "+err.Error(), http.StatusBadRequest, testcomListener, fdoshared.To2)
+			return
+		}
+
+		if isLastTestFailed {
 			return
 		}
 	}

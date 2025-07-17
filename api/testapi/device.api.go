@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
 	fdodocommon "github.com/fido-alliance/iot-fdo-conformance-tools/core/device/common"
 	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
@@ -20,8 +22,6 @@ import (
 	testcomdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	listenertestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/listener"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
-
-	"github.com/gorilla/mux"
 )
 
 type DeviceTestMgmtAPI struct {
@@ -60,7 +60,6 @@ func (h *DeviceTestMgmtAPI) checkAutzAndGetUser(r *http.Request) (*dbs.UserTestD
 	sessionCookie, err := r.Cookie("session")
 	if err != nil {
 		return nil, errors.New("failed to read cookie. " + err.Error())
-
 	}
 
 	if sessionCookie == nil {

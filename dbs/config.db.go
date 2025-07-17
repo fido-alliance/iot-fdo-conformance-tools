@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 

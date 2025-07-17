@@ -47,6 +47,11 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		return nil, nil, errors.New("OwnerSign22: Error getting RV TO2 address entry. " + err.Error())
 	}
 
+	if fdoTestId == testcom.FIDO_RVT_22_BAD_RENDEVOUZ_BLOB {
+		rvTo2AddrEntry.RVIP = nil
+		rvTo2AddrEntry.RVDNS = nil
+	}
+
 	var to1dPayload fdoshared.To1dBlobPayload = fdoshared.To1dBlobPayload{
 		To1dRV: []fdoshared.RVTO2AddrEntry{
 			*rvTo2AddrEntry,
@@ -61,14 +66,12 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 
 	// TO1D CoseSignature
 	var lastOvEntryPubKeyPkType fdoshared.FdoPkType = fdoshared.SECP256R1
-	if fdoTestId != testcom.FIDO_TEST_VOUCHER_BAD_EMPTY_ENTRIES {
-		lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
-		if err != nil {
-			return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
-		}
-
-		lastOvEntryPubKeyPkType = lastOvEntryPubKey.PkType
+	lastOvEntryPubKey, err := h.voucherDBEntry.Voucher.GetFinalOwnerPublicKey()
+	if err != nil {
+		return nil, nil, errors.New("OwnerSign22: Error extracting last OVEntry public key. " + err.Error())
 	}
+
+	lastOvEntryPubKeyPkType = lastOvEntryPubKey.PkType
 
 	privateKeyInst, err := fdoshared.ExtractPrivateKey(h.voucherDBEntry.PrivateKeyX509)
 	if err != nil {
@@ -129,8 +132,10 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		return nil, nil, errors.New("OwnerSign22: Received FDO Error: " + fdoError.Error())
 	}
 
-	voucherHeader, _ := h.voucherDBEntry.Voucher.GetOVHeader()
-	if fdoTestId == testcom.NULL_TEST && h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool) {
+	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
+	if fdoTestId == testcom.NULL_TEST && iopEnabled {
+		voucherHeader, _ := h.voucherDBEntry.Voucher.GetOVHeader()
+
 		authzHeader, err := fdoshared.IopGetAuthz(h.ctx, fdoshared.IopDO)
 		if err != nil {
 			log.Println("OwnerSign22: Error getting authz header: " + err.Error())
@@ -140,6 +145,8 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 		if err != nil {
 			log.Println("OwnerSign22: Error sending iop logg event: " + err.Error())
 		}
+	} else if !iopEnabled {
+		log.Println("Interop is not enabled, skipping IOP logger event submission")
 	}
 
 	return &acceptOwner23, &testState, nil

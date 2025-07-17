@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"regexp"
 
+	"golang.org/x/crypto/scrypt"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
-	"golang.org/x/crypto/scrypt"
 )
 
 const ONPREM_CONFIG string = "tester@fido.local"

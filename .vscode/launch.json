@@ -1,0 +1,56 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug serve",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "envFile": "${workspaceFolder}/.env",
+      "program": "${workspaceFolder}",
+      "args": ["serve"]
+    },
+    {
+      "name": "Debug generate",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "envFile": "${workspaceFolder}/.env",
+      "program": "${workspaceFolder}",
+      "args": ["iop", "generate"]
+    },
+    {
+      "name": "Debug iop to1",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "envFile": "${workspaceFolder}/.env",
+      "program": "${workspaceFolder}",
+      "args": ["iop", "to1", "http://localhost:8080/", "${input:disPath}"]
+    },
+    {
+      "name": "Debug iop to2",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "envFile": "${workspaceFolder}/.env",
+      "program": "${workspaceFolder}",
+      "args": ["iop", "to2", "http://localhost:8080/", "${input:voucherPath}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "disPath",
+      "type": "promptString",
+      "description": "Enter the DIS path (e.g. '_dis/2025-06-24_21.27.19f1d0fd00b3514f17a510ce9bfbdc4e6b.dis.pem')"
+    },
+    {
+      "id": "voucherPath",
+      "type": "promptString",
+      "description": "Enter the Voucher path (e.g. '_voucher/2025-06-24_21.27.19f1d0fd00b3514f17a510ce9bfbdc4e6b.voucher.pem')"
+    }
+  ]
+}

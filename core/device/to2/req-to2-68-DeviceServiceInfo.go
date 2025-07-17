@@ -10,8 +10,6 @@ import (
 )
 
 func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceServiceInfo68, fdoTestID testcom.FDOTestID) (*fdoshared.OwnerServiceInfo69, *testcom.FDOTestState, error) {
-	var testState testcom.FDOTestState
-
 	deviceServiceInfo68Bytes, _ := fdoshared.CborCust.Marshal(deviceServiceInfo68)
 
 	if fdoTestID == testcom.FIDO_DOT_68_BAD_ENCODING {
@@ -32,8 +30,11 @@ func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceS
 
 	rawResultBytes, authzHeader, httpStatusCode, err := fdoshared.SendCborPost(h.SrvEntry, fdoshared.TO2_68_DEVICE_SERVICE_INFO, deviceServiceInfo68BytesEnc, &h.AuthzHeader)
 	if fdoTestID != testcom.NULL_TEST {
-		testState = h.confCheckResponse(rawResultBytes, fdoTestID, httpStatusCode)
-		return nil, &testState, nil
+		testState := h.confCheckResponse(rawResultBytes, fdoTestID, httpStatusCode)
+		if testState != (testcom.FDOTestState{}) {
+			return nil, &testState, nil
+		}
+		return nil, nil, nil
 	}
 
 	if err != nil {
@@ -64,5 +65,5 @@ func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceS
 		return nil, nil, errors.New("DeviceServiceInfo68: Received FDO Error: " + fdoError.Error())
 	}
 
-	return &ownerServiceInfo69, &testState, nil
+	return &ownerServiceInfo69, nil, nil
 }

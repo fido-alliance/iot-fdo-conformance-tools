@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/dgraph-io/badger/v4"
+
 	fdodeviceimplementation "github.com/fido-alliance/iot-fdo-conformance-tools/core/device"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"

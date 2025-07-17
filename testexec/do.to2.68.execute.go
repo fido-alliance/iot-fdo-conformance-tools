@@ -31,7 +31,6 @@ func preExecuteTo2_68(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 		nextEntry, _, err := to2requestor.GetOVNextEntry62(uint8(i), testcom.NULL_TEST)
 		if err != nil {
 			return nil, err
-
 		}
 
 		if nextEntry.OVEntryNum != uint8(i) {
@@ -66,7 +65,6 @@ func preExecuteTo2_68(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 	}
 
 	return &to2requestor, nil
-
 }
 
 func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB) {
@@ -83,8 +81,6 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 		switch testId {
 		case testcom.FIDO_DOT_68_POSITIVE:
 			var deviceSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
-
-			var ownerSims []fdoshared.ServiceInfoKV // TODO
 
 			for i, deviceSim := range deviceSims {
 				deviceInfo := fdoshared.DeviceServiceInfo68{
@@ -119,8 +115,6 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 
 				log.Println("Receiving OwnerSim DeviceServiceInfo68")
 
-				ownerSims = append(ownerSims, ownerSim.ServiceInfo...)
-
 				if ownerSim.IsDone {
 					break
 				}
@@ -140,6 +134,7 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 			})
 
 		default:
+			var testState *testcom.FDOTestState
 			var deviceSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
 
 			randomIndex := fdoshared.NewRandomInt(0, len(deviceSims)-1)
@@ -157,18 +152,33 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 					selectedTestId = testId
 				}
 
-				_, _, err := to2requestor.DeviceServiceInfo68(deviceInfo, selectedTestId)
-				if err != nil {
+				// Here we want to do the device SIMs correctly
+				if testId == testcom.FIDO_DOT_68_BAD_COMPLETION_LOGIC {
+					selectedTestId = testcom.NULL_TEST
+				}
+
+				_, testState, err = to2requestor.DeviceServiceInfo68(deviceInfo, selectedTestId)
+				if testState == nil && err != nil {
 					reqtDB.ReportTest(reqte.Uuid, testId, testcom.FDOTestState{
 						Passed: false,
 						Error:  err.Error(),
 					})
 					return
 				}
+
+				if testState != nil {
+					break
+				}
+			}
+
+			if testState != nil {
+				reqtDB.ReportTest(reqte.Uuid, testId, *testState)
+				continue
 			}
 
 			maxCounter := 255
 			for {
+				selectedTestId := testcom.NULL_TEST
 
 				getOwnerInfo := fdoshared.DeviceServiceInfo68{
 					ServiceInfo:       nil,
@@ -176,6 +186,8 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 				}
 
 				if testId == testcom.FIDO_DOT_68_BAD_COMPLETION_LOGIC && maxCounter != 255 {
+					selectedTestId = testcom.FIDO_DOT_68_BAD_COMPLETION_LOGIC
+
 					getOwnerInfo.ServiceInfo = []fdoshared.ServiceInfoKV{
 						deviceSims[fdoshared.NewRandomInt(0, len(deviceSims)-1)],
 					}
@@ -183,17 +195,29 @@ func executeTo2_68(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 					getOwnerInfo.IsMoreServiceInfo = true
 				}
 
-				_, testState, err := to2requestor.DeviceServiceInfo68(getOwnerInfo, testcom.NULL_TEST)
+				_, testState, err := to2requestor.DeviceServiceInfo68(getOwnerInfo, selectedTestId)
 				if testState == nil && err != nil {
 					reqtDB.ReportTest(reqte.Uuid, testId, testcom.FDOTestState{
 						Passed: false,
 						Error:  err.Error(),
 					})
+					return
 				}
+
+				log.Println("Receiving OwnerSim DeviceServiceInfo68")
 
 				if testId == testcom.FIDO_DOT_68_BAD_COMPLETION_LOGIC && maxCounter != 255 {
 					reqtDB.ReportTest(reqte.Uuid, testId, *testState)
 					break
+				}
+
+				maxCounter = maxCounter - 1
+				if maxCounter <= 0 {
+					reqtDB.ReportTest(reqte.Uuid, testId, testcom.FDOTestState{
+						Passed: false,
+						Error:  "Error running test. Too many SIMs or retries.",
+					})
+					return
 				}
 			}
 		}

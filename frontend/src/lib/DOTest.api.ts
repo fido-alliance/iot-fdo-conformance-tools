@@ -73,7 +73,7 @@ export const executeDoTests = async (id): Promise<Array<any>> => {
 }
 
 export const removeTestRun = async (id: string, testRunId: string): Promise<Array<any>> => {
-    let result = await fetch("/api/dot/list/testrun", {
+    let result = await fetch(`/api/dot/testruns/${id}/${testRunId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",

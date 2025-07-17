@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
@@ -45,8 +46,32 @@ func (h *VoucherDB) Save(voucherDBEntry fdoshared.VoucherDBEntry) error {
 		return errors.New("Failed creating voucherDB entry instance. " + err.Error())
 	}
 
-	dbtxn.Commit()
+	if err := dbtxn.Commit(); err != nil {
+		return errors.New("Failed saving voucherDB entry. " + err.Error())
+	}
+
+	return nil
+}
+
+// SaveByGUID saves a voucher entry by the provided GUID.
+//
+// It's used to save a voucher with a corrupted OVHeader.
+func (h *VoucherDB) SaveByGUID(guid fdoshared.FdoGuid, voucherDBEntry fdoshared.VoucherDBEntry) error {
+	voucherDBBytes, err := fdoshared.CborCust.Marshal(voucherDBEntry)
 	if err != nil {
+		return errors.New("Failed to marshal voucher. " + err.Error())
+	}
+
+	dbtxn := h.db.NewTransaction(true)
+	defer dbtxn.Discard()
+
+	entry := badger.NewEntry(h.getEntryID(guid), voucherDBBytes)
+	err = dbtxn.SetEntry(entry)
+	if err != nil {
+		return errors.New("Failed creating voucherDB entry instance. " + err.Error())
+	}
+
+	if err := dbtxn.Commit(); err != nil {
 		return errors.New("Failed saving voucherDB entry. " + err.Error())
 	}
 

@@ -24,7 +24,7 @@ func NewRequestTestDB(db *badger.DB) *RequestTestDB {
 	return &RequestTestDB{
 		db:     db,
 		prefix: []byte("rvte-"),
-		ttl:    60 * 60 * 24 * 183, //6months storage
+		ttl:    60 * 60 * 24 * 183, // 6months storage
 	}
 }
 

@@ -31,7 +31,6 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 		nextEntry, _, err := to2requestor.GetOVNextEntry62(uint8(i), testcom.NULL_TEST)
 		if err != nil {
 			return nil, err
-
 		}
 
 		if nextEntry.OVEntryNum != uint8(i) {
@@ -67,8 +66,6 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 
 	var deviceSims []fdoshared.ServiceInfoKV = fdoshared.GetDeviceOSSims()
 
-	var ownerSims []fdoshared.ServiceInfoKV // TODO
-
 	for i, deviceSim := range deviceSims {
 		deviceInfo := fdoshared.DeviceServiceInfo68{
 			ServiceInfo: []fdoshared.ServiceInfoKV{
@@ -92,8 +89,6 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 			return nil, err
 		}
 
-		ownerSims = append(ownerSims, ownerSim.ServiceInfo...)
-
 		if ownerSim.IsDone {
 			break
 		}
@@ -108,8 +103,8 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 }
 
 func executeTo2_70(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTestDB) {
-	for _, testId := range testcom.FIDO_TEST_LIST_DOT_68 {
-		to2requestor, err := preExecuteTo2_68(reqte)
+	for _, testId := range testcom.FIDO_TEST_LIST_DOT_70 {
+		to2requestor, err := preExecuteTo2_70(reqte)
 		if err != nil {
 			reqtDB.ReportTest(reqte.Uuid, testId, testcom.FDOTestState{
 				Passed: false,

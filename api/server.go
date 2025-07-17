@@ -2,15 +2,17 @@ package api
 
 import (
 	"context"
+	"mime"
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/gorilla/mux"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api/testapi"
 	dodbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
-	"github.com/gorilla/mux"
 )
 
 func AddContext(next http.Handler, ctx context.Context) http.Handler {
@@ -94,7 +96,11 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	if ctx.Value(fdoshared.CFG_DEV_ENV) == fdoshared.CFG_ENV_DEV {
 		r.PathPrefix("/").HandlerFunc(ProxyDevUI)
 	} else {
-		r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/")))
+		mime.AddExtensionType(".js", "application/javascript")
+		mime.AddExtensionType(".css", "text/css")
+		mime.AddExtensionType(".json", "application/json")
+
+		r.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend/dist")))
 	}
 
 	http.Handle("/", AddContext(r, ctx))

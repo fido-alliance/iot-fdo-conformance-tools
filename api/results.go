@@ -16,5 +16,4 @@ func (h *ResultsAPI) Submit(w http.ResponseWriter, r *http.Request) {
 	if !commonapi.CheckHeaders(w, r) {
 		return
 	}
-
 }

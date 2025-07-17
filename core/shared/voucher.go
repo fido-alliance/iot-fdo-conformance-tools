@@ -46,13 +46,29 @@ func (h OwnershipVoucher) Validate() error {
 		return errors.New("OVProtVer is not 101. ")
 	}
 
+	if h.OVDevCertChain == nil { // TODO: Future
+		return errors.New("EPID not supported")
+	}
+
+	if err := h.VerifyOVEntries(); err != nil {
+		return errors.New("could not verify OVEntries. " + err.Error())
+	}
+
 	ovHeader, err := h.GetOVHeader()
 	if err != nil {
 		return errors.New(err.Error())
 	}
 
-	if h.OVDevCertChain == nil { // TODO: Future
-		return errors.New("EPID not supported")
+	if ovHeader.OVHProtVer != ProtVer101 {
+		return errors.New("OVHProtVer is not 101")
+	}
+
+	if len(ovHeader.OVRvInfo) == 0 {
+		return errors.New("OVRvInfo is empty")
+	}
+
+	if ovHeader.OVDeviceInfo == "" {
+		return errors.New("OVDeviceInfo is empty")
 	}
 
 	ovDevCertChainCert, err := ComputeOVDevCertChainHash(*h.OVDevCertChain, ovHeader.OVDevCertChainHash.Type)
@@ -75,7 +91,6 @@ func (h OwnershipVoucher) Validate() error {
 func (h OwnershipVoucher) GetOVHeader() (OwnershipVoucherHeader, error) {
 	var ovHeader OwnershipVoucherHeader
 	err := CborCust.Unmarshal(h.OVHeaderTag, &ovHeader)
-
 	if err != nil {
 		return OwnershipVoucherHeader{}, errors.New("error decoding OVHeader. " + err.Error())
 	}

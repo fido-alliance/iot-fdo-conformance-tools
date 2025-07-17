@@ -18,7 +18,6 @@ func ExecuteRVTestsTo1(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.Reque
 	// Generating voucher
 	randomGuid := reqte.FdoSeedIDs.GetRandomTestGuid()
 	testCredV, err := devDB.GetVANDV(randomGuid, testcom.NULL_TEST)
-
 	if err != nil {
 		errTestState := testcom.FDOTestState{
 			Passed: false,

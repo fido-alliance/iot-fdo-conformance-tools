@@ -1,9 +1,10 @@
 package listener
 
 import (
+	"github.com/google/uuid"
+
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
-	"github.com/google/uuid"
 )
 
 func NewDevice_RequestListenerInst(voucherEntry fdoshared.VoucherDBEntry, guid fdoshared.FdoGuid) RequestListenerInst {

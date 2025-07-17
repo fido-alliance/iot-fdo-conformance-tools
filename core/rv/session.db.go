@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
-	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/google/uuid"
+
+	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 )
 
 type SessionDB struct {
@@ -46,8 +47,7 @@ func (h *SessionDB) NewSessionEntry(sessionInst SessionEntry) ([]byte, error) {
 		return []byte{}, errors.New("Failed creating session db entry instance. The error is: " + err.Error())
 	}
 
-	dbtxn.Commit()
-	if err != nil {
+	if err := dbtxn.Commit(); err != nil {
 		return []byte{}, errors.New("Failed saving session entry. The error is: " + err.Error())
 	}
 

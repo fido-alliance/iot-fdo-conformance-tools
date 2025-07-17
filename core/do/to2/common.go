@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/dgraph-io/badger/v4"
+
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/do/dbs"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	tdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
@@ -108,7 +108,6 @@ func (h *DoTo2) GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV,
 					ServiceInfoVal: fdoshared.StringToCborBytes(iopSIMVal),
 				},
 			}...)
-
 	}
 
 	// TODO
@@ -132,10 +131,7 @@ func (h *DoTo2) receiveAndVerify(w http.ResponseWriter, r *http.Request, current
 	}
 
 	// Conformance
-	testcomListener, err := h.listenerDB.GetEntryByFdoGuid(session.Guid)
-	if err != nil {
-		log.Printf("NO TEST CASE FOR %s. %s ", hex.EncodeToString(session.Guid[:]), err.Error())
-	}
+	testcomListener, _ := h.listenerDB.GetEntryByFdoGuid(session.Guid)
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
