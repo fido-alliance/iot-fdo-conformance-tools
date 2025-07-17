@@ -31,7 +31,7 @@ preconfig_conformance_server:
 preconfig_dotenv_file:
 	echo "\n----- Preconfig: Copying .env.example to .env -----\n"
 
-	cp ./example.env ./env
+	cp ./example.env ./.env
 
 setup: preconfig_dotenv_file preconfig_frontend preconfig_conformance_server
 
