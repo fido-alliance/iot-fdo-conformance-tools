@@ -32,6 +32,10 @@ func VerifyCertificateChain(chain []X509CertificateBytes) ([]*x509.Certificate, 
 		return finalChain, errors.New("error decoding root certificate. " + err.Error())
 	}
 
+	if !rootCert.IsCA {
+		return finalChain, errors.New("root certificate is not a CA certificate")
+	}
+
 	rootPool := x509.NewCertPool()
 	rootPool.AddCert(rootCert)
 
