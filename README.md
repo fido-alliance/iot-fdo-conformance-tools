@@ -54,11 +54,13 @@ You can find interop documentation here: https://github.com/fido-alliance/confor
 ## Running
 
 - `./iot-fdo-conformance-tools-{OS} seed` will generate testing config, and pre-seed testing device credentials. This will take just a minute to run. Need to be run only once.
-- `./iot-fdo-conformance-tools-{OS} serve` will serve testing frontend on port 8080 (http://localhost:8080/)[http://localhost:8080/].
+- `./iot-fdo-conformance-tools-{OS} serve` will serve testing frontend on port 8080 (http://localhost:8080/).
 
 ## Usage examples
 
 ### Device tests
+
+Before running the device tests, the ownership voucher and device credentials must be generated. The following example demonstrates how to do it with the conformance tools implementation.
 
 - `./bin/iot-fdo-conformance-tools-{OS} iop generate` - Will generate test credentials for virtual device credentail `./_dis` and voucher `./_vouchers` files.
 
@@ -71,7 +73,9 @@ Example usage:
 2025/07/17 10:41:08 ./_dis/2025-07-17_10.41.08f1d0fd00fe3f4b7db7ec8521092a4e69.dis.pem
 ```
 
-After the generation the ownership voucher should be added to the RV and DO via the conformance tools frontend (the Device tests section). After adding the device, the test run should be started in the frontend.
+After generation, the ownership voucher should be added to the conformance tools server via the frontend (the Device tests section). Note, that ownership voucher must be provided in the [following format](https://github.com/fido-alliance/conformance-test-tools-resources/blob/main/docs/FDO/Pre-Interop/README.md#voucher-encoding-format). After adding the device, the test run should be started in the frontend. Then you can run your device, you'll need to do it multiple times to complete the test suite.
+
+The following examples show how to perform the tests using the conformance tools implementation.
 
 - `./bin/iot-fdo-conformance-tools-{OS} iop to1 http://localhost:8080/ _dis/2025-07-17_10.41.08f1d0fd00fe3f4b7db7ec8521092a4e69.dis.pem` - Will start TO1 protocol testing to the server with the specified virtual device credential.
 
