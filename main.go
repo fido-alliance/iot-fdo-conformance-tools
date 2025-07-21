@@ -260,6 +260,28 @@ func main() {
 				},
 			},
 			{
+				Name:        "from_cbor_to_pem_voucher",
+				Description: "Converts CBOR byte array to Ownership Voucher in PEM format and prints it to stdout",
+				Usage:       "from_cbor_to_pem_voucher [path to cbor file]",
+				Action: func(c *cli.Context) error {
+					if c.Args().Len() != 1 {
+						return fmt.Errorf("path to cbor file is missing")
+					}
+
+					cborFilepath := c.Args().Get(0)
+					cborBytes, err := os.ReadFile(cborFilepath)
+					if err != nil {
+						return fmt.Errorf("error reading CBOR file: %s", err.Error())
+					}
+
+					voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE, Bytes: cborBytes})
+
+					fmt.Println(string(voucherBytesPem))
+
+					return nil
+				},
+			},
+			{
 				Name: "test_devmod",
 				Action: func(c *cli.Context) error {
 					devmodhex := "8301016d6669646f5f616c6c69616e6365"
