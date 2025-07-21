@@ -23,7 +23,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) {
+	if testcomListener != nil && !testcomListener.To2.CheckCmdTestingIsCompleted(currentCmd) && testcomListener.To2.GetLastTestID() != "" {
 		var isLastTestFailed bool
 
 		if !testcomListener.To2.CheckExpectedCmd(currentCmd) && testcomListener.To2.GetLastTestID() != testcom.FIDO_LISTENER_POSITIVE {
@@ -88,7 +88,7 @@ func (h *DoTo2) DeviceServiceInfo68(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			log.Println("DeviceServiceInfo68: Validated device sims: ", *resultSims.SIM_DEVMOD_ARCH, *resultSims.SIM_DEVMOD_DEVICE, resultSims.SIM_DEVMOD_OS)
+			log.Println("DeviceServiceInfo68: Validated device sims: ", *resultSims.SIM_DEVMOD_ARCH, *resultSims.SIM_DEVMOD_DEVICE, *resultSims.SIM_DEVMOD_OS)
 		}
 
 		if int(session.OwnerSIMsSendCounter+1) >= len(session.OwnerSIMs) {
