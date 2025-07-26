@@ -2,6 +2,7 @@ package testexec
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/device/to2"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
@@ -19,7 +20,9 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 	// Generating TO2 handler
 	to2requestor := to2.NewTo2Requestor(fdoshared.SRVEntry{
 		SrvURL: reqte.URL,
-	}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM) // TODO
+	}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH384, fdoshared.CIPHER_A128GCM) // TODO
+
+	fmt.Println("Running HelloDevice60")
 
 	proveOVHdrPayload61, _, err := to2requestor.HelloDevice60(testcom.NULL_TEST)
 	if err != nil {
@@ -28,6 +31,8 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 
 	var ovEntries fdoshared.OVEntryArray
 	for i := 0; i < int(proveOVHdrPayload61.NumOVEntries); i++ {
+		fmt.Println("Running GetOVNextEntry62 for entry")
+
 		nextEntry, _, err := to2requestor.GetOVNextEntry62(uint8(i), testcom.NULL_TEST)
 		if err != nil {
 			return nil, err
@@ -54,10 +59,14 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 	}
 
 	// 64
+	fmt.Println("Running ProveDevice64")
+
 	_, _, err = to2requestor.ProveDevice64(testcom.NULL_TEST)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("Running DeviceServiceInfoReady66")
 
 	_, _, err = to2requestor.DeviceServiceInfoReady66(testcom.NULL_TEST)
 	if err != nil {
@@ -73,6 +82,9 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 			},
 			IsMoreServiceInfo: i+1 <= len(deviceSims),
 		}
+
+		fmt.Println("Running DeviceServiceInfo68 for SIM", i+1, "/", len(deviceSims))
+
 		_, _, err := to2requestor.DeviceServiceInfo68(deviceInfo, testcom.NULL_TEST)
 		if err != nil {
 			return nil, err
@@ -81,6 +93,8 @@ func preExecuteTo2_70(reqte reqtestsdeps.RequestTestInst) (*to2.To2Requestor, er
 
 	maxCounter := 255
 	for {
+		fmt.Println("Running DeviceServiceInfo68 for owner SIM")
+
 		ownerSim, _, err := to2requestor.DeviceServiceInfo68(fdoshared.DeviceServiceInfo68{
 			ServiceInfo:       nil,
 			IsMoreServiceInfo: false,

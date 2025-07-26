@@ -76,7 +76,7 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sgTypeInfo, ok := fdoshared.SgTypeInfoMap[helloDevice.EASigInfo.SgType]
+	sgTypeInfo, ok := fdoshared.SgToHashHmacMap[helloDevice.EASigInfo.SgType]
 	if !ok {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Unsupported sgType...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return

@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	TEST_POSITIVE_BATCH_SIZE int = 20
-	TEST_POSITIVE_BATCHES    int = 5
+	TEST_POSITIVE_BATCH_SIZE int = 1
+	TEST_POSITIVE_BATCHES    int = 1
 )
 
 type GenVouchersResult struct {
@@ -23,7 +23,7 @@ type GenVouchersResult struct {
 	Error                 error
 }
 
-func GenerateTo2Vouchers_Thread(testId testcom.FDOTestID, guids fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB, wg *sync.WaitGroup, resultChannel chan GenVouchersResult) {
+func GenerateTo2Vouchers_Thread(testId testcom.FDOTestID, guids fdoshared.FdoGuidList, ownerPrivKey any, ownerPubKey *fdoshared.FdoPublicKey, sgType fdoshared.DeviceSgType, devDB *dbs.DeviceBaseDB, wg *sync.WaitGroup, resultChannel chan GenVouchersResult) {
 	log.Printf("Starting %s", testId)
 	defer wg.Done()
 	var genVouchersResult GenVouchersResult = GenVouchersResult{
@@ -32,7 +32,7 @@ func GenerateTo2Vouchers_Thread(testId testcom.FDOTestID, guids fdoshared.FdoGui
 	}
 
 	for _, guid := range guids {
-		testCred, err := devDB.GetVANDV(guid, testId)
+		testCred, err := devDB.GetVANDVWithWithKeys(guid, ownerPrivKey, ownerPubKey, sgType, testId)
 		if err != nil {
 			genVouchersResult.Error = fmt.Errorf("Error generating voucher %s for test %s. %s", guid.GetFormatted(), testId, err.Error())
 			break
@@ -46,7 +46,7 @@ func GenerateTo2Vouchers_Thread(testId testcom.FDOTestID, guids fdoshared.FdoGui
 	resultChannel <- genVouchersResult
 }
 
-func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB) (map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher, error) {
+func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, ownerPrivKey any, ownerPubKey *fdoshared.FdoPublicKey, sgType fdoshared.DeviceSgType, devDB *dbs.DeviceBaseDB) (map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher, error) {
 	var (
 		wg           sync.WaitGroup
 		totalThreads = TEST_POSITIVE_BATCHES
@@ -60,7 +60,7 @@ func GenerateTo2Vouchers(guidList fdoshared.FdoGuidList, devDB *dbs.DeviceBaseDB
 		indexEnd := (i + 1) * TEST_POSITIVE_BATCH_SIZE
 
 		wg.Add(1)
-		go GenerateTo2Vouchers_Thread(testcom.NULL_TEST, randomGuids[indexStart:indexEnd], devDB, &wg, chn)
+		go GenerateTo2Vouchers_Thread(testcom.NULL_TEST, randomGuids[indexStart:indexEnd], ownerPrivKey, ownerPubKey, sgType, devDB, &wg, chn)
 	}
 
 	vouchers := map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher{}

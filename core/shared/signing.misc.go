@@ -131,6 +131,11 @@ type FdoPublicKey struct {
 	PkBody interface{}
 }
 
+func NewFdoPublicKey(privKey any) (*FdoPublicKey, error) {
+	// TODO: finish this function
+	return nil, errors.New("not implemented yet")
+}
+
 func (h FdoPublicKey) Equal(bKey FdoPublicKey) error {
 	aBytes, err := CborCust.Marshal(h)
 	if err != nil {
@@ -248,30 +253,25 @@ func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) 
 	}
 }
 
-type SgTypeInfo struct {
-	PkType   FdoPkType
+type HashHmacTypes struct {
 	HashType HashType
 	HmacType HashType
 }
 
-var SgTypeInfoMap = map[DeviceSgType]SgTypeInfo{
+var SgToHashHmacMap = map[DeviceSgType]HashHmacTypes{
 	StSECP256R1: {
-		PkType:   SECP256R1,
 		HashType: HASH_SHA256,
 		HmacType: HASH_HMAC_SHA256,
 	},
 	StSECP384R1: {
-		PkType:   SECP384R1,
 		HashType: HASH_SHA384,
 		HmacType: HASH_HMAC_SHA384,
 	},
 	StRSA2048: {
-		PkType:   RSA2048RESTR,
 		HashType: HASH_SHA256,
 		HmacType: HASH_HMAC_SHA256,
 	},
 	StRSA3072: {
-		PkType:   RSAPKCS,
 		HashType: HASH_SHA384,
 		HmacType: HASH_HMAC_SHA384,
 	},

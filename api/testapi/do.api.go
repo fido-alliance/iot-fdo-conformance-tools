@@ -3,8 +3,13 @@ package testapi
 import (
 	"archive/zip"
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -88,6 +93,77 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// block, _ := pem.Decode([]byte(fdoshared.VendorPrivateKeyPEM))
+	block, _ := pem.Decode([]byte(createTestCase.PrivKey))
+	if block == nil {
+		log.Println("Failed to decode private key PEM.")
+		commonapi.RespondError(w, "Failed to decode private key PEM!", http.StatusBadRequest)
+		return
+	}
+
+	privKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		log.Println("Failed to parse private key. " + err.Error())
+		commonapi.RespondError(w, "Failed to parse private key!", http.StatusBadRequest)
+		return
+	}
+
+	var (
+		pkType fdoshared.FdoPkType
+		sgType fdoshared.DeviceSgType
+		pubKey any
+	)
+
+	switch typedPrivKey := privKey.(type) {
+	case *ecdsa.PrivateKey:
+		switch typedPrivKey.Curve {
+		case elliptic.P256():
+			pkType = fdoshared.SECP256R1
+			sgType = fdoshared.StSECP256R1
+			pubKey = typedPrivKey.Public()
+		case elliptic.P384():
+			pkType = fdoshared.SECP384R1
+			sgType = fdoshared.StSECP384R1
+			pubKey = typedPrivKey.Public()
+		default:
+			log.Println("Unsupported elliptic curve: " + typedPrivKey.Curve.Params().Name)
+			commonapi.RespondError(w, "Unsupported elliptic curve", http.StatusBadRequest)
+			return
+		}
+	case *rsa.PrivateKey:
+		switch bitSize := typedPrivKey.Size() * 8; bitSize {
+		case 2048:
+			pkType = fdoshared.RSA2048RESTR
+			sgType = fdoshared.StRSA2048
+			pubKey = &typedPrivKey.PublicKey
+		case 3072:
+			pkType = fdoshared.RSAPKCS
+			sgType = fdoshared.StRSA3072
+			pubKey = &typedPrivKey.PublicKey
+		default:
+			log.Println("Unsupported RSA key size: " + fmt.Sprint(bitSize))
+			commonapi.RespondError(w, "Unsupported RSA key size", http.StatusBadRequest)
+			return
+		}
+	default:
+		log.Println("Unsupported private key type: " + fmt.Sprint(privKey))
+		commonapi.RespondError(w, "Unsupported private key type", http.StatusBadRequest)
+		return
+	}
+
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(pubKey)
+	if err != nil {
+		log.Println("Error marshaling RSA public key. " + err.Error())
+		commonapi.RespondError(w, "Error marshaling RSA public key!", http.StatusBadRequest)
+		return
+	}
+
+	fdoPubKey := &fdoshared.FdoPublicKey{
+		PkType: pkType,
+		PkEnc:  fdoshared.X509,
+		PkBody: pubKeyBytes,
+	}
+
 	parsedUrl, err := url.ParseRequestURI(createTestCase.Url)
 	if err != nil {
 		log.Println("Bad URL. " + err.Error())
@@ -122,7 +198,7 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		allTestIds = append(allTestIds, v...)
 	}
 
-	voucherTestMap, err := testexec.GenerateTo2Vouchers(allTestIds, h.DevBaseDB)
+	voucherTestMap, err := testexec.GenerateTo2Vouchers(allTestIds, privKey, fdoPubKey, sgType, h.DevBaseDB)
 	if err != nil {
 		log.Println("Generate vouchers. " + err.Error())
 		commonapi.RespondError(w, "Failed to generate vouchers. Internal server error", http.StatusInternalServerError)

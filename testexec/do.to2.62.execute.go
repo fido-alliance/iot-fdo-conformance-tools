@@ -27,7 +27,7 @@ func executeTo2_62(reqte reqtestsdeps.RequestTestInst, reqtDB *testdbs.RequestTe
 		// Generating TO0 handler
 		to2requestor := to2.NewTo2Requestor(fdoshared.SRVEntry{
 			SrvURL: reqte.URL,
-		}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM) // TODO
+		}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH384, fdoshared.CIPHER_A128GCM) // TODO
 
 		proveOVHdrPayload61, _, err := to2requestor.HelloDevice60(testcom.NULL_TEST)
 		if err != nil {

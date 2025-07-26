@@ -56,7 +56,9 @@ func (h *To2Requestor) DeviceServiceInfoReady66(fdoTestID testcom.FDOTestID) (*f
 		}
 	}
 
-	h.AuthzHeader = authzHeader
+	if authzHeader != "" {
+		h.AuthzHeader = authzHeader
+	}
 
 	bodyBytes, err := fdoshared.RemoveEncryptionWrapping(rawResultBytes, h.SessionKey, h.CipherSuiteName)
 	if err != nil {

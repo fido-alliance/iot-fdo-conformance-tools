@@ -90,7 +90,9 @@ func (h *To2Requestor) ProveDevice64(fdoTestID testcom.FDOTestID) (*fdoshared.TO
 		}
 	}
 
-	h.AuthzHeader = authzHeader
+	if authzHeader != "" {
+		h.AuthzHeader = authzHeader
+	}
 
 	bodyBytes, err := fdoshared.RemoveEncryptionWrapping(rawResultBytes, h.SessionKey, h.CipherSuiteName)
 	if err != nil {
