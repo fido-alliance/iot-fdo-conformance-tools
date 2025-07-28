@@ -96,7 +96,7 @@ var FdoPkType_List []FdoPkType = []FdoPkType{
 	SECP384R1,
 }
 
-var SgTypeToFdoPkType = map[DeviceSgType]FdoPkType{
+var SgTypeToFdoPkType = map[SgType]FdoPkType{
 	StSECP256R1: SECP256R1,
 	StSECP384R1: SECP384R1,
 	StRSA2048:   RSA2048RESTR,
@@ -160,18 +160,18 @@ const (
 	IANA_RS384 IanaCoseAlg = -258
 )
 
-type DeviceSgType int
+type SgType int
 
 const (
-	StSECP256R1 DeviceSgType = -7
-	StSECP384R1 DeviceSgType = -35
-	StRSA2048   DeviceSgType = -257
-	StRSA3072   DeviceSgType = -258
-	StEPID10    DeviceSgType = 90
-	StEPID11    DeviceSgType = 91
+	StSECP256R1 SgType = -7
+	StSECP384R1 SgType = -35
+	StRSA2048   SgType = -257
+	StRSA3072   SgType = -258
+	StEPID10    SgType = 90
+	StEPID11    SgType = 91
 )
 
-var SgTypeList []DeviceSgType = []DeviceSgType{
+var SgTypeList []SgType = []SgType{
 	StSECP256R1,
 	StSECP384R1,
 	StRSA2048,
@@ -180,7 +180,7 @@ var SgTypeList []DeviceSgType = []DeviceSgType{
 	// StEPID11,
 }
 
-var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
+var DeviceSgTypeList []SgType = []SgType{
 	StSECP256R1,
 	StSECP384R1,
 	// StEPID10, // TODO
@@ -188,7 +188,7 @@ var DeviceSgTypeList []DeviceSgType = []DeviceSgType{
 }
 
 // Maps DEVICE supported SG type, to what OVEntry must use to, since device may not be able to handle some owner algorithms
-var SgType_OwnerToDeviceAttestation = map[DeviceSgType]DeviceSgType{
+var SgType_OwnerToDeviceAttestation = map[SgType]SgType{
 	StSECP256R1: StSECP256R1,
 	StSECP384R1: StSECP384R1,
 	StRSA2048:   StSECP256R1,
@@ -204,7 +204,7 @@ var SgType_OwnerToDeviceAttestation = map[DeviceSgType]DeviceSgType{
 
 type SigInfo struct {
 	_      struct{} `cbor:",toarray"`
-	SgType DeviceSgType
+	SgType SgType
 	Info   []byte
 }
 
@@ -229,7 +229,7 @@ func (h SigInfo) Equal(bsiginfo SigInfo) error {
 	return nil
 }
 
-func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) {
+func GetDeviceSgType(pkType FdoPkType, hashType HashType) (SgType, error) {
 	switch pkType {
 	case SECP256R1:
 		return StSECP256R1, nil
@@ -248,36 +248,31 @@ func GetDeviceSgType(pkType FdoPkType, hashType HashType) (DeviceSgType, error) 
 	}
 }
 
-type SgTypeInfo struct {
-	PkType   FdoPkType
+type HashHmacTypes struct {
 	HashType HashType
 	HmacType HashType
 }
 
-var SgTypeInfoMap = map[DeviceSgType]SgTypeInfo{
+var SgToHashHmacMap = map[SgType]HashHmacTypes{
 	StSECP256R1: {
-		PkType:   SECP256R1,
 		HashType: HASH_SHA256,
 		HmacType: HASH_HMAC_SHA256,
 	},
 	StSECP384R1: {
-		PkType:   SECP384R1,
 		HashType: HASH_SHA384,
 		HmacType: HASH_HMAC_SHA384,
 	},
 	StRSA2048: {
-		PkType:   RSA2048RESTR,
 		HashType: HASH_SHA256,
 		HmacType: HASH_HMAC_SHA256,
 	},
 	StRSA3072: {
-		PkType:   RSAPKCS,
 		HashType: HASH_SHA384,
 		HmacType: HASH_HMAC_SHA384,
 	},
 }
 
-var PkToSgType = map[FdoPkType]DeviceSgType{
+var PkToSgType = map[FdoPkType]SgType{
 	SECP256R1:    StSECP256R1,
 	SECP384R1:    StSECP384R1,
 	RSA2048RESTR: StRSA2048,

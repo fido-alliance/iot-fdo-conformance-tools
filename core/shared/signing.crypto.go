@@ -253,7 +253,7 @@ func i2osp(coeff []byte, expecteCoeffLen int) ([]byte, error) {
 	return coeff, nil
 }
 
-func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType DeviceSgType) (*CoseSignature, error) {
+func GenerateCoseSignature(payload []byte, protected ProtectedHeader, unprotected UnprotectedHeader, privateKeyInterface interface{}, sgType SgType) (*CoseSignature, error) {
 	protected.Alg = GetIntRef(int(sgType))
 
 	protectedBytes, _ := CborCust.Marshal(protected)

@@ -56,7 +56,9 @@ func (h *To2Requestor) Done70(fdoTestID testcom.FDOTestID) (*fdoshared.Done271, 
 		}
 	}
 
-	h.AuthzHeader = authzHeader
+	if authzHeader != "" {
+		h.AuthzHeader = authzHeader
+	}
 
 	bodyBytes, err := fdoshared.RemoveEncryptionWrapping(rawResultBytes, h.SessionKey, h.CipherSuiteName)
 	if err != nil {

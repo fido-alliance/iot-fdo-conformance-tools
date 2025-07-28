@@ -129,7 +129,7 @@ func (h FdoGuidList) GetRandomSelection(size int) FdoGuidList {
 	return randomPick
 }
 
-type FdoSeedIDs map[DeviceSgType]FdoGuidList
+type FdoSeedIDs map[SgType]FdoGuidList
 
 func (h *FdoSeedIDs) GetTestBatch(size int) FdoSeedIDs {
 	var newTestBatch FdoSeedIDs = FdoSeedIDs{}
@@ -157,7 +157,7 @@ func (h *FdoSeedIDs) GetRandomTestGuid() FdoGuid {
 	return randomGuids[randLoc]
 }
 
-func (h *FdoSeedIDs) GetRandomTestGuidForSgType(sgType DeviceSgType) FdoGuid {
+func (h *FdoSeedIDs) GetRandomTestGuidForSgType(sgType SgType) FdoGuid {
 	sh := *h
 	var randomGuids []FdoGuid = sh[sgType]
 

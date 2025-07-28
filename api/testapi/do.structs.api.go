@@ -7,7 +7,8 @@ import (
 )
 
 type DOT_CreateTestCase struct {
-	Url string `json:"url"`
+	Url     string `json:"url"`
+	PrivKey string `json:"priv_key"`
 }
 
 type DOT_InstInfo struct {

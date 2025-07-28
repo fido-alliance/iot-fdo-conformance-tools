@@ -217,6 +217,7 @@ func ComputeOVDevCertChainHash(certs []X509CertificateBytes, hashType HashType) 
 type VoucherDBEntry struct {
 	_              struct{} `cbor:",toarray"`
 	Voucher        OwnershipVoucher
+	SgType         SgType
 	PrivateKeyX509 []byte
 }
 
@@ -225,7 +226,7 @@ type DeviceCredAndVoucher struct {
 	WawDeviceCredential WawDeviceCredential
 }
 
-func GeneratePKIXECKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, error) {
+func GeneratePKIXECKeypair(sgType SgType) (interface{}, *FdoPublicKey, error) {
 	var curve elliptic.Curve
 	var pkType FdoPkType
 
@@ -256,7 +257,7 @@ func GeneratePKIXECKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, err
 	}, nil
 }
 
-func GeneratePKIXRSAKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, error) {
+func GeneratePKIXRSAKeypair(sgType SgType) (interface{}, *FdoPublicKey, error) {
 	var pkType FdoPkType
 	var rsaKeySize int
 
@@ -288,7 +289,7 @@ func GeneratePKIXRSAKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, er
 	}, nil
 }
 
-func GenerateVoucherKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, error) {
+func GenerateVoucherKeypair(sgType SgType) (interface{}, *FdoPublicKey, error) {
 	switch sgType {
 	case StSECP256R1, StSECP384R1:
 		return GeneratePKIXECKeypair(sgType)
@@ -299,7 +300,7 @@ func GenerateVoucherKeypair(sgType DeviceSgType) (interface{}, *FdoPublicKey, er
 	}
 }
 
-func MarshalPrivateKey(privKey interface{}, sgType DeviceSgType) ([]byte, error) {
+func MarshalPrivateKey(privKey interface{}, sgType SgType) ([]byte, error) {
 	switch sgType {
 	case StSECP256R1, StSECP384R1:
 		return x509.MarshalPKCS8PrivateKey(privKey.(*ecdsa.PrivateKey))

@@ -7,7 +7,7 @@ import (
 )
 
 // CONFORMANCE TESTING
-func Conf_NewRandomSgTypeExcept(exceptSg DeviceSgType) DeviceSgType {
+func Conf_NewRandomSgTypeExcept(exceptSg SgType) SgType {
 	for {
 		randLoc := NewRandomInt(0, len(SgTypeList)-1)
 
@@ -146,7 +146,7 @@ func Conf_RandomCborBufferFuzzing(inputBuff []byte) []byte {
 
 func Conf_RandomTestFuzzSigInfo(sigInfo SigInfo) SigInfo {
 	return SigInfo{
-		SgType: DeviceSgType(NewRandomInt(100, 6312)),
+		SgType: SgType(NewRandomInt(100, 6312)),
 		Info:   sigInfo.Info,
 	}
 }

@@ -147,25 +147,25 @@ func NewHmacKey(hashType HashType) []byte {
 	}
 }
 
-// See https://drafts.fidoalliance.org/internet-of-things-specs/stable-links-to-latest/FIDO-IoT-spec.html#hashhmac
-func NegotiateHashHmac(deviceSg DeviceSgType, ownerSgType DeviceSgType) SgTypeInfo {
-	sha256SgInfo := SgTypeInfo{
+// See https://fidoalliance.org/specs/FDO/FIDO-Device-Onboard-PS-v1.1-20220419/FIDO-Device-Onboard-PS-v1.1-20220419.html#hashhmac
+func NegotiateHashHmacTypes(deviceSg SgType, ownerSgType SgType) HashHmacTypes {
+	sha256SgInfo := HashHmacTypes{
 		HashType: HASH_SHA256,
 		HmacType: HASH_HMAC_SHA256,
 	}
 
-	sha384SgInfo := SgTypeInfo{
+	sha384SgInfo := HashHmacTypes{
 		HashType: HASH_SHA384,
 		HmacType: HASH_HMAC_SHA384,
 	}
 
 	if deviceSg == ownerSgType {
-		return SgTypeInfoMap[deviceSg]
+		return SgToHashHmacMap[deviceSg]
 	} else if deviceSg == StEPID10 || deviceSg == StEPID11 {
 		if ownerSgType == StSECP384R1 {
-			return sha384SgInfo
+			return SgToHashHmacMap[StSECP384R1]
 		} else {
-			return sha256SgInfo
+			return SgToHashHmacMap[StSECP256R1]
 		}
 	} else if deviceSg == StSECP384R1 || ownerSgType == StSECP384R1 {
 		return sha384SgInfo

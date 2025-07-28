@@ -15,13 +15,13 @@ const (
 )
 
 type SeedRunResult struct {
-	DeviceSgType fdoshared.DeviceSgType
+	DeviceSgType fdoshared.SgType
 	Guids        []fdoshared.FdoGuid
 	CredBases    []fdoshared.WawDeviceCredential
 	Error        error
 }
 
-func SeedRunInst(threadID int, seedSize int, sgType fdoshared.DeviceSgType, wg *sync.WaitGroup, resultChannel chan SeedRunResult) {
+func SeedRunInst(threadID int, seedSize int, sgType fdoshared.SgType, wg *sync.WaitGroup, resultChannel chan SeedRunResult) {
 	result := SeedRunResult{
 		DeviceSgType: sgType,
 		Guids:        []fdoshared.FdoGuid{},

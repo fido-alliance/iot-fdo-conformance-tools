@@ -48,7 +48,9 @@ func (h *To2Requestor) DeviceServiceInfo68(deviceServiceInfo68 fdoshared.DeviceS
 		}
 	}
 
-	h.AuthzHeader = authzHeader
+	if authzHeader != "" {
+		h.AuthzHeader = authzHeader
+	}
 
 	bodyBytes, err := fdoshared.RemoveEncryptionWrapping(rawResultBytes, h.SessionKey, h.CipherSuiteName)
 	if err != nil {

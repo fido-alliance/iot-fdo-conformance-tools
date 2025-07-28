@@ -76,14 +76,14 @@ func (h *DoTo2) HelloDevice60(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sgTypeInfo, ok := fdoshared.SgTypeInfoMap[helloDevice.EASigInfo.SgType]
+	hashHmacTypes, ok := fdoshared.SgToHashHmacMap[helloDevice.EASigInfo.SgType]
 	if !ok {
 		listenertestsdeps.Conf_RespondFDOError(w, r, fdoshared.INTERNAL_SERVER_ERROR, currentCmd, "Unsupported sgType...", http.StatusInternalServerError, testcomListener, fdoshared.To2)
 		return
 	}
 
 	// HelloDevice HASH
-	helloDeviceHash, _ := fdoshared.GenerateFdoHash(bodyBytes, sgTypeInfo.HashType)
+	helloDeviceHash, _ := fdoshared.GenerateFdoHash(bodyBytes, hashHmacTypes.HashType)
 
 	voucherHeader, err := voucherDBEntry.Voucher.GetOVHeader()
 	if err != nil {

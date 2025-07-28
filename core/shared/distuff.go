@@ -19,9 +19,9 @@ type WawDeviceCredential struct {
 
 	DCProtVer ProtVersion
 
+	DCHashAlg    HashType
 	DCHmacSecret []byte
 	DCHmacAlg    HashType
-	DCHashAlg    HashType
 
 	DCDeviceInfo string
 	DCGuid       FdoGuid
@@ -33,7 +33,7 @@ type WawDeviceCredential struct {
 	DCSigInfo              SigInfo
 }
 
-func (h *WawDeviceCredential) UpdatedToNewHashHmac(newSgInfo SgTypeInfo) {
+func (h *WawDeviceCredential) UpdateToNewHashHmacTypes(newSgInfo HashHmacTypes) {
 	h.DCHashAlg = newSgInfo.HashType
 	h.DCHmacAlg = newSgInfo.HmacType
 
@@ -196,7 +196,7 @@ func CastPublicFromPrivate(priv interface{}) interface{} {
 	}
 }
 
-func NewWawDeviceCredential(sgType DeviceSgType) (*WawDeviceCredential, error) {
+func NewWawDeviceCredential(sgType SgType) (*WawDeviceCredential, error) {
 	if sgType != StSECP256R1 && sgType != StSECP384R1 {
 		return nil, errors.New("for device attestation only SECP256R1 and SECP384R1 are supported")
 	}
@@ -253,12 +253,12 @@ func NewWawDeviceCredential(sgType DeviceSgType) (*WawDeviceCredential, error) {
 		newCertBytes, intermCert.Bytes, rootCert.Bytes,
 	}
 
-	sgTypeInfo, ok := SgTypeInfoMap[sgType]
+	hashHmacTypes, ok := SgToHashHmacMap[sgType]
 	if !ok {
 		return nil, errors.New("unknown sgType")
 	}
 
-	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, HmacToHashAlg[sgTypeInfo.HmacType])
+	dcCertificateChainHash, _ := ComputeOVDevCertChainHash(dcCertificateChain, HmacToHashAlg[hashHmacTypes.HmacType])
 
 	dcSigInfo := SigInfo{
 		SgType: sgType,
@@ -266,7 +266,7 @@ func NewWawDeviceCredential(sgType DeviceSgType) (*WawDeviceCredential, error) {
 		// Info:   []byte("fido-fdo-virtual-device"),
 	}
 
-	var hmacSecret []byte = NewHmacKey(sgTypeInfo.HmacType)
+	var hmacSecret []byte = NewHmacKey(hashHmacTypes.HmacType)
 
 	return &WawDeviceCredential{
 		DCProtVer:    ProtVer101,
@@ -280,14 +280,14 @@ func NewWawDeviceCredential(sgType DeviceSgType) (*WawDeviceCredential, error) {
 		DCGuid:    newGuid,
 		DCSigInfo: dcSigInfo,
 
-		DCHmacAlg: sgTypeInfo.HmacType,
-		DCHashAlg: sgTypeInfo.HashType,
+		DCHmacAlg: hashHmacTypes.HmacType,
+		DCHashAlg: hashHmacTypes.HashType,
 
 		DCDeviceInfo: "I am a virtual FIDO Alliance device!",
 	}, nil
 }
 
-func RandomSgType() DeviceSgType {
+func RandomSgType() SgType {
 	for {
 		randLoc := NewRandomInt(0, len(SgTypeList)-1)
 
@@ -297,7 +297,7 @@ func RandomSgType() DeviceSgType {
 	}
 }
 
-func RandomDeviceSgType() DeviceSgType {
+func RandomDeviceSgType() SgType {
 	for {
 		randLoc := NewRandomInt(0, len(DeviceSgTypeList)-1)
 

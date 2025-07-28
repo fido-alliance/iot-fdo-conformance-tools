@@ -64,6 +64,7 @@
 /* ----- Handle New DO ----- */
     let newDoErrorMessage = ""
     let newDoUrl = ""
+    let newDoPrivKey = ""
     const handleAddNewDo = async(e) => {
         e.preventDefault()
 
@@ -71,8 +72,14 @@
 
         try {
             new URL(newDoUrl)
+            
+            if (!newDoPrivKey.trim()) {
+                newDoErrorMessage = "Private key is required"
+                return
+            }
+            
             newDoErrorMessage = "Processing..."
-            await addNewDo(newDoUrl)
+            await addNewDo(newDoUrl, newDoPrivKey)
         } catch(e) {
             newDoErrorMessage = "Error adding new DO. " + e
             return
@@ -83,6 +90,7 @@
             newDoUiVisible = false
             newDoErrorMessage = ""
             newDoUrl = ""
+            newDoPrivKey = ""
         }, 1250)
 
     }
@@ -93,6 +101,7 @@
         newDoUiVisible = true
         newDoErrorMessage = ""
         newDoUrl = ""
+        newDoPrivKey = ""
     }
 
     const handleCancelInitiateNewDo = (e) => {
@@ -100,6 +109,7 @@
         newDoUiVisible = false
         newDoErrorMessage = ""
         newDoUrl = ""
+        newDoPrivKey = ""
     }
 /* ----- Handle New Do Ends----- */
 
@@ -182,10 +192,15 @@
             {#if newDoUiVisible}
                 <div class="row">
                     <div class="col-8 col-12-xsmall">
-                        <input type="text" name="demo-name" bind:value={newDoUrl} id="demo-name" placeholder="DO URL">
+                        <input type="text" name="do-url" bind:value={newDoUrl} id="do-url" placeholder="DO URL">
                     </div>
                     <div class="col-4 col-12-xsmall">
                         <a href="#" on:click={handleAddNewDo} class="button primary">Add</a>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 1rem;">
+                    <div class="col-12 col-12-xsmall">
+                        <textarea name="do-privkey" bind:value={newDoPrivKey} id="do-privkey" placeholder="Private Key (PEM format)" rows="6"></textarea>
                     </div>
                 </div>
                 <div class="row">

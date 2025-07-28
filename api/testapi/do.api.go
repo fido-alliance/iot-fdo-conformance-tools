@@ -3,8 +3,13 @@ package testapi
 import (
 	"archive/zip"
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -17,13 +22,12 @@ import (
 	"github.com/fido-alliance/iot-fdo-conformance-tools/api/commonapi"
 	fdodeviceimplementation "github.com/fido-alliance/iot-fdo-conformance-tools/core/device"
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
+	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 	testdbs "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/dbs"
 	reqtestsdeps "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom/request"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/dbs"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/testexec"
 )
-
-const DOSeedIDsBatchSize int = 20
 
 type DOTestMgmtAPI struct {
 	UserDB    *dbs.UserTestDB
@@ -79,7 +83,6 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Getting URL
 	var createTestCase DOT_CreateTestCase
 	err = json.Unmarshal(bodyBytes, &createTestCase)
 	if err != nil {
@@ -103,7 +106,76 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 
 	doUrl := parsedUrl.Scheme + "://" + parsedUrl.Host
 
-	// Getting pre-gen config
+	block, _ := pem.Decode([]byte(createTestCase.PrivKey))
+	if block == nil {
+		log.Println("Failed to decode private key PEM.")
+		commonapi.RespondError(w, "Failed to decode private key PEM!", http.StatusBadRequest)
+		return
+	}
+
+	privKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		log.Println("Failed to parse private key. " + err.Error())
+		commonapi.RespondError(w, "Failed to parse private key!", http.StatusBadRequest)
+		return
+	}
+
+	var (
+		pkType fdoshared.FdoPkType
+		sgType fdoshared.SgType
+		pubKey any
+	)
+
+	switch typedPrivKey := privKey.(type) {
+	case *ecdsa.PrivateKey:
+		switch typedPrivKey.Curve {
+		case elliptic.P256():
+			pkType = fdoshared.SECP256R1
+			sgType = fdoshared.StSECP256R1
+			pubKey = typedPrivKey.Public()
+		case elliptic.P384():
+			pkType = fdoshared.SECP384R1
+			sgType = fdoshared.StSECP384R1
+			pubKey = typedPrivKey.Public()
+		default:
+			log.Println("Unsupported elliptic curve: " + typedPrivKey.Curve.Params().Name)
+			commonapi.RespondError(w, "Unsupported elliptic curve", http.StatusBadRequest)
+			return
+		}
+	case *rsa.PrivateKey:
+		switch bitSize := typedPrivKey.Size() * 8; bitSize {
+		case 2048:
+			pkType = fdoshared.RSA2048RESTR
+			sgType = fdoshared.StRSA2048
+			pubKey = &typedPrivKey.PublicKey
+		case 3072:
+			pkType = fdoshared.RSAPKCS
+			sgType = fdoshared.StRSA3072
+			pubKey = &typedPrivKey.PublicKey
+		default:
+			log.Println("Unsupported RSA key size: " + fmt.Sprint(bitSize))
+			commonapi.RespondError(w, "Unsupported RSA key size", http.StatusBadRequest)
+			return
+		}
+	default:
+		log.Println("Unsupported private key type: " + fmt.Sprint(privKey))
+		commonapi.RespondError(w, "Unsupported private key type", http.StatusBadRequest)
+		return
+	}
+
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(pubKey)
+	if err != nil {
+		log.Println("Error marshaling RSA public key. " + err.Error())
+		commonapi.RespondError(w, "Error marshaling RSA public key!", http.StatusBadRequest)
+		return
+	}
+
+	fdoPubKey := &fdoshared.FdoPublicKey{
+		PkType: pkType,
+		PkEnc:  fdoshared.X509,
+		PkBody: pubKeyBytes,
+	}
+
 	mainConfig, err := h.ConfigDB.Get()
 	if err != nil {
 		log.Println("Failed to generate VDIs. " + err.Error())
@@ -111,26 +183,46 @@ func (h *DOTestMgmtAPI) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// New request test instance
-	newDOTTestTo2 := reqtestsdeps.NewRequestTestInst(doUrl, 2)
+	guid := mainConfig.SeededGuids.GetRandomTestGuidForSgType(sgType)
 
-	// Generate test vouchers
-	voucherTestBatch := mainConfig.SeededGuids.GetTestBatch(10000)
-
-	var allTestIds fdoshared.FdoGuidList
-	for _, v := range voucherTestBatch {
-		allTestIds = append(allTestIds, v...)
-	}
-
-	voucherTestMap, err := testexec.GenerateTo2Vouchers(allTestIds, h.DevBaseDB)
+	deviceCredential, err := h.DevBaseDB.Get(guid)
 	if err != nil {
-		log.Println("Generate vouchers. " + err.Error())
-		commonapi.RespondError(w, "Failed to generate vouchers. Internal server error", http.StatusInternalServerError)
+		log.Println("Failed to get device base. " + err.Error())
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	newDOTTestTo2.TestVouchers = voucherTestMap
-	newDOTTestTo2.FdoSeedIDs = mainConfig.SeededGuids.GetTestBatch(DOSeedIDsBatchSize)
+	rvInfo, err := fdoshared.UrlsToRendezvousInfo([]string{
+		"https://localhost:8043",
+	})
+	if err != nil {
+		log.Println("Failed to get rendezvous info. " + err.Error())
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	credentialAndVoucher, err := fdodeviceimplementation.NewVirtualDeviceAndVoucherWithKeys(
+		*deviceCredential,
+		privKey,
+		fdoPubKey,
+		sgType,
+		rvInfo,
+		testcom.NULL_TEST,
+	)
+	if err != nil {
+		log.Println("Error creating virtual device and voucher. " + err.Error())
+		commonapi.RespondError(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// New request test instance
+	newDOTTestTo2 := reqtestsdeps.NewRequestTestInst(doUrl, 2)
+	newDOTTestTo2.TestVouchers = map[testcom.FDOTestID][]fdoshared.DeviceCredAndVoucher{
+		testcom.NULL_TEST: {*credentialAndVoucher},
+	}
+	newDOTTestTo2.FdoSeedIDs = map[fdoshared.SgType]fdoshared.FdoGuidList{
+		sgType: {guid},
+	}
 
 	// Saving stuff
 	err = h.ReqTDB.Save(newDOTTestTo2)

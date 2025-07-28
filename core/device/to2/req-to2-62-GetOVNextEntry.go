@@ -39,7 +39,9 @@ func (h *To2Requestor) GetOVNextEntry62(entryNum uint8, fdoTestID testcom.FDOTes
 		}
 	}
 
-	h.AuthzHeader = authzHeader
+	if authzHeader != "" {
+		h.AuthzHeader = authzHeader
+	}
 
 	var nextEntry fdoshared.OVNextEntry63
 	fdoError, err := fdoshared.TryCborUnmarshal(resultBytes, &nextEntry)

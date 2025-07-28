@@ -113,6 +113,41 @@ func (h *DeviceBaseDB) GetVANDV(guid fdoshared.FdoGuid, testid testcom.FDOTestID
 	return fdodeviceimplementation.NewVirtualDeviceAndVoucher(devCred, randomSgType, rvInfo, testid)
 }
 
+func (h *DeviceBaseDB) GetVANDVWithWithKeys(guid fdoshared.FdoGuid, ownerPrivKey any, ownerPubKey *fdoshared.FdoPublicKey, sgType fdoshared.SgType, testid testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
+	storageId := append(h.prefix, guid[:]...)
+
+	dbtxn := h.db.NewTransaction(true)
+	defer dbtxn.Discard()
+
+	item, err := dbtxn.Get(storageId)
+	if err != nil && errors.Is(err, badger.ErrKeyNotFound) {
+		return nil, fmt.Errorf("The DevBase entry with id %s does not exist", hex.EncodeToString(guid[:]))
+	} else if err != nil {
+		return nil, errors.New("Failed locating DevBase entry. The error is: " + err.Error())
+	}
+
+	itemBytes, err := item.ValueCopy(nil)
+	if err != nil {
+		return nil, errors.New("Failed reading DevBase entry value. The error is: " + err.Error())
+	}
+
+	var devCred fdoshared.WawDeviceCredential
+	err = fdoshared.CborCust.Unmarshal(itemBytes, &devCred)
+	if err != nil {
+		return nil, errors.New("Failed cbor decoding DevBase entry value. The error is: " + err.Error())
+	}
+
+	// TODO
+	rvInfo, err := fdoshared.UrlsToRendezvousInfo([]string{
+		"https://localhost:8043",
+	})
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	return fdodeviceimplementation.NewVirtualDeviceAndVoucherWithKeys(devCred, ownerPrivKey, ownerPubKey, sgType, rvInfo, testid)
+}
+
 func (h *DeviceBaseDB) GetMany(guids []fdoshared.FdoGuid) (*[]fdoshared.WawDeviceCredential, error) {
 	var devCredsList []fdoshared.WawDeviceCredential
 

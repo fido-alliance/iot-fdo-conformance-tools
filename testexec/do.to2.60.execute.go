@@ -21,7 +21,7 @@ func executeTo2_60(reqte reqtestsdeps.RequestTestInst, reqtDB *dbs.RequestTestDB
 		// Generating TO0 handler
 		to2requestor := to2.NewTo2Requestor(fdoshared.SRVEntry{
 			SrvURL: reqte.URL,
-		}, testCred.WawDeviceCredential, fdoshared.KEX_ECDH256, fdoshared.CIPHER_A128GCM) // TODO
+		}, testCred.WawDeviceCredential, fdoshared.SgTypeToKexSuitName[testCred.VoucherDBEntry.SgType], fdoshared.CIPHER_A128GCM)
 
 		switch fdoTestId {
 		case testcom.FIDO_DOT_60_POSITIVE:

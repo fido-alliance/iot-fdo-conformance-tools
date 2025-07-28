@@ -53,6 +53,13 @@ var KexSuitNames [6]KexSuiteName = [6]KexSuiteName{
 	KEX_ASYMKEX3072,
 }
 
+var SgTypeToKexSuitName = map[SgType]KexSuiteName{
+	StSECP256R1: KEX_ECDH256,
+	StSECP384R1: KEX_ECDH384,
+	StRSA2048:   KEX_DHKEXid14,
+	StRSA3072:   KEX_DHKEXid15,
+}
+
 type KeXParams struct {
 	_             struct{} `cbor:",toarray"`
 	Private       []byte

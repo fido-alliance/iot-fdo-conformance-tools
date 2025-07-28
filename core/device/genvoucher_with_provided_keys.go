@@ -1,77 +1,27 @@
 package device
 
 import (
-	"encoding/hex"
-	"encoding/pem"
 	"errors"
-	"fmt"
 	"log"
-	"os"
-	"time"
 
 	fdoshared "github.com/fido-alliance/iot-fdo-conformance-tools/core/shared"
 	"github.com/fido-alliance/iot-fdo-conformance-tools/core/shared/testcom"
 )
 
-const (
-	DIS_LOCATION      string = "./_dis"
-	VOUCHERS_LOCATION string = "./_vouchers"
-)
-
-func GenerateOvEntry(
-	prevEntryHash fdoshared.HashOrHmac,
-	hdrHash fdoshared.HashOrHmac,
-	mfgPrivateKey interface{},
-	prevEntrySgType fdoshared.SgType,
-	newEntrySgType fdoshared.SgType,
-	testId testcom.FDOTestID,
-) (interface{}, []byte, *fdoshared.CoseSignature, error) {
-	// Generate manufacturer private key.
-	newOVEPrivateKey, newOVEPublicKey, err := fdoshared.GenerateVoucherKeypair(newEntrySgType)
-	if err != nil {
-		return nil, []byte{}, nil, err
-	}
-
-	if testId == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_PUBKEY {
-		newOVEPublicKey = fdoshared.Conf_RandomTestFuzzPublicKey(*newOVEPublicKey)
-	}
-
-	ovEntryPayload := fdoshared.OVEntryPayload{
-		OVEHashPrevEntry: prevEntryHash,
-		OVEHashHdrInfo:   hdrHash,
-		OVEExtra:         nil,
-		OVEPubKey:        *newOVEPublicKey,
-	}
-
-	ovEntryPayloadBytes, err := fdoshared.CborCust.Marshal(ovEntryPayload)
-	if err != nil {
-		return nil, []byte{}, nil, errors.New("Error marshaling OVEntry. " + err.Error())
-	}
-
-	protectedHeader := fdoshared.ProtectedHeader{
-		Alg: fdoshared.GetIntRef(int(prevEntrySgType)),
-	}
-
-	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, mfgPrivateKey, prevEntrySgType)
-	if err != nil {
-		return nil, []byte{}, nil, errors.New("Error generating OVEntry. " + err.Error())
-	}
-
-	marshaledPrivateKey, err := fdoshared.MarshalPrivateKey(newOVEPrivateKey, newEntrySgType)
-	if err != nil {
-		return nil, []byte{}, nil, errors.New("Error marshaling private key. " + err.Error())
-	}
-
-	return newOVEPrivateKey, marshaledPrivateKey, ovEntry, nil
-}
-
-func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgType fdoshared.SgType, ovRVInfo fdoshared.RendezvousInfo, fdoTestID testcom.FDOTestID) (*fdoshared.DeviceCredAndVoucher, error) {
-	negotiatedHashHmac := fdoshared.NegotiateHashHmacTypes(newDi.DCSigInfo.SgType, voucherSgType)
+func NewVirtualDeviceAndVoucherWithKeys(
+	newDi fdoshared.WawDeviceCredential,
+	ownerPrivKey any,
+	ownerPubKey *fdoshared.FdoPublicKey,
+	sgType fdoshared.SgType,
+	ovRVInfo fdoshared.RendezvousInfo,
+	fdoTestID testcom.FDOTestID,
+) (*fdoshared.DeviceCredAndVoucher, error) {
+	negotiatedHashHmac := fdoshared.NegotiateHashHmacTypes(newDi.DCSigInfo.SgType, sgType)
 
 	newDi.UpdateToNewHashHmacTypes(negotiatedHashHmac)
 
 	// Generate manufacturer private key.
-	mfgPrivateKey, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(voucherSgType)
+	mfgPrivateKey, mfgPublicKey, err := fdoshared.GenerateVoucherKeypair(sgType)
 	if err != nil {
 		return nil, errors.New("Error generating new manufacturer private key. " + err.Error())
 	}
@@ -136,7 +86,7 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 
 	var finalOvEntryPrivateKeyBytes []byte
 
-	var prevEntrySgType fdoshared.SgType = voucherSgType
+	var prevEntrySgType fdoshared.SgType = sgType
 
 	for i := 0; i < ovEntriesCount; i++ {
 		if i == 0 {
@@ -169,11 +119,33 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 			}
 		}
 
-		chosenSgType := voucherSgType
+		chosenSgType := sgType
 
-		newPrivKeyInst, newPrivMashaled, newOvEntry, err := GenerateOvEntry(prevEntryHash, oveHdrInfoHash, prevEntryPrivKey, prevEntrySgType, chosenSgType, fdoTestID)
-		if err != nil {
-			return nil, err
+		var (
+			privKey    interface{}
+			newOvEntry *fdoshared.CoseSignature
+		)
+
+		isFinalEntry := i == ovEntriesCount-1
+		if isFinalEntry {
+			var marshalledPrivKey []byte
+			privKey, marshalledPrivKey, newOvEntry, err = GenerateOvEntryWithKeys(
+				prevEntryHash,
+				oveHdrInfoHash,
+				ownerPrivKey,
+				ownerPubKey,
+				prevEntryPrivKey,
+				prevEntrySgType,
+				chosenSgType,
+				fdoTestID,
+			)
+
+			finalOvEntryPrivateKeyBytes = marshalledPrivKey
+		} else {
+			privKey, _, newOvEntry, err = GenerateOvEntry(prevEntryHash, oveHdrInfoHash, prevEntryPrivKey, prevEntrySgType, chosenSgType, fdoTestID)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		prevEntrySgType = chosenSgType
@@ -184,11 +156,7 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 
 		ovEntryArray = append(ovEntryArray, *newOvEntry)
 
-		prevEntryPrivKey = newPrivKeyInst
-
-		if i == ovEntriesCount-1 {
-			finalOvEntryPrivateKeyBytes = newPrivMashaled
-		}
+		prevEntryPrivKey = privKey
 	}
 
 	voucherInst := fdoshared.OwnershipVoucher{
@@ -230,6 +198,7 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 
 	voucherDBEInst := fdoshared.VoucherDBEntry{
 		Voucher:        voucherInst,
+		SgType:         sgType,
 		PrivateKeyX509: finalOvEntryPrivateKeyBytes,
 	}
 
@@ -241,66 +210,45 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 	return &newWDC, err
 }
 
-func GenerateAndSaveDeviceCredAndVoucher(deviceCred fdoshared.WawDeviceCredential, voucherSgType fdoshared.SgType, ovRVInfo fdoshared.RendezvousInfo, fdoTestID testcom.FDOTestID) error {
-	newdav, err := NewVirtualDeviceAndVoucher(deviceCred, voucherSgType, ovRVInfo, fdoTestID)
-	if err != nil {
-		return err
+func GenerateOvEntryWithKeys(
+	prevEntryHash fdoshared.HashOrHmac,
+	hdrHash fdoshared.HashOrHmac,
+	newPrivKey any,
+	newPubKey *fdoshared.FdoPublicKey,
+	prevPrivKey any,
+	prevEntrySgType fdoshared.SgType,
+	newEntrySgType fdoshared.SgType,
+	testId testcom.FDOTestID,
+) (interface{}, []byte, *fdoshared.CoseSignature, error) {
+	if testId == testcom.FIDO_TEST_VOUCHER_ENTRY_BAD_PUBKEY {
+		newPubKey = fdoshared.Conf_RandomTestFuzzPublicKey(*newPubKey)
 	}
 
-	vdandv := *newdav
-
-	// Voucher to PEM
-	voucherBytes, err := fdoshared.CborCust.Marshal(vdandv.VoucherDBEntry.Voucher)
-	if err != nil {
-		return errors.New("Error marshaling voucher bytes. " + err.Error())
-	}
-	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE, Bytes: voucherBytes})
-
-	// LastOVEntry private key to PEM
-	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.PRIVATE_KEY_PEM_TYPE, Bytes: vdandv.VoucherDBEntry.PrivateKeyX509})
-
-	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
-
-	filetimestamp := time.Now().Format("2006-01-02_15.04.05")
-	filename := filetimestamp + hex.EncodeToString(vdandv.WawDeviceCredential.DCGuid[:])
-
-	voucherWriteLocation := fmt.Sprintf("%s/%s.voucher.pem", VOUCHERS_LOCATION, filename)
-	err = os.WriteFile(voucherWriteLocation, voucherFileBytes, 0o644)
-	if err != nil {
-		return fmt.Errorf("error saving di \"%s\". %s", voucherWriteLocation, err.Error())
+	ovEntryPayload := fdoshared.OVEntryPayload{
+		OVEHashPrevEntry: prevEntryHash,
+		OVEHashHdrInfo:   hdrHash,
+		OVEExtra:         nil,
+		OVEPubKey:        *newPubKey,
 	}
 
-	// Di bytes
-	diBytes, err := fdoshared.CborCust.Marshal(vdandv.WawDeviceCredential)
+	ovEntryPayloadBytes, err := fdoshared.CborCust.Marshal(ovEntryPayload)
 	if err != nil {
-		return errors.New("Error marshaling voucher bytes. " + err.Error())
+		return nil, []byte{}, nil, errors.New("Error marshaling OVEntry. " + err.Error())
 	}
 
-	diBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.CREDENTIAL_PEM_TYPE, Bytes: diBytes})
-	disWriteLocation := fmt.Sprintf("%s/%s.dis.pem", DIS_LOCATION, filename)
-	err = os.WriteFile(disWriteLocation, diBytesPem, 0o644)
-	if err != nil {
-		return fmt.Errorf("error saving di \"%s\". %s", disWriteLocation, err.Error())
+	protectedHeader := fdoshared.ProtectedHeader{
+		Alg: fdoshared.GetIntRef(int(prevEntrySgType)),
 	}
 
-	log.Println("Successfully generate voucher and di files.")
-	log.Println(voucherWriteLocation)
-	log.Println(disWriteLocation)
-
-	return nil
-}
-
-func MarshalVoucherAndPrivateKey(vdbEntry fdoshared.VoucherDBEntry) ([]byte, error) {
-	// Voucher to PEM
-	voucherBytes, err := fdoshared.CborCust.Marshal(vdbEntry.Voucher)
+	ovEntry, err := fdoshared.GenerateCoseSignature(ovEntryPayloadBytes, protectedHeader, fdoshared.UnprotectedHeader{}, prevPrivKey, prevEntrySgType)
 	if err != nil {
-		return []byte{}, errors.New("Error marshaling voucher bytes. " + err.Error())
+		return nil, []byte{}, nil, errors.New("Error generating OVEntry. " + err.Error())
 	}
-	voucherBytesPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.OWNERSHIP_VOUCHER_PEM_TYPE, Bytes: voucherBytes})
 
-	// LastOVEntry private key to PEM
-	ovEntryPrivateKeyPem := pem.EncodeToMemory(&pem.Block{Type: fdoshared.PRIVATE_KEY_PEM_TYPE, Bytes: vdbEntry.PrivateKeyX509})
-	voucherFileBytes := append(voucherBytesPem, ovEntryPrivateKeyPem...)
+	marshaledPrivateKey, err := fdoshared.MarshalPrivateKey(newPrivKey, newEntrySgType)
+	if err != nil {
+		return nil, []byte{}, nil, errors.New("Error marshaling private key. " + err.Error())
+	}
 
-	return voucherFileBytes, nil
+	return newPrivKey, marshaledPrivateKey, ovEntry, nil
 }
