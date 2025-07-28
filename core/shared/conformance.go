@@ -18,12 +18,17 @@ func Conf_NewRandomSgTypeExcept(exceptSg SgType) SgType {
 }
 
 func Conf_NewRandomHashHmacAlgExcept(exceptHashAlg HashType) HashType {
-	for {
-		randLoc := NewRandomInt(0, len(HashHmacAlgs)-1)
-
-		if HashHmacAlgs[randLoc] != exceptHashAlg {
-			return HashHmacAlgs[randLoc]
-		}
+	switch exceptHashAlg {
+	case HASH_SHA256:
+		return HASH_SHA384
+	case HASH_SHA384:
+		return HASH_SHA256
+	case HASH_HMAC_SHA256:
+		return HASH_HMAC_SHA384
+	case HASH_HMAC_SHA384:
+		return HASH_HMAC_SHA256
+	default:
+		return HASH_SHA256
 	}
 }
 
@@ -114,22 +119,11 @@ func Conf_RandomTypeExcept(exceptType *Conf_CborTypes) interface{} {
 }
 
 func Conf_RandomTestFuzzPublicKey(pubKey FdoPublicKey) *FdoPublicKey {
-	newPubKey := FdoPublicKey{
-		PkType: pubKey.PkType,
-		PkEnc:  pubKey.PkEnc,
-		PkBody: pubKey.PkBody,
+	return &FdoPublicKey{
+		PkType: Conf_NewRandomFdoPkTypeExcept(pubKey.PkType),
+		PkEnc:  Conf_NewRandomFdoPkEncExcept(pubKey.PkEnc),
+		PkBody: Conf_RandomTypeExcept(nil),
 	}
-
-	randomNumber := NewRandomInt(0, 150)
-	if randomNumber < 50 {
-		newPubKey.PkBody = Conf_RandomTypeExcept(nil)
-	} else if randomNumber < 100 {
-		newPubKey.PkEnc = Conf_NewRandomFdoPkEncExcept(newPubKey.PkEnc)
-	} else {
-		newPubKey.PkType = Conf_NewRandomFdoPkTypeExcept(newPubKey.PkType)
-	}
-
-	return &newPubKey
 }
 
 func Conf_RandomCborBufferFuzzing(inputBuff []byte) []byte {

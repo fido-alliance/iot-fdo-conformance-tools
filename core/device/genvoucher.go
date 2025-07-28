@@ -216,16 +216,16 @@ func NewVirtualDeviceAndVoucher(newDi fdoshared.WawDeviceCredential, voucherSgTy
 
 	if fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_HDR_HMAC {
 		voucherInst.OVHeaderHMac = *fdoshared.Conf_RandomTestHashHmac(voucherInst.OVHeaderHMac, ovHeaderBytes, newDi.DCHmacSecret)
-	}
 
-	if voucherInst.OVDevCertChain != nil && fdoTestID == testcom.FIDO_TEST_VOUCHER_BAD_HDR_HMAC {
-		chainTemp := *voucherInst.OVDevCertChain
-		leafCert := chainTemp[0]
+		if voucherInst.OVDevCertChain != nil {
+			chainTemp := *voucherInst.OVDevCertChain
+			leafCert := chainTemp[0]
 
-		chainTemp[0] = chainTemp[1]
-		chainTemp[1] = leafCert
+			chainTemp[0] = chainTemp[1]
+			chainTemp[1] = leafCert
 
-		voucherInst.OVDevCertChain = &chainTemp
+			voucherInst.OVDevCertChain = &chainTemp
+		}
 	}
 
 	voucherDBEInst := fdoshared.VoucherDBEntry{
