@@ -55,9 +55,8 @@ func ValidateDeviceSIMs(guid fdoshared.FdoGuid, sims []fdoshared.ServiceInfoKV) 
 func (h *DoTo2) getEnvInteropSimsMapping() (map[fdoshared.FdoGuid]string, error) {
 	mappings := map[fdoshared.FdoGuid]string{}
 
-	iopEnabled := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED)
-
-	if iopEnabled != nil && iopEnabled.(bool) {
+	isIopEnabled, _ := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_ENABLED).(bool)
+	if isIopEnabled {
 		rawTokens := h.ctx.Value(fdoshared.CFG_ENV_INTEROP_DO_TOKEN_MAPPING).(string)
 
 		var envMappings [][]string
@@ -97,17 +96,16 @@ func (h *DoTo2) GetOwnerSIMs(guid fdoshared.FdoGuid) ([]fdoshared.ServiceInfoKV,
 
 	iopSIMVal, ok := interopMappings[guid]
 	if ok {
-		ownerSims = append(ownerSims,
-			[]fdoshared.ServiceInfoKV{
-				{
-					ServiceInfoKey: fdoshared.IOPLOGGER_SIM_ACTIVE,
-					ServiceInfoVal: fdoshared.CBOR_TRUE,
-				},
-				{
-					ServiceInfoKey: fdoshared.IOPLOGGER_SIM,
-					ServiceInfoVal: fdoshared.StringToCborBytes(iopSIMVal),
-				},
-			}...)
+		ownerSims = append(ownerSims, []fdoshared.ServiceInfoKV{
+			{
+				ServiceInfoKey: fdoshared.IOPLOGGER_SIM_ACTIVE,
+				ServiceInfoVal: fdoshared.CBOR_TRUE,
+			},
+			{
+				ServiceInfoKey: fdoshared.IOPLOGGER_SIM,
+				ServiceInfoVal: []byte(iopSIMVal),
+			},
+		}...)
 	}
 
 	// TODO

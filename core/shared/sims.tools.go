@@ -2,7 +2,6 @@ package fdoshared
 
 import (
 	"fmt"
-	"log"
 	"runtime"
 
 	"github.com/fxamacker/cbor/v2"
@@ -28,7 +27,6 @@ func (h *SIMS) GetSimIDs() SIM_IDS {
 
 func (h *SIMS) GetSim(simID SIM_ID) ([]byte, bool) {
 	for _, sim := range *h {
-		log.Println(sim.ServiceInfoKey, simID)
 		if sim.ServiceInfoKey == simID {
 			return sim.ServiceInfoVal, true
 		}
