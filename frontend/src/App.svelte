@@ -2,7 +2,7 @@
     import Login from './routes/Login.svelte'
     import NotFound from './routes/NotFound.svelte'
     import FdoDashboard from './routes/FdoDashboard.svelte';
-    import {logout, isIopOnly} from './lib/User.api'
+    import {logout} from './lib/User.api'
     import Router, {location, push} from "svelte-spa-router"
     import Rv from './routes/RV.fdo.svelte';
     import Do from './routes/DO.fdo.svelte';
@@ -24,18 +24,6 @@
         await logout()
         push('/login')
     }
-
-    const isIop = async () => {
-        let result = await isIopOnly()
-
-        if (result) {
-          setTimeout(() => {
-            push('/iop')
-          }, 250)
-        }
-    }
-
-    isIop()
 </script>
 
 

@@ -118,24 +118,3 @@ export const purgeTests = async(): Promise<Boolean> => {
 
     return true
 }
-
-export const isIopOnly = async(): Promise<Boolean> => {
-    let result = await fetch("/api/iop/is_iop_only", {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-
-    let resultJson = await result.json()
-
-    if (result.status !== 200) {
-        if (resultJson !== undefined && resultJson.errorMessage !== undefined) {
-            return false
-        }
-
-        return false
-    }
-
-    return resultJson.oipOnly
-}

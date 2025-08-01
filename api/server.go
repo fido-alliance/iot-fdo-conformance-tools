@@ -62,11 +62,6 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 		SessionDB: sessionDb,
 	}
 
-	iopApi := IopApi{
-		DOVouchersDB: doVoucherDb,
-		Ctx:          ctx,
-	}
-
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/rvt/create", rvtApiHandler.Generate)
@@ -84,9 +79,6 @@ func SetupServer(db *badger.DB, ctx context.Context) {
 	r.HandleFunc("/api/device/testruns", deviceApiHandler.List)
 	r.HandleFunc("/api/device/testruns/{toprotocol}/{testinsthex}/{testrunid}", deviceApiHandler.DeleteTestRun).Methods("DELETE")
 	r.HandleFunc("/api/device/testruns/{toprotocol}/{testinsthex}", deviceApiHandler.StartNewTestRun).Methods("POST")
-
-	r.HandleFunc("/api/iop/do/add", iopApi.IopAddVoucherToDO)
-	r.HandleFunc("/api/iop/is_iop_only", iopApi.IsOipOnly)
 
 	r.HandleFunc("/api/user/login/onprem", userApiHandler.OnPremNoLogin)
 	r.HandleFunc("/api/user/loggedin", userApiHandler.UserLoggedIn)
