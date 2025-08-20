@@ -272,7 +272,7 @@ func (h *RvTo1) Handle32ProveToRV(w http.ResponseWriter, r *http.Request) {
 
 		err = fdoshared.SubmitIopLoggerEvent(h.ctx, session.Guid, fdoshared.To1, session.NonceTO1Proof, authzHeader)
 		if err != nil {
-			log.Println("IOT: Error sending iop logg event: " + err.Error())
+			log.Println("IOT: Error sending iop log event: " + err.Error())
 		}
 	} else if !iopEnabled {
 		log.Println("Interop is not enabled, skipping IOP logger event submission")

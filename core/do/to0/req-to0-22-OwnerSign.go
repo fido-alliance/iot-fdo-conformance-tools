@@ -143,7 +143,7 @@ func (h *To0Requestor) OwnerSign22(nonceTO0Sign fdoshared.FdoNonce, fdoTestId te
 
 		err = fdoshared.SubmitIopLoggerEvent(h.ctx, voucherHeader.OVGuid, fdoshared.To0, nonceTO0Sign, authzHeader)
 		if err != nil {
-			log.Println("OwnerSign22: Error sending iop logg event: " + err.Error())
+			log.Println("OwnerSign22: Error sending iop log event: " + err.Error())
 		}
 	} else if !iopEnabled {
 		log.Println("Interop is not enabled, skipping IOP logger event submission")

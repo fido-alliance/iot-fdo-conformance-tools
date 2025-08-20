@@ -213,9 +213,9 @@ func (h *RvTo0) Handle22OwnerSign(w http.ResponseWriter, r *http.Request) {
 			log.Println("IOT: Error getting authz header: " + err.Error())
 		}
 
-		err = fdoshared.SubmitIopLoggerEvent(h.ctx, session.Guid, fdoshared.To0, session.NonceTO0Sign, authzHeader)
+		err = fdoshared.SubmitIopLoggerEvent(h.ctx, ovHeader.OVGuid, fdoshared.To0, session.NonceTO0Sign, authzHeader)
 		if err != nil {
-			log.Println("IOT: Error sending iop logg event: " + err.Error())
+			log.Println("IOT: Error sending iop log event: " + err.Error())
 		}
 	} else if !iopEnabled {
 		log.Println("Interop is not enabled, skipping IOP logger event submission")

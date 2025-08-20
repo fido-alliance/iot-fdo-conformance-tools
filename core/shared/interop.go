@@ -20,8 +20,6 @@ var (
 
 var IOPLOGGER_LOGGER_PATH = "/logger/101/msg"
 
-var IOPLOGGER_LOGGER_CMD FdoCmd = 10
-
 type IopComp string
 
 const (
@@ -49,7 +47,7 @@ func SubmitIopLoggerEvent(ctx context.Context, guid FdoGuid, toProtocol FdoToPro
 	}
 	payloadBytes, _ := CborCust.Marshal(payload)
 
-	srvUrl, err := url.JoinPath(ctx.Value(CFG_ENV_INTEROP_DASHBOARD_URL).(string), IOPLOGGER_LOGGER_PATH, IOPLOGGER_LOGGER_CMD.ToString())
+	srvUrl, err := url.JoinPath(ctx.Value(CFG_ENV_INTEROP_DASHBOARD_URL).(string), IOPLOGGER_LOGGER_PATH)
 	if err != nil {
 		return fmt.Errorf("error joining IOP logger URL path: %s", err.Error())
 	}

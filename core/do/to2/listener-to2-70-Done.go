@@ -117,7 +117,7 @@ func (h *DoTo2) Done70(w http.ResponseWriter, r *http.Request) {
 
 		err = fdoshared.SubmitIopLoggerEvent(h.ctx, session.Guid, fdoshared.To2, session.NonceTO2SetupDv64, authzHeader)
 		if err != nil {
-			log.Println("IOT: Error sending iop logg event: " + err.Error())
+			log.Println("IOT: Error sending iop log event: " + err.Error())
 		}
 	} else if !iopEnabled {
 		log.Println("Interop is not enabled, skipping IOP logger event submission")
